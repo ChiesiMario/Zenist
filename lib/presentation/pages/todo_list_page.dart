@@ -34,44 +34,31 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
     final todosAsync = ref.watch(todoListStreamProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Zenist.', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        centerTitle: false,
+        shape: const Border(bottom: BorderSide(color: AppColors.divider, width: 1)),
+      ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 64, 24, 32),
-              child: Text(
-                'Tasks.',
-                style: Theme.of(context).textTheme.displayLarge,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: TextField(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
                 controller: _controller,
                 onSubmitted: (_) => _submit(),
                 style: Theme.of(context).textTheme.bodyLarge,
                 cursorColor: AppColors.black,
                 decoration: InputDecoration(
                   hintText: 'Add a new task...',
-                  hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
-                  border: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.gray200),
-                  ),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.gray200),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.black, width: 2),
-                  ),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.add, color: AppColors.black),
                     onPressed: _submit,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: 24),
             Expanded(
               child: todosAsync.when(
                 data: (todos) {
@@ -87,15 +74,24 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                       ),
                     );
                   }
-                  return ListView.builder(
-                    itemCount: todos.length,
-                    itemBuilder: (context, index) {
-                      return TodoItemWidget(
-                        // 確保 key 與 ID 綁定，提供更好的動畫與狀態管理
-                        key: ValueKey(todos[index].id),
-                        todo: todos[index]
-                      );
-                    },
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBackground,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: AppColors.divider, width: 1),
+                    ),
+                    clipBehavior: Clip.antiAlias, // Ensure rounded corners clip children
+                    child: ListView.separated(
+                      padding: EdgeInsets.zero,
+                      itemCount: todos.length,
+                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        return TodoItemWidget(
+                          key: ValueKey(todos[index].id),
+                          todo: todos[index]
+                        );
+                      },
+                    ),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: AppColors.black)),
@@ -104,6 +100,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
             ),
           ],
         ),
+      ),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -117,58 +114,65 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
             });
           },
           type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.background,
+          backgroundColor: AppColors.white,
           selectedItemColor: AppColors.black,
-          unselectedItemColor: AppColors.gray400,
+          unselectedItemColor: AppColors.vercelGray400,
+          selectedFontSize: 11,
+          unselectedFontSize: 11,
           selectedLabelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.black,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+            letterSpacing: 0.2,
           ),
-          unselectedLabelStyle: Theme.of(context).textTheme.bodyMedium,
+          unselectedLabelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            fontSize: 11,
+            letterSpacing: 0.2,
+          ),
           showUnselectedLabels: true,
           elevation: 0,
           items: const [
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.wb_sunny_outlined, size: 24),
+                child: Icon(Icons.wb_sunny_outlined, size: 22),
               ),
               activeIcon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.wb_sunny, size: 24),
+                child: Icon(Icons.wb_sunny, size: 22),
               ),
               label: '今天',
             ),
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.calendar_today_outlined, size: 24),
+                child: Icon(Icons.calendar_today_outlined, size: 22),
               ),
               activeIcon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.calendar_today, size: 24),
+                child: Icon(Icons.calendar_today, size: 22),
               ),
               label: '未來',
             ),
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.inbox_outlined, size: 24),
+                child: Icon(Icons.inbox_outlined, size: 22),
               ),
               activeIcon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.inbox, size: 24),
+                child: Icon(Icons.inbox, size: 22),
               ),
               label: '某天',
             ),
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.all_inclusive_outlined, size: 24),
+                child: Icon(Icons.all_inclusive_outlined, size: 22),
               ),
               activeIcon: Padding(
                 padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.all_inclusive, size: 24),
+                child: Icon(Icons.all_inclusive, size: 22),
               ),
               label: '隨時',
             ),

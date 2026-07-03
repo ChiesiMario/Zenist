@@ -20,7 +20,7 @@ class TodoItemWidget extends ConsumerWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        color: AppColors.black, // 保持無彩色，以強烈的黑色表示刪除
+        color: Colors.red.shade600, // Vercel 風格的破壞性操作紅色
         child: const Icon(Icons.delete_outline, color: AppColors.white),
       ),
       child: InkWell(
@@ -28,34 +28,32 @@ class TodoItemWidget extends ConsumerWidget {
           ref.read(todoNotifierProvider.notifier).toggleTodo(todo);
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOutCubic,
-                width: 24,
-                height: 24,
+                duration: const Duration(milliseconds: 200),
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
                   color: todo.isCompleted ? AppColors.black : AppColors.transparent,
                   border: Border.all(
-                    color: todo.isCompleted ? AppColors.black : AppColors.gray400,
-                    width: 2,
+                    color: todo.isCompleted ? AppColors.black : AppColors.divider,
+                    width: 1.5,
                   ),
-                  borderRadius: BorderRadius.circular(4), // 幾何方塊
+                  borderRadius: BorderRadius.circular(6), // Vercel 常用的 6px 圓角
                 ),
                 child: todo.isCompleted
-                    ? const Icon(Icons.check, size: 16, color: AppColors.white)
+                    ? const Icon(Icons.check, size: 14, color: AppColors.white)
                     : null,
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 16),
               Expanded(
                 child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutCubic,
+                  duration: const Duration(milliseconds: 200),
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                        color: todo.isCompleted ? AppColors.textSecondary : AppColors.textPrimary,
+                        color: todo.isCompleted ? AppColors.vercelGray400 : AppColors.textPrimary,
                         decoration: todo.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
                       ),
                   child: Text(todo.title),
