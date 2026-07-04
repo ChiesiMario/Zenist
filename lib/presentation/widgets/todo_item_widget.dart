@@ -26,6 +26,14 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
     return widget.todo.dueDate!.isBefore(todayStart);
   }
 
+  bool get _isToday {
+    if (widget.todo.dueDate == null) return false;
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEnd = todayStart.add(const Duration(days: 1));
+    return !widget.todo.dueDate!.isBefore(todayStart) && widget.todo.dueDate!.isBefore(todayEnd);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -110,7 +118,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ),
                               child: Text(widget.todo.title),
                             ),
-                            if (widget.todo.dueDate != null)
+                            if (widget.todo.dueDate != null && !_isToday)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Row(
@@ -130,28 +138,6 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                         color: _isOverdue
                                             ? ShadTheme.of(context).colorScheme.destructive
                                             : ShadTheme.of(context).colorScheme.mutedForeground,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            if (widget.todo.isAnytime)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4.0),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      LucideIcons.infinity,
-                                      size: 12,
-                                      color: ShadTheme.of(context).colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '隨時',
-                                      style: ShadTheme.of(context).textTheme.muted.copyWith(
-                                        fontSize: 12,
-                                        color: ShadTheme.of(context).colorScheme.primary,
-                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ],
