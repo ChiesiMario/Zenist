@@ -65,24 +65,26 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ShadCalendar(
-                  selected: _selectedDueDate,
-                  onChanged: (v) {
-                    Navigator.of(context).pop(v);
-                  },
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ShadButton.outline(
+            child: SizedBox(
+              width: 280,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ShadCalendar(
+                    selected: _selectedDueDate,
+                    onChanged: (v) {
+                      Navigator.of(context).pop(v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  ShadButton.outline(
                     onPressed: () {
                       Navigator.of(context).pop('anytime');
                     },
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(LucideIcons.infinity, size: 16),
                         SizedBox(width: 8.0),
@@ -90,8 +92,8 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
