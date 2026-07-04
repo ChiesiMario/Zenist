@@ -45,10 +45,12 @@ class TodoNotifier extends Notifier<void> {
 
   Future<void> toggleTodo(Todo todo) async {
     final repository = ref.read(todoRepositoryProvider);
-    final updatedTodo = todo.copyWith(
-      isCompleted: !todo.isCompleted,
-      updatedAt: DateTime.now(),
-    );
+      final updatedTodo = todo.copyWith(
+        isCompleted: !todo.isCompleted,
+        updatedAt: DateTime.now(),
+        completedAt: !todo.isCompleted ? DateTime.now() : null,
+        clearCompletedAt: todo.isCompleted,
+      );
     await repository.saveTodo(updatedTodo);
   }
 

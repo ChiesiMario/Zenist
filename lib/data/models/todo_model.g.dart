@@ -17,48 +17,53 @@ const TodoModelSchema = CollectionSchema(
   name: r'TodoModel',
   id: 4924789365587537652,
   properties: {
-    r'createdAt': PropertySchema(
+    r'completedAt': PropertySchema(
       id: 0,
+      name: r'completedAt',
+      type: IsarType.dateTime,
+    ),
+    r'createdAt': PropertySchema(
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'description': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'description',
       type: IsarType.string,
     ),
     r'dueDate': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'dueDate',
       type: IsarType.dateTime,
     ),
     r'isAnytime': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'isAnytime',
       type: IsarType.bool,
     ),
     r'isCompleted': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'isCompleted',
       type: IsarType.bool,
     ),
     r'isDeleted': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'title': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'uuid': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -79,6 +84,19 @@ const TodoModelSchema = CollectionSchema(
           name: r'uuid',
           type: IndexType.hash,
           caseSensitive: true,
+        )
+      ],
+    ),
+    r'completedAt': IndexSchema(
+      id: -3156591011457686752,
+      name: r'completedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'completedAt',
+          type: IndexType.value,
+          caseSensitive: false,
         )
       ],
     )
@@ -109,15 +127,16 @@ void _todoModelSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.description);
-  writer.writeDateTime(offsets[2], object.dueDate);
-  writer.writeBool(offsets[3], object.isAnytime);
-  writer.writeBool(offsets[4], object.isCompleted);
-  writer.writeBool(offsets[5], object.isDeleted);
-  writer.writeString(offsets[6], object.title);
-  writer.writeDateTime(offsets[7], object.updatedAt);
-  writer.writeString(offsets[8], object.uuid);
+  writer.writeDateTime(offsets[0], object.completedAt);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeString(offsets[2], object.description);
+  writer.writeDateTime(offsets[3], object.dueDate);
+  writer.writeBool(offsets[4], object.isAnytime);
+  writer.writeBool(offsets[5], object.isCompleted);
+  writer.writeBool(offsets[6], object.isDeleted);
+  writer.writeString(offsets[7], object.title);
+  writer.writeDateTime(offsets[8], object.updatedAt);
+  writer.writeString(offsets[9], object.uuid);
 }
 
 TodoModel _todoModelDeserialize(
@@ -127,16 +146,17 @@ TodoModel _todoModelDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = TodoModel();
-  object.createdAt = reader.readDateTime(offsets[0]);
-  object.description = reader.readString(offsets[1]);
-  object.dueDate = reader.readDateTimeOrNull(offsets[2]);
+  object.completedAt = reader.readDateTimeOrNull(offsets[0]);
+  object.createdAt = reader.readDateTime(offsets[1]);
+  object.description = reader.readString(offsets[2]);
+  object.dueDate = reader.readDateTimeOrNull(offsets[3]);
   object.id = id;
-  object.isAnytime = reader.readBool(offsets[3]);
-  object.isCompleted = reader.readBool(offsets[4]);
-  object.isDeleted = reader.readBool(offsets[5]);
-  object.title = reader.readString(offsets[6]);
-  object.updatedAt = reader.readDateTime(offsets[7]);
-  object.uuid = reader.readString(offsets[8]);
+  object.isAnytime = reader.readBool(offsets[4]);
+  object.isCompleted = reader.readBool(offsets[5]);
+  object.isDeleted = reader.readBool(offsets[6]);
+  object.title = reader.readString(offsets[7]);
+  object.updatedAt = reader.readDateTime(offsets[8]);
+  object.uuid = reader.readString(offsets[9]);
   return object;
 }
 
@@ -148,22 +168,24 @@ P _todoModelDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTime(offset)) as P;
-    case 1:
-      return (reader.readString(offset)) as P;
-    case 2:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 1:
+      return (reader.readDateTime(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 8:
+      return (reader.readDateTime(offset)) as P;
+    case 9:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -241,6 +263,14 @@ extension TodoModelQueryWhereSort
   QueryBuilder<TodoModel, TodoModel, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhere> anyCompletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'completedAt'),
+      );
     });
   }
 }
@@ -356,10 +386,192 @@ extension TodoModelQueryWhere
       }
     });
   }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhereClause> completedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'completedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhereClause> completedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'completedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhereClause> completedAtEqualTo(
+      DateTime? completedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'completedAt',
+        value: [completedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhereClause> completedAtNotEqualTo(
+      DateTime? completedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'completedAt',
+              lower: [],
+              upper: [completedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'completedAt',
+              lower: [completedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'completedAt',
+              lower: [completedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'completedAt',
+              lower: [],
+              upper: [completedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhereClause> completedAtGreaterThan(
+    DateTime? completedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'completedAt',
+        lower: [completedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhereClause> completedAtLessThan(
+    DateTime? completedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'completedAt',
+        lower: [],
+        upper: [completedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterWhereClause> completedAtBetween(
+    DateTime? lowerCompletedAt,
+    DateTime? upperCompletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'completedAt',
+        lower: [lowerCompletedAt],
+        includeLower: includeLower,
+        upper: [upperCompletedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension TodoModelQueryFilter
     on QueryBuilder<TodoModel, TodoModel, QFilterCondition> {
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      completedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'completedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      completedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'completedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> completedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      completedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> completedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> completedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'completedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> createdAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -1022,6 +1234,18 @@ extension TodoModelQueryLinks
     on QueryBuilder<TodoModel, TodoModel, QFilterCondition> {}
 
 extension TodoModelQuerySortBy on QueryBuilder<TodoModel, TodoModel, QSortBy> {
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByCompletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByCompletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1133,6 +1357,18 @@ extension TodoModelQuerySortBy on QueryBuilder<TodoModel, TodoModel, QSortBy> {
 
 extension TodoModelQuerySortThenBy
     on QueryBuilder<TodoModel, TodoModel, QSortThenBy> {
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByCompletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByCompletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
@@ -1256,6 +1492,12 @@ extension TodoModelQuerySortThenBy
 
 extension TodoModelQueryWhereDistinct
     on QueryBuilder<TodoModel, TodoModel, QDistinct> {
+  QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByCompletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'completedAt');
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -1319,6 +1561,12 @@ extension TodoModelQueryProperty
   QueryBuilder<TodoModel, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<TodoModel, DateTime?, QQueryOperations> completedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'completedAt');
     });
   }
 

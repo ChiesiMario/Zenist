@@ -36,16 +36,18 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5),
-            width: 1,
+    return Opacity(
+      opacity: widget.todo.isCompleted ? 0.5 : 1.0,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5),
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: ShadContextMenu(
+        child: ShadContextMenu(
         items: [
           ShadContextMenuItem(
             onPressed: () {
@@ -154,6 +156,6 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

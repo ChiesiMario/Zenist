@@ -1,9 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_item_widget.dart';
+import '../../domain/entities/todo.dart';
 
 class TodoListPage extends ConsumerStatefulWidget {
   const TodoListPage({super.key});
@@ -233,25 +235,44 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                               final todayStart = DateTime(now.year, now.month, now.day);
                               final todayEnd = todayStart.add(const Duration(days: 1));
 
-                              final todos = allTodos.where((todo) {
-                                if (_currentIndex == 0) { // 今天
-                                  if (todo.dueDate == null || todo.isAnytime) return false;
-                                  if (todo.dueDate!.isBefore(todayStart)) {
-                                    return !todo.isCompleted; // 過期但未完成
-                                  }
-                                  return todo.dueDate!.isBefore(todayEnd); // 今天之內
-                                } else if (_currentIndex == 1) { // 未來
-                                  if (todo.dueDate == null || todo.isAnytime) return false;
-                                  return todo.dueDate!.isAfter(todayEnd.subtract(const Duration(milliseconds: 1)));
-                                } else if (_currentIndex == 2) { // 某天
-                                  return todo.dueDate == null && !todo.isAnytime;
-                                } else if (_currentIndex == 3) { // 隨時
-                                  return todo.isAnytime;
-                                }
-                                return false;
-                              }).toList();
+                              final uncompletedTodos = <Todo>[];
+                              final completedTodayTodos = <Todo>[];
 
-                              if (todos.isEmpty) {
+                              for (final todo in allTodos) {
+                                bool matchesTab = false;
+                                if (_currentIndex == 0) { // 今天
+                                  if (todo.dueDate != null && !todo.isAnytime) {
+                                    if (todo.dueDate!.isBefore(todayStart)) {
+                                      if (!todo.isCompleted) matchesTab = true; // 過期但未完成
+                                    } else if (todo.dueDate!.isBefore(todayEnd)) {
+                                      matchesTab = true; // 今天之內
+                                    }
+                                  }
+                                } else if (_currentIndex == 1) { // 未來
+                                  if (todo.dueDate != null && !todo.isAnytime && todo.dueDate!.isAfter(todayEnd.subtract(const Duration(milliseconds: 1)))) {
+                                    matchesTab = true;
+                                  }
+                                } else if (_currentIndex == 2) { // 某天
+                                  if (todo.dueDate == null && !todo.isAnytime) matchesTab = true;
+                                } else if (_currentIndex == 3) { // 隨時
+                                  if (todo.isAnytime) matchesTab = true;
+                                }
+
+                                if (matchesTab) {
+                                  if (!todo.isCompleted) {
+                                    uncompletedTodos.add(todo);
+                                  } else {
+                                    // 僅限今天完成的
+                                    if (todo.completedAt != null && 
+                                        !todo.completedAt!.isBefore(todayStart) && 
+                                        todo.completedAt!.isBefore(todayEnd)) {
+                                      completedTodayTodos.add(todo);
+                                    }
+                                  }
+                                }
+                              }
+
+                              if (uncompletedTodos.isEmpty && completedTodayTodos.isEmpty) {
                                 return Center(
                                   child: Text(
                                     'No tasks yet.\nEnjoy the emptiness.',
@@ -263,13 +284,38 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                   ),
                                 );
                               }
+                              
+                              final itemCount = uncompletedTodos.length + (completedTodayTodos.isEmpty ? 0 : completedTodayTodos.length + 1);
+
                               return ListView.builder(
                                 padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
-                                itemCount: todos.length,
+                                itemCount: itemCount,
                                 itemBuilder: (context, index) {
+                                  if (index < uncompletedTodos.length) {
+                                    return TodoItemWidget(
+                                      key: ValueKey(uncompletedTodos[index].id),
+                                      todo: uncompletedTodos[index],
+                                    );
+                                  }
+                                  
+                                  final completedIndex = index - uncompletedTodos.length;
+                                  if (completedIndex == 0) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 32, bottom: 8),
+                                      child: Text(
+                                        '已完成',
+                                        style: ShadTheme.of(context).textTheme.large.copyWith(
+                                          color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  
+                                  final todo = completedTodayTodos[completedIndex - 1];
                                   return TodoItemWidget(
-                                    key: ValueKey(todos[index].id),
-                                    todo: todos[index]
+                                    key: ValueKey(todo.id),
+                                    todo: todo,
                                   );
                                 },
                               );
@@ -286,30 +332,28 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
             ),
             ),
           ),
-          // Glassmorphism Header
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 16,
-                    bottom: 16,
-                    left: 24,
-                    right: 24,
-                  ),
-                  color: ShadTheme.of(context).colorScheme.background.withOpacity(0.7),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 600),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Zenist.', style: ShadTheme.of(context).textTheme.h4.copyWith(fontWeight: FontWeight.w700)),
-                        ],
+          // Header
+          SafeArea(
+            bottom: false,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: SizedBox(
+                  height: 80.0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Zenist.',
+                        style: GoogleFonts.nunito(
+                          textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 32,
+                                letterSpacing: -0.5,
+                              ),
+                        ),
                       ),
                     ),
                   ),

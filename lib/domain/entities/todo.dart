@@ -8,6 +8,7 @@ class Todo {
   final DateTime updatedAt;
   final DateTime? dueDate;
   final bool isAnytime;
+  final DateTime? completedAt;
 
   Todo({
     required this.id,
@@ -19,6 +20,7 @@ class Todo {
     required this.updatedAt,
     this.dueDate,
     this.isAnytime = false,
+    this.completedAt,
   });
 
   Todo copyWith({
@@ -29,6 +31,8 @@ class Todo {
     DateTime? updatedAt,
     DateTime? dueDate,
     bool? isAnytime,
+    DateTime? completedAt,
+    bool clearCompletedAt = false,
   }) {
     return Todo(
       id: id,
@@ -40,6 +44,7 @@ class Todo {
       updatedAt: updatedAt ?? this.updatedAt,
       dueDate: dueDate ?? this.dueDate,
       isAnytime: isAnytime ?? this.isAnytime,
+      completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
     );
   }
 }
