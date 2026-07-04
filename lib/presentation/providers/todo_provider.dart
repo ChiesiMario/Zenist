@@ -28,7 +28,7 @@ class TodoNotifier extends Notifier<void> {
   @override
   void build() {}
 
-  Future<void> addTodo(String title) async {
+  Future<void> addTodo(String title, {DateTime? dueDate, bool isAnytime = false}) async {
     if (title.trim().isEmpty) return;
     
     final repository = ref.read(todoRepositoryProvider);
@@ -37,6 +37,8 @@ class TodoNotifier extends Notifier<void> {
       title: title.trim(),
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      dueDate: dueDate,
+      isAnytime: isAnytime,
     );
     await repository.saveTodo(todo);
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/theme/app_theme.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'presentation/pages/todo_list_page.dart';
 
 void main() {
@@ -17,10 +18,17 @@ class ZenistApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ShadApp(
       title: 'Zenist',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      themeMode: ThemeMode.light,
+      theme: ShadThemeData(
+        colorScheme: const ShadZincColorScheme.light(
+          background: Color(0xFFFAFAFA), // 極淡灰背景，突顯卡片
+        ),
+        brightness: Brightness.light,
+        textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.inter),
+      ),
       home: const TodoListPage(),
     );
   }

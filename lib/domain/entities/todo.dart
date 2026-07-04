@@ -6,6 +6,8 @@ class Todo {
   final bool isDeleted;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? dueDate;
+  final bool isAnytime;
 
   Todo({
     required this.id,
@@ -15,6 +17,8 @@ class Todo {
     this.isDeleted = false,
     required this.createdAt,
     required this.updatedAt,
+    this.dueDate,
+    this.isAnytime = false,
   });
 
   Todo copyWith({
@@ -23,6 +27,8 @@ class Todo {
     bool? isCompleted,
     bool? isDeleted,
     DateTime? updatedAt,
+    DateTime? dueDate,
+    bool? isAnytime,
   }) {
     return Todo(
       id: id,
@@ -32,6 +38,8 @@ class Todo {
       isDeleted: isDeleted ?? this.isDeleted,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      dueDate: dueDate ?? this.dueDate,
+      isAnytime: isAnytime ?? this.isAnytime,
     );
   }
 }

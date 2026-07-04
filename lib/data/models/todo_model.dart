@@ -16,6 +16,8 @@ class TodoModel {
   late bool isDeleted;
   late DateTime createdAt;
   late DateTime updatedAt;
+  DateTime? dueDate;
+  late bool isAnytime;
 
   // 從 Entity 轉換為 Isar 支援的 Model
   static TodoModel fromEntity(Todo entity) {
@@ -26,7 +28,9 @@ class TodoModel {
       ..isCompleted = entity.isCompleted
       ..isDeleted = entity.isDeleted
       ..createdAt = entity.createdAt
-      ..updatedAt = entity.updatedAt;
+      ..updatedAt = entity.updatedAt
+      ..dueDate = entity.dueDate
+      ..isAnytime = entity.isAnytime;
   }
 
   // 將 Isar Model 轉換為 Domain 核心的 Entity
@@ -39,6 +43,8 @@ class TodoModel {
       isDeleted: isDeleted,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      dueDate: dueDate,
+      isAnytime: isAnytime,
     );
   }
 }

@@ -27,28 +27,38 @@ const TodoModelSchema = CollectionSchema(
       name: r'description',
       type: IsarType.string,
     ),
-    r'isCompleted': PropertySchema(
+    r'dueDate': PropertySchema(
       id: 2,
+      name: r'dueDate',
+      type: IsarType.dateTime,
+    ),
+    r'isAnytime': PropertySchema(
+      id: 3,
+      name: r'isAnytime',
+      type: IsarType.bool,
+    ),
+    r'isCompleted': PropertySchema(
+      id: 4,
       name: r'isCompleted',
       type: IsarType.bool,
     ),
     r'isDeleted': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'isDeleted',
       type: IsarType.bool,
     ),
     r'title': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'uuid': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -101,11 +111,13 @@ void _todoModelSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
   writer.writeString(offsets[1], object.description);
-  writer.writeBool(offsets[2], object.isCompleted);
-  writer.writeBool(offsets[3], object.isDeleted);
-  writer.writeString(offsets[4], object.title);
-  writer.writeDateTime(offsets[5], object.updatedAt);
-  writer.writeString(offsets[6], object.uuid);
+  writer.writeDateTime(offsets[2], object.dueDate);
+  writer.writeBool(offsets[3], object.isAnytime);
+  writer.writeBool(offsets[4], object.isCompleted);
+  writer.writeBool(offsets[5], object.isDeleted);
+  writer.writeString(offsets[6], object.title);
+  writer.writeDateTime(offsets[7], object.updatedAt);
+  writer.writeString(offsets[8], object.uuid);
 }
 
 TodoModel _todoModelDeserialize(
@@ -117,12 +129,14 @@ TodoModel _todoModelDeserialize(
   final object = TodoModel();
   object.createdAt = reader.readDateTime(offsets[0]);
   object.description = reader.readString(offsets[1]);
+  object.dueDate = reader.readDateTimeOrNull(offsets[2]);
   object.id = id;
-  object.isCompleted = reader.readBool(offsets[2]);
-  object.isDeleted = reader.readBool(offsets[3]);
-  object.title = reader.readString(offsets[4]);
-  object.updatedAt = reader.readDateTime(offsets[5]);
-  object.uuid = reader.readString(offsets[6]);
+  object.isAnytime = reader.readBool(offsets[3]);
+  object.isCompleted = reader.readBool(offsets[4]);
+  object.isDeleted = reader.readBool(offsets[5]);
+  object.title = reader.readString(offsets[6]);
+  object.updatedAt = reader.readDateTime(offsets[7]);
+  object.uuid = reader.readString(offsets[8]);
   return object;
 }
 
@@ -138,14 +152,18 @@ P _todoModelDeserializeProp<P>(
     case 1:
       return (reader.readString(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
       return (reader.readBool(offset)) as P;
     case 4:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readDateTime(offset)) as P;
+    case 8:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -530,6 +548,75 @@ extension TodoModelQueryFilter
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> dueDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'dueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> dueDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'dueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> dueDateEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> dueDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> dueDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'dueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> dueDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'dueDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> idEqualTo(
       Id value) {
     return QueryBuilder.apply(this, (query) {
@@ -579,6 +666,16 @@ extension TodoModelQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> isAnytimeEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isAnytime',
+        value: value,
       ));
     });
   }
@@ -949,6 +1046,30 @@ extension TodoModelQuerySortBy on QueryBuilder<TodoModel, TodoModel, QSortBy> {
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByIsAnytime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAnytime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByIsAnytimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAnytime', Sort.desc);
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByIsCompleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCompleted', Sort.asc);
@@ -1036,6 +1157,18 @@ extension TodoModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByDueDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'dueDate', Sort.desc);
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -1045,6 +1178,18 @@ extension TodoModelQuerySortThenBy
   QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByIsAnytime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAnytime', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByIsAnytimeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAnytime', Sort.desc);
     });
   }
 
@@ -1124,6 +1269,18 @@ extension TodoModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByDueDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'dueDate');
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByIsAnytime() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isAnytime');
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByIsCompleted() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isCompleted');
@@ -1174,6 +1331,18 @@ extension TodoModelQueryProperty
   QueryBuilder<TodoModel, String, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
+    });
+  }
+
+  QueryBuilder<TodoModel, DateTime?, QQueryOperations> dueDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'dueDate');
+    });
+  }
+
+  QueryBuilder<TodoModel, bool, QQueryOperations> isAnytimeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isAnytime');
     });
   }
 
