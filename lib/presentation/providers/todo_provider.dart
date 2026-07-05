@@ -28,7 +28,7 @@ class TodoNotifier extends Notifier<void> {
   @override
   void build() {}
 
-  Future<void> addTodo(String title, {DateTime? dueDate, bool isAnytime = false}) async {
+  Future<void> addTodo(String title, {DateTime? dueDate, bool isAnytime = false, int? repeatInterval, String? repeatUnit}) async {
     if (title.trim().isEmpty) return;
     
     final repository = ref.read(todoRepositoryProvider);
@@ -39,18 +39,64 @@ class TodoNotifier extends Notifier<void> {
       updatedAt: DateTime.now(),
       dueDate: dueDate,
       isAnytime: isAnytime,
+      repeatInterval: repeatInterval,
+      repeatUnit: repeatUnit,
     );
     await repository.saveTodo(todo);
   }
 
   Future<void> toggleTodo(Todo todo) async {
     final repository = ref.read(todoRepositoryProvider);
-      final updatedTodo = todo.copyWith(
-        isCompleted: !todo.isCompleted,
+    
+    if (!todo.isCompleted && todo.repeatInterval != null && todo.repeatUnit != null && !todo.isAnytime) {
+      DateTime? nextDueDate;
+      if (todo.dueDate != null) {
+        final interval = todo.repeatInterval!;
+        switch (todo.repeatUnit) {
+          case 'day':
+            nextDueDate = todo.dueDate!.add(Duration(days: interval));
+            break;
+          case 'week':
+            nextDueDate = todo.dueDate!.add(Duration(days: 7 * interval));
+            break;
+          case 'month':
+            nextDueDate = DateTime(todo.dueDate!.year, todo.dueDate!.month + interval, todo.dueDate!.day, todo.dueDate!.hour, todo.dueDate!.minute);
+            break;
+          case 'year':
+            nextDueDate = DateTime(todo.dueDate!.year + interval, todo.dueDate!.month, todo.dueDate!.day, todo.dueDate!.hour, todo.dueDate!.minute);
+            break;
+        }
+      }
+      
+      final nextTodo = Todo(
+        id: const Uuid().v4(),
+        title: todo.title,
+        description: todo.description,
+        createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
-        completedAt: !todo.isCompleted ? DateTime.now() : null,
-        clearCompletedAt: todo.isCompleted,
+        dueDate: nextDueDate,
+        isAnytime: todo.isAnytime,
+        repeatInterval: todo.repeatInterval,
+        repeatUnit: todo.repeatUnit,
       );
+      await repository.saveTodo(nextTodo);
+      
+      final updatedTodo = todo.copyWith(
+        isCompleted: true,
+        updatedAt: DateTime.now(),
+        completedAt: DateTime.now(),
+        clearRepeat: true, 
+      );
+      await repository.saveTodo(updatedTodo);
+      return;
+    }
+
+    final updatedTodo = todo.copyWith(
+      isCompleted: !todo.isCompleted,
+      updatedAt: DateTime.now(),
+      completedAt: !todo.isCompleted ? DateTime.now() : null,
+      clearCompletedAt: todo.isCompleted,
+    );
     await repository.saveTodo(updatedTodo);
   }
 

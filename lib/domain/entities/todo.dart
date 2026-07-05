@@ -9,6 +9,8 @@ class Todo {
   final DateTime? dueDate;
   final bool isAnytime;
   final DateTime? completedAt;
+  final int? repeatInterval;
+  final String? repeatUnit;
 
   Todo({
     required this.id,
@@ -21,6 +23,8 @@ class Todo {
     this.dueDate,
     this.isAnytime = false,
     this.completedAt,
+    this.repeatInterval,
+    this.repeatUnit,
   });
 
   Todo copyWith({
@@ -33,6 +37,9 @@ class Todo {
     bool? isAnytime,
     DateTime? completedAt,
     bool clearCompletedAt = false,
+    int? repeatInterval,
+    String? repeatUnit,
+    bool clearRepeat = false,
   }) {
     return Todo(
       id: id,
@@ -45,6 +52,8 @@ class Todo {
       dueDate: dueDate ?? this.dueDate,
       isAnytime: isAnytime ?? this.isAnytime,
       completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
+      repeatInterval: clearRepeat ? null : (repeatInterval ?? this.repeatInterval),
+      repeatUnit: clearRepeat ? null : (repeatUnit ?? this.repeatUnit),
     );
   }
 }

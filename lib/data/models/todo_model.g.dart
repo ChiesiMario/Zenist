@@ -52,18 +52,28 @@ const TodoModelSchema = CollectionSchema(
       name: r'isDeleted',
       type: IsarType.bool,
     ),
-    r'title': PropertySchema(
+    r'repeatInterval': PropertySchema(
       id: 7,
+      name: r'repeatInterval',
+      type: IsarType.long,
+    ),
+    r'repeatUnit': PropertySchema(
+      id: 8,
+      name: r'repeatUnit',
+      type: IsarType.string,
+    ),
+    r'title': PropertySchema(
+      id: 9,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'uuid': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -116,6 +126,12 @@ int _todoModelEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.description.length * 3;
+  {
+    final value = object.repeatUnit;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.title.length * 3;
   bytesCount += 3 + object.uuid.length * 3;
   return bytesCount;
@@ -134,9 +150,11 @@ void _todoModelSerialize(
   writer.writeBool(offsets[4], object.isAnytime);
   writer.writeBool(offsets[5], object.isCompleted);
   writer.writeBool(offsets[6], object.isDeleted);
-  writer.writeString(offsets[7], object.title);
-  writer.writeDateTime(offsets[8], object.updatedAt);
-  writer.writeString(offsets[9], object.uuid);
+  writer.writeLong(offsets[7], object.repeatInterval);
+  writer.writeString(offsets[8], object.repeatUnit);
+  writer.writeString(offsets[9], object.title);
+  writer.writeDateTime(offsets[10], object.updatedAt);
+  writer.writeString(offsets[11], object.uuid);
 }
 
 TodoModel _todoModelDeserialize(
@@ -154,9 +172,11 @@ TodoModel _todoModelDeserialize(
   object.isAnytime = reader.readBool(offsets[4]);
   object.isCompleted = reader.readBool(offsets[5]);
   object.isDeleted = reader.readBool(offsets[6]);
-  object.title = reader.readString(offsets[7]);
-  object.updatedAt = reader.readDateTime(offsets[8]);
-  object.uuid = reader.readString(offsets[9]);
+  object.repeatInterval = reader.readLongOrNull(offsets[7]);
+  object.repeatUnit = reader.readStringOrNull(offsets[8]);
+  object.title = reader.readString(offsets[9]);
+  object.updatedAt = reader.readDateTime(offsets[10]);
+  object.uuid = reader.readString(offsets[11]);
   return object;
 }
 
@@ -182,10 +202,14 @@ P _todoModelDeserializeProp<P>(
     case 6:
       return (reader.readBool(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 8:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readDateTime(offset)) as P;
+    case 11:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -912,6 +936,231 @@ extension TodoModelQueryFilter
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatIntervalIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'repeatInterval',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatIntervalIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'repeatInterval',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatIntervalEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'repeatInterval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatIntervalGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'repeatInterval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatIntervalLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'repeatInterval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatIntervalBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'repeatInterval',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> repeatUnitIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'repeatUnit',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatUnitIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'repeatUnit',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> repeatUnitEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'repeatUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatUnitGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'repeatUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> repeatUnitLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'repeatUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> repeatUnitBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'repeatUnit',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatUnitStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'repeatUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> repeatUnitEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'repeatUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> repeatUnitContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'repeatUnit',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> repeatUnitMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'repeatUnit',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatUnitIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'repeatUnit',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      repeatUnitIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'repeatUnit',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1318,6 +1567,30 @@ extension TodoModelQuerySortBy on QueryBuilder<TodoModel, TodoModel, QSortBy> {
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByRepeatInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatInterval', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByRepeatIntervalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatInterval', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByRepeatUnit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatUnit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByRepeatUnitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatUnit', Sort.desc);
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterSortBy> sortByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -1453,6 +1726,30 @@ extension TodoModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByRepeatInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatInterval', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByRepeatIntervalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatInterval', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByRepeatUnit() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatUnit', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByRepeatUnitDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'repeatUnit', Sort.desc);
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterSortBy> thenByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -1535,6 +1832,19 @@ extension TodoModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByRepeatInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'repeatInterval');
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByRepeatUnit(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'repeatUnit', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1603,6 +1913,18 @@ extension TodoModelQueryProperty
   QueryBuilder<TodoModel, bool, QQueryOperations> isDeletedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isDeleted');
+    });
+  }
+
+  QueryBuilder<TodoModel, int?, QQueryOperations> repeatIntervalProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'repeatInterval');
+    });
+  }
+
+  QueryBuilder<TodoModel, String?, QQueryOperations> repeatUnitProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'repeatUnit');
     });
   }
 

@@ -34,6 +34,16 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
     return !widget.todo.dueDate!.isBefore(todayStart) && widget.todo.dueDate!.isBefore(todayEnd);
   }
 
+  String _getRepeatUnitLabel(String unit) {
+    switch (unit) {
+      case 'day': return '天';
+      case 'week': return '周';
+      case 'month': return '月';
+      case 'year': return '年';
+      default: return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Opacity(
@@ -120,28 +130,54 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ),
                               child: Text(widget.todo.title),
                             ),
-                            if (widget.todo.dueDate != null && !_isToday)
+                            if ((widget.todo.dueDate != null && !_isToday) || (widget.todo.repeatInterval != null && widget.todo.repeatUnit != null))
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
-                                child: Row(
+                                child: Wrap(
+                                  spacing: 12,
+                                  runSpacing: 4,
                                   children: [
-                                    Icon(
-                                      LucideIcons.calendarClock,
-                                      size: 12,
-                                      color: _isOverdue
-                                          ? ShadTheme.of(context).colorScheme.destructive
-                                          : ShadTheme.of(context).colorScheme.mutedForeground,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      DateFormat('MMM d, yyyy').format(widget.todo.dueDate!),
-                                      style: ShadTheme.of(context).textTheme.muted.copyWith(
-                                        fontSize: 12,
-                                        color: _isOverdue
-                                            ? ShadTheme.of(context).colorScheme.destructive
-                                            : ShadTheme.of(context).colorScheme.mutedForeground,
+                                    if (widget.todo.dueDate != null && !_isToday)
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            LucideIcons.calendarClock,
+                                            size: 12,
+                                            color: _isOverdue
+                                                ? ShadTheme.of(context).colorScheme.destructive
+                                                : ShadTheme.of(context).colorScheme.mutedForeground,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            DateFormat('MMM d, yyyy').format(widget.todo.dueDate!),
+                                            style: ShadTheme.of(context).textTheme.muted.copyWith(
+                                              fontSize: 12,
+                                              color: _isOverdue
+                                                  ? ShadTheme.of(context).colorScheme.destructive
+                                                  : ShadTheme.of(context).colorScheme.mutedForeground,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
+                                    if (widget.todo.repeatInterval != null && widget.todo.repeatUnit != null)
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            LucideIcons.repeat,
+                                            size: 12,
+                                            color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            '每 ${widget.todo.repeatInterval} ${_getRepeatUnitLabel(widget.todo.repeatUnit!)}',
+                                            style: ShadTheme.of(context).textTheme.muted.copyWith(
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                   ],
                                 ),
                               ),

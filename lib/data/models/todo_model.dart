@@ -20,6 +20,9 @@ class TodoModel {
   late bool isAnytime;
   @Index()
   DateTime? completedAt;
+  
+  int? repeatInterval;
+  String? repeatUnit;
 
   // 從 Entity 轉換為 Isar 支援的 Model
   static TodoModel fromEntity(Todo entity) {
@@ -33,7 +36,9 @@ class TodoModel {
       ..updatedAt = entity.updatedAt
       ..dueDate = entity.dueDate
       ..isAnytime = entity.isAnytime
-      ..completedAt = entity.completedAt;
+      ..completedAt = entity.completedAt
+      ..repeatInterval = entity.repeatInterval
+      ..repeatUnit = entity.repeatUnit;
   }
 
   // 將 Isar Model 轉換為 Domain 核心的 Entity
@@ -49,6 +54,8 @@ class TodoModel {
       dueDate: dueDate,
       isAnytime: isAnytime,
       completedAt: completedAt,
+      repeatInterval: repeatInterval,
+      repeatUnit: repeatUnit,
     );
   }
 }

@@ -19,6 +19,9 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   final FocusNode _focusNode = FocusNode();
   DateTime? _selectedDueDate;
   bool _isAnytimeSelected = false;
+  bool _isRepeatEnabled = false;
+  int _repeatInterval = 1;
+  String _repeatUnit = 'week';
   int _currentIndex = 0;
 
   @override
@@ -32,15 +35,32 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   void _submit() {
     final text = _controller.text;
     if (text.isNotEmpty) {
+      DateTime? finalDueDate = _selectedDueDate;
+      bool finalIsAnytime = _isAnytimeSelected;
+
+      // 如果沒有手動選擇日期，且當前位於「今天」或「隨時」分頁，則自動繼承該分頁的屬性
+      if (finalDueDate == null && !finalIsAnytime) {
+        if (_currentIndex == 0) {
+          finalDueDate = DateTime.now();
+        } else if (_currentIndex == 3) {
+          finalIsAnytime = true;
+        }
+      }
+
       ref.read(todoNotifierProvider.notifier).addTodo(
         text, 
-        dueDate: _selectedDueDate,
-        isAnytime: _isAnytimeSelected,
+        dueDate: finalDueDate,
+        isAnytime: finalIsAnytime,
+        repeatInterval: (_isRepeatEnabled && !finalIsAnytime) ? _repeatInterval : null,
+        repeatUnit: (_isRepeatEnabled && !finalIsAnytime) ? _repeatUnit : null,
       );
       _controller.clear();
       setState(() {
         _selectedDueDate = null;
         _isAnytimeSelected = false;
+        _isRepeatEnabled = false;
+        _repeatInterval = 1;
+        _repeatUnit = 'week';
       });
     }
   }
@@ -53,66 +73,174 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   }
 
   Future<void> _pickDate() async {
-    // 為了避免與鍵盤搶空間，先移除焦點
     _focusNode.unfocus();
-    final result = await showDialog<dynamic>(
+    
+    // Create local copies of state for the dialog
+    DateTime? dialogDate = _selectedDueDate;
+    bool dialogAnytime = _isAnytimeSelected;
+    bool dialogRepeat = _isRepeatEnabled;
+    int dialogInterval = _repeatInterval;
+    String dialogUnit = _repeatUnit;
+
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) {
-        return Dialog(
-          backgroundColor: ShadTheme.of(context).colorScheme.background,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: ShadTheme.of(context).radius,
-            side: BorderSide(color: ShadTheme.of(context).colorScheme.border),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: 280,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ShadCalendar(
-                    selected: _selectedDueDate,
-                    onChanged: (v) {
-                      Navigator.of(context).pop(v);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  ShadButton.outline(
-                    onPressed: () {
-                      Navigator.of(context).pop('anytime');
-                    },
-                    child: const Row(
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              backgroundColor: ShadTheme.of(context).colorScheme.background,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: ShadTheme.of(context).radius,
+                side: BorderSide(color: ShadTheme.of(context).colorScheme.border),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: 320,
+                  child: SingleChildScrollView(
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Icon(LucideIcons.infinity, size: 16),
-                        SizedBox(width: 8.0),
-                        Text('設為隨時'),
+                        ShadCalendar(
+                          selected: dialogDate,
+                          onChanged: (v) {
+                            setStateDialog(() {
+                              dialogDate = v;
+                              dialogAnytime = false;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        ShadButton.outline(
+                          onPressed: () {
+                            setStateDialog(() {
+                              dialogAnytime = true;
+                              dialogDate = null;
+                              dialogRepeat = false; // Anytime tasks cannot repeat
+                            });
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(LucideIcons.infinity, size: 16, color: dialogAnytime ? ShadTheme.of(context).colorScheme.primary : null),
+                              const SizedBox(width: 8.0),
+                              Text('設為隨時', style: TextStyle(color: dialogAnytime ? ShadTheme.of(context).colorScheme.primary : null)),
+                            ],
+                          ),
+                        ),
+                        if (!dialogAnytime) ...[
+                          const SizedBox(height: 16),
+                          const Divider(),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              ShadCheckbox(
+                                value: dialogRepeat,
+                                onChanged: (v) {
+                                  setStateDialog(() {
+                                    dialogRepeat = v;
+                                  });
+                                },
+                                label: const Text('重複'),
+                              ),
+                            ],
+                          ),
+                          if (dialogRepeat) ...[
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                const Text('每 '),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 60,
+                                  child: ShadInput(
+                                    initialValue: dialogInterval.toString(),
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (v) {
+                                      final val = int.tryParse(v);
+                                      if (val != null && val > 0) {
+                                        dialogInterval = val;
+                                      }
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ShadSelect<String>(
+                                    initialValue: dialogUnit,
+                                    options: [
+                                      ShadOption(value: 'day', child: const Text('天')),
+                                      ShadOption(value: 'week', child: const Text('周')),
+                                      ShadOption(value: 'month', child: const Text('月')),
+                                      ShadOption(value: 'year', child: const Text('年')),
+                                    ],
+                                    onChanged: (v) {
+                                      if (v != null) {
+                                        setStateDialog(() {
+                                          dialogUnit = v;
+                                        });
+                                      }
+                                    },
+                                    selectedOptionBuilder: (context, value) {
+                                      switch (value) {
+                                        case 'day': return const Text('天');
+                                        case 'week': return const Text('周');
+                                        case 'month': return const Text('月');
+                                        case 'year': return const Text('年');
+                                        default: return const Text('');
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ShadButton.ghost(
+                              onPressed: () => Navigator.of(context).pop(null),
+                              child: const Text('取消'),
+                            ),
+                            const SizedBox(width: 8),
+                            ShadButton(
+                              onPressed: () {
+                                Navigator.of(context).pop({
+                                  'date': dialogDate,
+                                  'anytime': dialogAnytime,
+                                  'repeat': dialogRepeat,
+                                  'interval': dialogInterval,
+                                  'unit': dialogUnit,
+                                });
+                              },
+                              child: const Text('確定'),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          }
         );
       },
     );
     
     if (result != null) {
       setState(() {
-        if (result == 'anytime') {
-          _isAnytimeSelected = true;
-          _selectedDueDate = null;
-        } else if (result is DateTime) {
-          _isAnytimeSelected = false;
-          _selectedDueDate = result;
-        }
+        _isAnytimeSelected = result['anytime'] as bool;
+        _selectedDueDate = result['date'] as DateTime?;
+        _isRepeatEnabled = result['repeat'] as bool;
+        _repeatInterval = result['interval'] as int;
+        _repeatUnit = result['unit'] as String;
       });
-      // 選完日期後可以選擇把焦點還給輸入框
       _focusNode.requestFocus();
     }
   }
