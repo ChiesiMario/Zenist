@@ -104,4 +104,14 @@ class TodoNotifier extends Notifier<void> {
     final repository = ref.read(todoRepositoryProvider);
     await repository.deleteTodo(id); // 觸發軟刪除
   }
+
+  Future<void> updateTodoTitle(Todo todo, String newTitle) async {
+    if (newTitle.trim().isEmpty) return;
+    final repository = ref.read(todoRepositoryProvider);
+    final updatedTodo = todo.copyWith(
+      title: newTitle.trim(),
+      updatedAt: DateTime.now(),
+    );
+    await repository.saveTodo(updatedTodo);
+  }
 }

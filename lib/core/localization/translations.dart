@@ -35,6 +35,7 @@ class Translations {
       'mark_uncompleted': 'Mark as Uncompleted',
       'mark_completed': 'Mark as Completed',
       'delete': 'Delete',
+      'edit': 'Edit',
     },
     'zh_TW': {
       'settings': '設置',
@@ -68,9 +69,10 @@ class Translations {
       'cancel': '取消',
       'confirm': '確定',
       'completed': '已完成',
-      'mark_uncompleted': '標記為未完成',
-      'mark_completed': '標記為已完成',
+      'mark_uncompleted': '標示為未完成',
+      'mark_completed': '標示為完成',
       'delete': '刪除',
+      'edit': '修改',
     },
     'zh_CN': {
       'settings': '设置',
@@ -104,9 +106,10 @@ class Translations {
       'cancel': '取消',
       'confirm': '确定',
       'completed': '已完成',
-      'mark_uncompleted': '标记为未完成',
-      'mark_completed': '标记为已完成',
+      'mark_uncompleted': '标示为未完成',
+      'mark_completed': '标示为完成',
       'delete': '删除',
+      'edit': '修改',
     },
   };
 

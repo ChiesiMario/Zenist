@@ -46,6 +46,99 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
     }
   }
 
+  void _showEditDialog(String locale) {
+    final textController = TextEditingController(text: widget.todo.title);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  Translations.tr('edit', locale),
+                  style: ShadTheme.of(context).textTheme.h4,
+                ),
+                const SizedBox(height: 16),
+                ShadInput(
+                  controller: textController,
+                  autofocus: true,
+                  onSubmitted: (value) {
+                    ref.read(todoNotifierProvider.notifier).updateTodoTitle(widget.todo, value);
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ShadButton.outline(
+                      child: Text(Translations.tr('cancel', locale)),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    const SizedBox(width: 8),
+                    ShadButton(
+                      child: Text(Translations.tr('confirm', locale)),
+                      onPressed: () {
+                        ref.read(todoNotifierProvider.notifier).updateTodoTitle(widget.todo, textController.text);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showContextMenu(Offset position, String locale) {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
+      items: [
+        PopupMenuItem(
+          onTap: () {
+            Future.delayed(const Duration(milliseconds: 50), () {
+              if (mounted) _showEditDialog(locale);
+            });
+          },
+          child: Row(
+            children: [
+              const Icon(LucideIcons.edit2, size: 16),
+              const SizedBox(width: 8),
+              Text(Translations.tr('edit', locale)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () {
+            ref.read(todoNotifierProvider.notifier).deleteTodo(widget.todo.id);
+          },
+          child: Row(
+            children: [
+              Icon(LucideIcons.trash2, size: 16, color: ShadTheme.of(context).colorScheme.destructive),
+              const SizedBox(width: 8),
+              Text(Translations.tr('delete', locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.destructive)),
+            ],
+          ),
+        ),
+      ],
+      color: ShadTheme.of(context).colorScheme.background,
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: ShadTheme.of(context).colorScheme.border, width: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(settingsProvider).locale;
@@ -61,23 +154,6 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
             ),
           ),
         ),
-        child: ShadContextMenu(
-        items: [
-          ShadContextMenuItem(
-            onPressed: () {
-              ref.read(todoNotifierProvider.notifier).toggleTodo(widget.todo);
-            },
-            trailing: Icon(widget.todo.isCompleted ? LucideIcons.xCircle : LucideIcons.checkCircle, size: 16),
-            child: Text(widget.todo.isCompleted ? Translations.tr('mark_uncompleted', locale) : Translations.tr('mark_completed', locale)),
-          ),
-          ShadContextMenuItem(
-            onPressed: () {
-              ref.read(todoNotifierProvider.notifier).deleteTodo(widget.todo.id);
-            },
-            trailing: Icon(LucideIcons.trash2, size: 16, color: ShadTheme.of(context).colorScheme.destructive),
-            child: Text(Translations.tr('delete', locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.destructive)),
-          ),
-        ],
         child: Dismissible(
           key: Key(widget.todo.id),
           direction: DismissDirection.endToStart,
@@ -97,6 +173,9 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
             child: GestureDetector(
               onTap: () {
                 ref.read(todoNotifierProvider.notifier).toggleTodo(widget.todo);
+              },
+              onSecondaryTapDown: (details) {
+                _showContextMenu(details.globalPosition, locale);
               },
               child: Container(
                 decoration: const BoxDecoration(
@@ -194,7 +273,6 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
               ),
             ),
           ),
-        ),
       ),
     ));
   }
