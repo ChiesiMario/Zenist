@@ -53,8 +53,10 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
       builder: (context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Container(
+              padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,6 +95,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
               ],
             ),
           ),
+        ),
         );
       },
     );

@@ -39,8 +39,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       builder: (context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            padding: const EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Container(
+              padding: const EdgeInsets.all(16),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -76,6 +78,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -84,67 +87,130 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
+    final locale = settings.locale;
 
     return Scaffold(
       backgroundColor: ShadTheme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: Text(
-          Translations.tr('settings', settings.locale),
-          style: ShadTheme.of(context).textTheme.h4,
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: ShadButton.ghost(
-          child: const Icon(LucideIcons.arrowLeft, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        iconTheme: IconThemeData(
-          color: ShadTheme.of(context).colorScheme.foreground,
-        ),
-      ),
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              Text(
-                Translations.tr('appearance_and_display', settings.locale),
-                style: ShadTheme.of(context).textTheme.large,
-              ),
-              const SizedBox(height: 16),
-              ShadCard(
-                padding: const EdgeInsets.all(0),
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text(Translations.tr('language', settings.locale)),
-                      subtitle: Text(
-                        settings.locale == 'zh_TW' ? Translations.tr('lang_zh_tw', settings.locale) :
-                        settings.locale == 'zh_CN' ? Translations.tr('lang_zh_cn', settings.locale) : 
-                        Translations.tr('lang_en', settings.locale),
+          // Main Content
+          SafeArea(
+            bottom: false,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: SizedBox.expand(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 80.0, bottom: 24.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: ShadTheme.of(context).colorScheme.card,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: ShadTheme.of(context).colorScheme.border, width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.02),
+                            blurRadius: 24,
+                            offset: const Offset(0, -4),
+                          ),
+                        ],
                       ),
-                      trailing: const Icon(LucideIcons.chevronRight),
-                      onTap: () {
-                        _showLanguageSelectionDialog(context, settings.locale);
-                      },
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      title: Text(Translations.tr('app_font', settings.locale)),
-                      subtitle: Text(
-                        (settings.fontFamily == 'NotoSansTC' || settings.fontFamily == 'NotoSansSC') 
-                            ? Translations.tr('default_font', settings.locale) 
-                            : settings.fontFamily,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                            child: Text(
+                              Translations.tr('appearance_and_display', locale),
+                              style: ShadTheme.of(context).textTheme.large,
+                            ),
+                          ),
+                          Expanded(
+                            child: ListView(
+                              padding: EdgeInsets.zero,
+                              children: [
+                                ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                  title: Text(Translations.tr('language', locale)),
+                                  subtitle: Text(
+                                    locale == 'zh_TW' ? Translations.tr('lang_zh_tw', locale) :
+                                    locale == 'zh_CN' ? Translations.tr('lang_zh_cn', locale) : 
+                                    Translations.tr('lang_en', locale),
+                                    style: ShadTheme.of(context).textTheme.small.copyWith(
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                  onTap: () {
+                                    _showLanguageSelectionDialog(context, locale);
+                                  },
+                                ),
+                                Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                                ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                  title: Text(Translations.tr('app_font', locale)),
+                                  subtitle: Text(
+                                    (settings.fontFamily == 'NotoSansTC' || settings.fontFamily == 'NotoSansSC') 
+                                        ? Translations.tr('default_font', locale) 
+                                        : settings.fontFamily,
+                                    style: ShadTheme.of(context).textTheme.small.copyWith(
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                  onTap: () {
+                                    _showFontSelectionDialog(context, settings.fontFamily, locale);
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      trailing: const Icon(LucideIcons.chevronRight),
-                      onTap: () {
-                        _showFontSelectionDialog(context, settings.fontFamily, settings.locale);
-                      },
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ],
+            ),
+          ),
+          // Header
+          SafeArea(
+            bottom: false,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: SizedBox(
+                  height: 80.0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        ShadButton.ghost(
+                          onPressed: () => Navigator.of(context).pop(),
+                          width: 48,
+                          height: 48,
+                          padding: EdgeInsets.zero,
+                          child: const Icon(LucideIcons.arrowLeft, size: 24),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          Translations.tr('settings', locale),
+                          style: ShadTheme.of(context).textTheme.h3.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -207,8 +273,10 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        padding: const EdgeInsets.all(16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Container(
+          padding: const EdgeInsets.all(16),
         height: MediaQuery.of(context).size.height * 0.6,
         child: Column(
           children: [
@@ -258,6 +326,7 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
               ),
             ],
           ],
+        ),
         ),
       ),
     );
