@@ -2,13 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'presentation/pages/todo_list_page.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/providers/settings_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+  
   final sharedPreferences = await SharedPreferences.getInstance();
+
+  WindowOptions windowOptions = const WindowOptions(
+    title: 'Zenist',
+  );
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    final double? x = sharedPreferences.getDouble('window_x');
+    final double? y = sharedPreferences.getDouble('window_y');
+    final double? width = sharedPreferences.getDouble('window_width');
+    final double? height = sharedPreferences.getDouble('window_height');
+
+    if (x != null && y != null && width != null && height != null) {
+      await windowManager.setBounds(Rect.fromLTWH(x, y, width, height));
+    } else {
+      await windowManager.setSize(const Size(750, 750));
+      await windowManager.center();
+    }
+    await windowManager.show();
+    await windowManager.focus();
+  });
 
   runApp(
     // ProviderScope 讓 Riverpod 能夠管理全域狀態
@@ -21,11 +43,48 @@ void main() async {
   );
 }
 
-class ZenistApp extends ConsumerWidget {
+class ZenistApp extends ConsumerStatefulWidget {
   const ZenistApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ZenistApp> createState() => _ZenistAppState();
+}
+
+class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
+  
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  Future<void> _saveWindowBounds() async {
+    final bounds = await windowManager.getBounds();
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setDouble('window_x', bounds.left);
+    await prefs.setDouble('window_y', bounds.top);
+    await prefs.setDouble('window_width', bounds.width);
+    await prefs.setDouble('window_height', bounds.height);
+  }
+
+  @override
+  void onWindowMoved() {
+    _saveWindowBounds();
+  }
+
+  @override
+  void onWindowResized() {
+    _saveWindowBounds();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
 
     return ShadApp(

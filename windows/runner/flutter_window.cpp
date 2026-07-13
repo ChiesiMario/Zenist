@@ -51,6 +51,15 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  if (message == WM_GETMINMAXINFO) {
+    MINMAXINFO* info = reinterpret_cast<MINMAXINFO*>(lparam);
+    UINT dpi = FlutterDesktopGetDpiForHWND(hwnd);
+    double scale_factor = dpi / 96.0;
+    info->ptMinTrackSize.x = static_cast<int>(400 * scale_factor);
+    info->ptMinTrackSize.y = static_cast<int>(600 * scale_factor);
+    return 0;
+  }
+
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =

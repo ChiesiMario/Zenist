@@ -26,18 +26,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
-  Win32Window::Size size(450, 750);
+  Win32Window::Size size(750, 750);
   if (!window.Create(L"zenist", origin, size)) {
     return EXIT_FAILURE;
   }
 
-  // Center the window using actual size to prevent DPI scaling issues
-  HWND hwnd = window.GetHandle();
-  RECT rect;
-  GetWindowRect(hwnd, &rect);
-  int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-  int screenHeight = GetSystemMetrics(SM_CYSCREEN);
-  SetWindowPos(hwnd, nullptr, (screenWidth - (rect.right - rect.left)) / 2, (screenHeight - (rect.bottom - rect.top)) / 2, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+  // window_manager will handle window sizing and positioning from Dart.
 
   window.SetQuitOnClose(true);
 
