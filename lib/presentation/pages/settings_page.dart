@@ -84,6 +84,57 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  void _showDateFormatSelectionDialog(BuildContext context, String currentFormat, String locale) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    Translations.tr('date_format', locale),
+                    style: ShadTheme.of(context).textTheme.h4,
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    title: Text(Translations.tr('format_ymd', locale)),
+                    trailing: currentFormat == 'yyyy/MM/dd' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateDateFormat('yyyy/MM/dd');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ListTile(
+                    title: Text(Translations.tr('format_mdy', locale)),
+                    trailing: currentFormat == 'MM/dd/yyyy' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateDateFormat('MM/dd/yyyy');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ListTile(
+                    title: Text(Translations.tr('format_dmy', locale)),
+                    trailing: currentFormat == 'dd/MM/yyyy' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateDateFormat('dd/MM/yyyy');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
@@ -146,6 +197,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   trailing: const Icon(LucideIcons.chevronRight, size: 20),
                                   onTap: () {
                                     _showLanguageSelectionDialog(context, locale);
+                                  },
+                                ),
+                                Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                                ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                  title: Text(Translations.tr('date_format', locale)),
+                                  subtitle: Text(
+                                    settings.dateFormat == 'yyyy/MM/dd' ? Translations.tr('format_ymd', locale) :
+                                    settings.dateFormat == 'MM/dd/yyyy' ? Translations.tr('format_mdy', locale) : 
+                                    Translations.tr('format_dmy', locale),
+                                    style: ShadTheme.of(context).textTheme.small.copyWith(
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.7),
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                  onTap: () {
+                                    _showDateFormatSelectionDialog(context, settings.dateFormat, locale);
                                   },
                                 ),
                                 Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),

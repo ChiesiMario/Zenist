@@ -423,7 +423,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                     tempIsAnytime
                                         ? Translations.tr('tab_anytime', locale)
                                         : tempDueDate != null
-                                            ? DateFormat('MMM d, yyyy').format(tempDueDate!)
+                                            ? DateFormat(ref.watch(settingsProvider).dateFormat).format(tempDueDate!)
                                             : Translations.tr('set_due_date', locale),
                                     style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 13),
                                   ),
@@ -634,7 +634,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            DateFormat('MMM d, yyyy').format(widget.todo.dueDate!),
+                                            DateFormat(ref.watch(settingsProvider).dateFormat).format(widget.todo.dueDate!),
                                             style: ShadTheme.of(context).textTheme.muted.copyWith(
                                               fontSize: 12,
                                               color: _isOverdue

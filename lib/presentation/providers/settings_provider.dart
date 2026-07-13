@@ -14,16 +14,19 @@ final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {
 class SettingsState {
   final String fontFamily;
   final String locale;
+  final String dateFormat;
 
   const SettingsState({
     this.fontFamily = 'NotoSansTC',
     this.locale = 'en',
+    this.dateFormat = 'yyyy/MM/dd',
   });
 
-  SettingsState copyWith({String? fontFamily, String? locale}) {
+  SettingsState copyWith({String? fontFamily, String? locale, String? dateFormat}) {
     return SettingsState(
       fontFamily: fontFamily ?? this.fontFamily,
       locale: locale ?? this.locale,
+      dateFormat: dateFormat ?? this.dateFormat,
     );
   }
 }
@@ -31,6 +34,7 @@ class SettingsState {
 class SettingsNotifier extends Notifier<SettingsState> {
   static const _fontKey = 'selectedFontFamily';
   static const _localeKey = 'selectedLocale';
+  static const _dateFormatKey = 'selectedDateFormat';
 
   String _getDefaultFont(String locale) {
     return locale == 'zh_CN' ? 'NotoSansSC' : 'NotoSansTC';
@@ -58,9 +62,12 @@ class SettingsNotifier extends Notifier<SettingsState> {
     final savedFont = prefs.getString(_fontKey);
     final bool isUsingDefaultFont = savedFont == null || savedFont == 'NotoSansTC' || savedFont == 'NotoSansSC';
 
+    final savedDateFormat = prefs.getString(_dateFormatKey) ?? 'yyyy/MM/dd';
+
     return SettingsState(
       fontFamily: isUsingDefaultFont ? _getDefaultFont(savedLocale) : savedFont,
       locale: savedLocale,
+      dateFormat: savedDateFormat,
     );
   }
 
@@ -87,5 +94,11 @@ class SettingsNotifier extends Notifier<SettingsState> {
       locale: newLocale,
       fontFamily: isUsingDefaultFont ? _getDefaultFont(newLocale) : savedFont,
     );
+  }
+
+  Future<void> updateDateFormat(String newFormat) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_dateFormatKey, newFormat);
+    state = state.copyWith(dateFormat: newFormat);
   }
 }

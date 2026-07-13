@@ -37,6 +37,10 @@ class Translations {
       'delete': 'Delete',
       'edit': 'Edit',
       'set_due_date': 'Set Date',
+      'date_format': 'Date Format',
+      'format_ymd': 'YYYY/MM/DD',
+      'format_mdy': 'MM/DD/YYYY',
+      'format_dmy': 'DD/MM/YYYY',
     },
     'zh_TW': {
       'settings': '設置',
@@ -75,6 +79,10 @@ class Translations {
       'delete': '刪除',
       'edit': '修改',
       'set_due_date': '選擇日期',
+      'date_format': '日期格式',
+      'format_ymd': 'YYYY/MM/DD',
+      'format_mdy': 'MM/DD/YYYY',
+      'format_dmy': 'DD/MM/YYYY',
     },
     'zh_CN': {
       'settings': '设置',
@@ -113,6 +121,10 @@ class Translations {
       'delete': '删除',
       'edit': '修改',
       'set_due_date': '选择日期',
+      'date_format': '日期格式',
+      'format_ymd': 'YYYY/MM/DD',
+      'format_mdy': 'MM/DD/YYYY',
+      'format_dmy': 'DD/MM/YYYY',
     },
   };
 
