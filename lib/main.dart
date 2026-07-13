@@ -26,8 +26,32 @@ class ZenistApp extends StatelessWidget {
         colorScheme: const ShadZincColorScheme.light(
           background: Color(0xFFFAFAFA), // 極淡灰背景，突顯卡片
         ),
-        brightness: Brightness.light,
-        textTheme: ShadTextTheme.fromGoogleFont(GoogleFonts.inter),
+        textTheme: ShadTextTheme.fromGoogleFont(
+          ({textStyle, color, backgroundColor, fontSize, fontWeight, fontStyle, letterSpacing, wordSpacing, textBaseline, height, locale, foreground, background, shadows, fontFeatures, decoration, decorationColor, decorationStyle, decorationThickness}) {
+            final baseStyle = textStyle ?? const TextStyle();
+            return baseStyle.copyWith(
+              fontFamily: 'NotoSansTC',
+              color: color ?? baseStyle.color,
+              backgroundColor: backgroundColor ?? baseStyle.backgroundColor,
+              fontSize: fontSize ?? baseStyle.fontSize,
+              fontWeight: fontWeight ?? baseStyle.fontWeight,
+              fontStyle: fontStyle ?? baseStyle.fontStyle,
+              letterSpacing: letterSpacing ?? baseStyle.letterSpacing,
+              wordSpacing: wordSpacing ?? baseStyle.wordSpacing,
+              textBaseline: textBaseline ?? baseStyle.textBaseline,
+              height: height ?? baseStyle.height,
+              locale: locale ?? baseStyle.locale,
+              foreground: foreground ?? baseStyle.foreground,
+              background: background ?? baseStyle.background,
+              shadows: shadows ?? baseStyle.shadows,
+              fontFeatures: fontFeatures ?? baseStyle.fontFeatures,
+              decoration: decoration ?? baseStyle.decoration,
+              decorationColor: decorationColor ?? baseStyle.decorationColor,
+              decorationStyle: decorationStyle ?? baseStyle.decorationStyle,
+              decorationThickness: decorationThickness ?? baseStyle.decorationThickness,
+            );
+          },
+        ),
       ),
       home: const TodoListPage(),
     );

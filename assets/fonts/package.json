@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/noto-sans-tc": "^5.2.9"
+  }
+}

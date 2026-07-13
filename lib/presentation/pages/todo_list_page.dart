@@ -6,6 +6,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_item_widget.dart';
 import '../../domain/entities/todo.dart';
+import 'settings_page.dart';
 
 class TodoListPage extends ConsumerStatefulWidget {
   const TodoListPage({super.key});
@@ -471,18 +472,34 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                   height: 80.0,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Zenist.',
-                        style: GoogleFonts.nunito(
-                          textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
-                                fontWeight: FontWeight.w800,
-                                fontSize: 32,
-                                letterSpacing: -0.5,
-                              ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Zenist.',
+                          style: GoogleFonts.nunito(
+                            textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 32,
+                                  letterSpacing: -0.5,
+                                ),
+                          ),
                         ),
-                      ),
+                        ShadButton.ghost(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsPage(),
+                              ),
+                            );
+                          },
+                          width: 48,
+                          height: 48,
+                          padding: EdgeInsets.zero,
+                          child: const Icon(LucideIcons.settings, size: 24),
+                        ),
+                      ],
                     ),
                   ),
                 ),
