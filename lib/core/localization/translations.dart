@@ -36,6 +36,7 @@ class Translations {
       'mark_completed': 'Mark as Completed',
       'delete': 'Delete',
       'edit': 'Edit',
+      'set_due_date': 'Set Date',
     },
     'zh_TW': {
       'settings': '設置',
@@ -73,6 +74,7 @@ class Translations {
       'mark_completed': '標示為完成',
       'delete': '刪除',
       'edit': '修改',
+      'set_due_date': '選擇日期',
     },
     'zh_CN': {
       'settings': '设置',
@@ -110,6 +112,7 @@ class Translations {
       'mark_completed': '标示为完成',
       'delete': '删除',
       'edit': '修改',
+      'set_due_date': '选择日期',
     },
   };
 

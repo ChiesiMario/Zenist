@@ -114,4 +114,27 @@ class TodoNotifier extends Notifier<void> {
     );
     await repository.saveTodo(updatedTodo);
   }
+
+  Future<void> updateTodoDetails(
+    Todo todo, 
+    String newTitle, 
+    DateTime? newDueDate, {
+    bool isAnytime = false,
+    int? repeatInterval,
+    String? repeatUnit,
+  }) async {
+    if (newTitle.trim().isEmpty) return;
+    final repository = ref.read(todoRepositoryProvider);
+    final updatedTodo = todo.copyWith(
+      title: newTitle.trim(),
+      dueDate: newDueDate,
+      clearDueDate: newDueDate == null,
+      isAnytime: isAnytime,
+      repeatInterval: repeatInterval,
+      repeatUnit: repeatUnit,
+      clearRepeat: repeatInterval == null || repeatUnit == null,
+      updatedAt: DateTime.now(),
+    );
+    await repository.saveTodo(updatedTodo);
+  }
 }
