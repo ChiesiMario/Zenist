@@ -106,20 +106,26 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Center(
-                          child: ShadCalendar(
-                            fixedWeeks: true,
-                            showOutsideDays: true,
-                            decoration: const ShadDecoration(
-                              border: ShadBorder.none,
+                        Opacity(
+                          opacity: dialogAnytime ? 0.5 : 1.0,
+                          child: IgnorePointer(
+                            ignoring: dialogAnytime,
+                            child: Center(
+                              child: ShadCalendar(
+                                fixedWeeks: true,
+                                showOutsideDays: true,
+                                decoration: const ShadDecoration(
+                                  border: ShadBorder.none,
+                                ),
+                                selected: dialogDate,
+                                onChanged: (v) {
+                                  setStateDialog(() {
+                                    dialogDate = v;
+                                    dialogAnytime = false;
+                                  });
+                                },
+                              ),
                             ),
-                            selected: dialogDate,
-                            onChanged: (v) {
-                              setStateDialog(() {
-                                dialogDate = v;
-                                dialogAnytime = false;
-                              });
-                            },
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -161,97 +167,101 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                   ),
                                 ),
                         ),
-                        if (!dialogAnytime) ...[
-                          const SizedBox(height: 16),
-                          const Divider(),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              SizedBox(
-                                height: 40,
-                                width: 84,
-                                child: dialogRepeat
-                                    ? ShadButton(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        onPressed: () {
-                                          setStateDialog(() {
-                                            dialogRepeat = false;
-                                          });
-                                        },
-                                        child: Text(Translations.tr('repeat', ref.read(settingsProvider).locale)),
-                                      )
-                                    : ShadButton.outline(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                        onPressed: () {
-                                          setStateDialog(() {
-                                            dialogRepeat = true;
-                                          });
-                                        },
-                                        child: Text(Translations.tr('repeat', ref.read(settingsProvider).locale)),
-                                      ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Opacity(
-                                  opacity: dialogRepeat ? 1.0 : 0.5,
-                                  child: IgnorePointer(
-                                    ignoring: !dialogRepeat,
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 60,
-                                          height: 40,
-                                          child: ShadInput(
-                                            initialValue: dialogInterval.toString(),
-                                            keyboardType: TextInputType.number,
-                                            onChanged: (v) {
-                                              final val = int.tryParse(v);
-                                              if (val != null && val > 0) {
-                                                dialogInterval = val;
-                                              }
-                                            },
-                                          ),
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 16),
+                        Opacity(
+                          opacity: dialogAnytime ? 0.5 : 1.0,
+                          child: IgnorePointer(
+                            ignoring: dialogAnytime,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  height: 40,
+                                  width: 84,
+                                  child: dialogRepeat
+                                      ? ShadButton(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                                          onPressed: () {
+                                            setStateDialog(() {
+                                              dialogRepeat = false;
+                                            });
+                                          },
+                                          child: Text(Translations.tr('repeat', ref.read(settingsProvider).locale)),
+                                        )
+                                      : ShadButton.outline(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                                          onPressed: () {
+                                            setStateDialog(() {
+                                              dialogRepeat = true;
+                                            });
+                                          },
+                                          child: Text(Translations.tr('repeat', ref.read(settingsProvider).locale)),
                                         ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: SizedBox(
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Opacity(
+                                    opacity: dialogRepeat ? 1.0 : 0.5,
+                                    child: IgnorePointer(
+                                      ignoring: !dialogRepeat,
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 60,
                                             height: 40,
-                                            child: ShadSelect<String>(
-                                              initialValue: dialogUnit,
-                                              options: [
-                                                ShadOption(value: 'day', child: Text(Translations.tr('unit_day', ref.read(settingsProvider).locale))),
-                                                ShadOption(value: 'week', child: Text(Translations.tr('unit_week', ref.read(settingsProvider).locale))),
-                                                ShadOption(value: 'month', child: Text(Translations.tr('unit_month', ref.read(settingsProvider).locale))),
-                                                ShadOption(value: 'year', child: Text(Translations.tr('unit_year', ref.read(settingsProvider).locale))),
-                                              ],
+                                            child: ShadInput(
+                                              initialValue: dialogInterval.toString(),
+                                              keyboardType: TextInputType.number,
                                               onChanged: (v) {
-                                                if (v != null) {
-                                                  setStateDialog(() {
-                                                    dialogUnit = v;
-                                                  });
-                                                  FocusScope.of(context).unfocus();
-                                                }
-                                              },
-                                              selectedOptionBuilder: (context, value) {
-                                                switch (value) {
-                                                  case 'day': return Text(Translations.tr('unit_day', ref.read(settingsProvider).locale));
-                                                  case 'week': return Text(Translations.tr('unit_week', ref.read(settingsProvider).locale));
-                                                  case 'month': return Text(Translations.tr('unit_month', ref.read(settingsProvider).locale));
-                                                  case 'year': return Text(Translations.tr('unit_year', ref.read(settingsProvider).locale));
-                                                  default: return const Text('');
+                                                final val = int.tryParse(v);
+                                                if (val != null && val > 0) {
+                                                  dialogInterval = val;
                                                 }
                                               },
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: SizedBox(
+                                              height: 40,
+                                              child: ShadSelect<String>(
+                                                initialValue: dialogUnit,
+                                                options: [
+                                                  ShadOption(value: 'day', child: Text(Translations.tr('unit_day', ref.read(settingsProvider).locale))),
+                                                  ShadOption(value: 'week', child: Text(Translations.tr('unit_week', ref.read(settingsProvider).locale))),
+                                                  ShadOption(value: 'month', child: Text(Translations.tr('unit_month', ref.read(settingsProvider).locale))),
+                                                  ShadOption(value: 'year', child: Text(Translations.tr('unit_year', ref.read(settingsProvider).locale))),
+                                                ],
+                                                onChanged: (v) {
+                                                  if (v != null) {
+                                                    setStateDialog(() {
+                                                      dialogUnit = v;
+                                                    });
+                                                    FocusScope.of(context).unfocus();
+                                                  }
+                                                },
+                                                selectedOptionBuilder: (context, value) {
+                                                  switch (value) {
+                                                    case 'day': return Text(Translations.tr('unit_day', ref.read(settingsProvider).locale));
+                                                    case 'week': return Text(Translations.tr('unit_week', ref.read(settingsProvider).locale));
+                                                    case 'month': return Text(Translations.tr('unit_month', ref.read(settingsProvider).locale));
+                                                    case 'year': return Text(Translations.tr('unit_year', ref.read(settingsProvider).locale));
+                                                    default: return const Text('');
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                         const SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
