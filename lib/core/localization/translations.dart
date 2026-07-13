@@ -41,6 +41,7 @@ class Translations {
       'format_ymd': 'YYYY/MM/DD',
       'format_mdy': 'MM/DD/YYYY',
       'format_dmy': 'DD/MM/YYYY',
+      'clear_date': 'Clear Date',
     },
     'zh_TW': {
       'settings': '設置',
@@ -83,6 +84,7 @@ class Translations {
       'format_ymd': 'YYYY/MM/DD',
       'format_mdy': 'MM/DD/YYYY',
       'format_dmy': 'DD/MM/YYYY',
+      'clear_date': '清除日期',
     },
     'zh_CN': {
       'settings': '设置',
@@ -125,6 +127,7 @@ class Translations {
       'format_ymd': 'YYYY/MM/DD',
       'format_mdy': 'MM/DD/YYYY',
       'format_dmy': 'DD/MM/YYYY',
+      'clear_date': '清除日期',
     },
   };
 

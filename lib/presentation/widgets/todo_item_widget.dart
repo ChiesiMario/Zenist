@@ -279,24 +279,36 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ),
                                   const SizedBox(height: 24),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      ShadButton.ghost(
-                                        onPressed: () => Navigator.of(context).pop(null),
-                                        child: Text(Translations.tr('cancel', locale)),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      ShadButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop({
-                                            'date': dialogDate,
-                                            'anytime': dialogAnytime,
-                                            'repeat': dialogRepeat,
-                                            'interval': dialogInterval,
-                                            'unit': dialogUnit,
-                                          });
-                                        },
-                                        child: Text(Translations.tr('confirm', locale)),
+                                      if (tempDueDate != null || tempIsAnytime)
+                                        ShadButton.ghost(
+                                          onPressed: () => Navigator.of(context).pop({'clear': true}),
+                                          child: Text(Translations.tr('clear_date', locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.mutedForeground)),
+                                        )
+                                      else
+                                        const SizedBox(),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ShadButton.ghost(
+                                            onPressed: () => Navigator.of(context).pop(null),
+                                            child: Text(Translations.tr('cancel', locale)),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          ShadButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop({
+                                                'date': dialogDate,
+                                                'anytime': dialogAnytime,
+                                                'repeat': dialogRepeat,
+                                                'interval': dialogInterval,
+                                                'unit': dialogUnit,
+                                              });
+                                            },
+                                            child: Text(Translations.tr('confirm', locale)),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -312,13 +324,21 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
               );
               
               if (result != null) {
-                setState(() {
-                  tempIsAnytime = result['anytime'] as bool;
-                  tempDueDate = result['date'] as DateTime?;
-                  tempRepeatEnabled = result['repeat'] as bool;
-                  tempRepeatInterval = result['interval'] as int;
-                  tempRepeatUnit = result['unit'] as String;
-                });
+                if (result['clear'] == true) {
+                  setState(() {
+                    tempIsAnytime = false;
+                    tempDueDate = null;
+                    tempRepeatEnabled = false;
+                  });
+                } else {
+                  setState(() {
+                    tempIsAnytime = result['anytime'] as bool;
+                    tempDueDate = result['date'] as DateTime?;
+                    tempRepeatEnabled = result['repeat'] as bool;
+                    tempRepeatInterval = result['interval'] as int;
+                    tempRepeatUnit = result['unit'] as String;
+                  });
+                }
                 focusNode.requestFocus();
               }
             }
@@ -435,23 +455,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                               ),
                             ),
                           ),
-                          if (tempDueDate != null || tempIsAnytime || tempRepeatEnabled) ...[
-                            const SizedBox(width: 4),
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  tempDueDate = null;
-                                  tempIsAnytime = false;
-                                  tempRepeatEnabled = false;
-                                });
-                              },
-                              borderRadius: BorderRadius.circular(4),
-                              child: Padding(
-                                padding: const EdgeInsets.all(4.0),
-                                child: Icon(LucideIcons.x, size: 14, color: ShadTheme.of(context).colorScheme.mutedForeground),
-                              ),
-                            ),
-                          ],
+
                         ],
                       ),
                       const SizedBox(height: 24),

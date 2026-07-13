@@ -264,24 +264,36 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                         ),
                         const SizedBox(height: 24),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            ShadButton.ghost(
-                              onPressed: () => Navigator.of(context).pop(null),
-                              child: Text(Translations.tr('cancel', ref.read(settingsProvider).locale)),
-                            ),
-                            const SizedBox(width: 8),
-                            ShadButton(
-                              onPressed: () {
-                                Navigator.of(context).pop({
-                                  'date': dialogDate,
-                                  'anytime': dialogAnytime,
-                                  'repeat': dialogRepeat,
-                                  'interval': dialogInterval,
-                                  'unit': dialogUnit,
-                                });
-                              },
-                              child: Text(Translations.tr('confirm', ref.read(settingsProvider).locale)),
+                            if (dialogDate != null || dialogAnytime)
+                              ShadButton.ghost(
+                                onPressed: () => Navigator.of(context).pop({'clear': true}),
+                                child: Text(Translations.tr('clear_date', ref.read(settingsProvider).locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.mutedForeground)),
+                              )
+                            else
+                              const SizedBox(),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ShadButton.ghost(
+                                  onPressed: () => Navigator.of(context).pop(null),
+                                  child: Text(Translations.tr('cancel', ref.read(settingsProvider).locale)),
+                                ),
+                                const SizedBox(width: 8),
+                                ShadButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop({
+                                      'date': dialogDate,
+                                      'anytime': dialogAnytime,
+                                      'repeat': dialogRepeat,
+                                      'interval': dialogInterval,
+                                      'unit': dialogUnit,
+                                    });
+                                  },
+                                  child: Text(Translations.tr('confirm', ref.read(settingsProvider).locale)),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -297,13 +309,21 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
     );
     
     if (result != null) {
-      setState(() {
-        _isAnytimeSelected = result['anytime'] as bool;
-        _selectedDueDate = result['date'] as DateTime?;
-        _isRepeatEnabled = result['repeat'] as bool;
-        _repeatInterval = result['interval'] as int;
-        _repeatUnit = result['unit'] as String;
-      });
+      if (result['clear'] == true) {
+        setState(() {
+          _isAnytimeSelected = false;
+          _selectedDueDate = null;
+          _isRepeatEnabled = false;
+        });
+      } else {
+        setState(() {
+          _isAnytimeSelected = result['anytime'] as bool;
+          _selectedDueDate = result['date'] as DateTime?;
+          _isRepeatEnabled = result['repeat'] as bool;
+          _repeatInterval = result['interval'] as int;
+          _repeatUnit = result['unit'] as String;
+        });
+      }
       _focusNode.requestFocus();
     }
   }
