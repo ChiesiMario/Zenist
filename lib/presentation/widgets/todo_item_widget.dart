@@ -531,7 +531,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
       color: ShadTheme.of(context).colorScheme.background,
       elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: ShadTheme.of(context).colorScheme.border, width: 1),
       ),
     );

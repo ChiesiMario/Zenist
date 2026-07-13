@@ -122,6 +122,7 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
             );
           },
         ),
+        radius: BorderRadius.circular(12),
       ),
       home: const TodoListPage(),
     );
