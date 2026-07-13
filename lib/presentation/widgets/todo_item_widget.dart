@@ -5,6 +5,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/todo_provider.dart';
+import '../../core/localization/translations.dart';
+import '../providers/settings_provider.dart';
 
 class TodoItemWidget extends ConsumerStatefulWidget {
   final Todo todo;
@@ -34,18 +36,20 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
     return !widget.todo.dueDate!.isBefore(todayStart) && widget.todo.dueDate!.isBefore(todayEnd);
   }
 
-  String _getRepeatUnitLabel(String unit) {
+  String _getRepeatUnitLabel(String unit, String locale) {
     switch (unit) {
-      case 'day': return '天';
-      case 'week': return '周';
-      case 'month': return '月';
-      case 'year': return '年';
+      case 'day': return Translations.tr('unit_day', locale);
+      case 'week': return Translations.tr('unit_week', locale);
+      case 'month': return Translations.tr('unit_month', locale);
+      case 'year': return Translations.tr('unit_year', locale);
       default: return '';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final locale = ref.watch(settingsProvider).locale;
+
     return Opacity(
       opacity: widget.todo.isCompleted ? 0.5 : 1.0,
       child: Container(
@@ -64,14 +68,14 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
               ref.read(todoNotifierProvider.notifier).toggleTodo(widget.todo);
             },
             trailing: Icon(widget.todo.isCompleted ? LucideIcons.xCircle : LucideIcons.checkCircle, size: 16),
-            child: Text(widget.todo.isCompleted ? 'Mark as Uncompleted' : 'Mark as Completed'),
+            child: Text(widget.todo.isCompleted ? Translations.tr('mark_uncompleted', locale) : Translations.tr('mark_completed', locale)),
           ),
           ShadContextMenuItem(
             onPressed: () {
               ref.read(todoNotifierProvider.notifier).deleteTodo(widget.todo.id);
             },
             trailing: Icon(LucideIcons.trash2, size: 16, color: ShadTheme.of(context).colorScheme.destructive),
-            child: Text('Delete', style: TextStyle(color: ShadTheme.of(context).colorScheme.destructive)),
+            child: Text(Translations.tr('delete', locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.destructive)),
           ),
         ],
         child: Dismissible(
@@ -171,7 +175,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            '每 ${widget.todo.repeatInterval} ${_getRepeatUnitLabel(widget.todo.repeatUnit!)}',
+                                            '${Translations.tr('every', locale)}${widget.todo.repeatInterval} ${_getRepeatUnitLabel(widget.todo.repeatUnit!, locale)}',
                                             style: ShadTheme.of(context).textTheme.muted.copyWith(
                                               fontSize: 12,
                                             ),

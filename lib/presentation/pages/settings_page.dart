@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/settings_provider.dart';
 import '../../core/utils/system_fonts.dart';
+import '../../core/localization/translations.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -12,16 +13,65 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  void _showFontSelectionDialog(BuildContext context, String currentFont) {
+  void _showFontSelectionDialog(BuildContext context, String currentFont, String locale) {
     showDialog(
       context: context,
       builder: (context) {
         return _FontSelectionDialog(
           currentFont: currentFont,
+          locale: locale,
           onSelected: (font) {
             ref.read(settingsProvider.notifier).updateFontFamily(font);
             Navigator.of(context).pop();
           },
+        );
+      },
+    );
+  }
+
+  void _showLanguageSelectionDialog(BuildContext context, String currentLocale) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  Translations.tr('select_language', currentLocale),
+                  style: ShadTheme.of(context).textTheme.h4,
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  title: const Text('繁體中文'),
+                  trailing: currentLocale == 'zh_TW' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                  onTap: () {
+                    ref.read(settingsProvider.notifier).updateLocale('zh_TW');
+                    Navigator.of(context).pop();
+                  },
+                ),
+                ListTile(
+                  title: const Text('简体中文'),
+                  trailing: currentLocale == 'zh_CN' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                  onTap: () {
+                    ref.read(settingsProvider.notifier).updateLocale('zh_CN');
+                    Navigator.of(context).pop();
+                  },
+                ),
+                ListTile(
+                  title: const Text('English'),
+                  trailing: currentLocale == 'en' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                  onTap: () {
+                    ref.read(settingsProvider.notifier).updateLocale('en');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -35,7 +85,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       backgroundColor: ShadTheme.of(context).colorScheme.background,
       appBar: AppBar(
         title: Text(
-          '設置',
+          Translations.tr('settings', settings.locale),
           style: ShadTheme.of(context).textTheme.h4,
         ),
         backgroundColor: Colors.transparent,
@@ -54,21 +104,37 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             padding: const EdgeInsets.all(16.0),
             children: [
               Text(
-                '外觀與顯示',
+                Translations.tr('appearance_and_display', settings.locale),
                 style: ShadTheme.of(context).textTheme.large,
               ),
               const SizedBox(height: 16),
               ShadCard(
                 padding: const EdgeInsets.all(0),
-                child: ListTile(
-                  title: const Text('應用程式字體'),
-                  subtitle: Text(
-                    settings.fontFamily == 'NotoSansTC' ? '思源黑體 (預設)' : settings.fontFamily,
-                  ),
-                  trailing: const Icon(LucideIcons.chevronRight),
-                  onTap: () {
-                    _showFontSelectionDialog(context, settings.fontFamily);
-                  },
+                child: Column(
+                  children: [
+                    ListTile(
+                      title: Text(Translations.tr('language', settings.locale)),
+                      subtitle: Text(
+                        settings.locale == 'zh_TW' ? '繁體中文' :
+                        settings.locale == 'zh_CN' ? '简体中文' : 'English',
+                      ),
+                      trailing: const Icon(LucideIcons.chevronRight),
+                      onTap: () {
+                        _showLanguageSelectionDialog(context, settings.locale);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      title: Text(Translations.tr('app_font', settings.locale)),
+                      subtitle: Text(
+                        settings.fontFamily == 'NotoSansTC' ? Translations.tr('default_font', settings.locale) : settings.fontFamily,
+                      ),
+                      trailing: const Icon(LucideIcons.chevronRight),
+                      onTap: () {
+                        _showFontSelectionDialog(context, settings.fontFamily, settings.locale);
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -81,10 +147,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
 class _FontSelectionDialog extends StatefulWidget {
   final String currentFont;
+  final String locale;
   final ValueChanged<String> onSelected;
 
   const _FontSelectionDialog({
     required this.currentFont,
+    required this.locale,
     required this.onSelected,
   });
 
@@ -133,7 +201,7 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
         child: Column(
           children: [
             Text(
-              '選擇字體',
+              Translations.tr('select_font', widget.locale),
               style: ShadTheme.of(context).textTheme.h4,
             ),
             const SizedBox(height: 16),
@@ -145,7 +213,7 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
               )
             else ...[
               ShadInput(
-                placeholder: const Text('搜尋字體...'),
+                placeholder: Text(Translations.tr('search_font', widget.locale)),
                 onChanged: (value) {
                   setState(() {
                     _searchQuery = value;
@@ -163,7 +231,7 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
                     
                     return ListTile(
                       title: Text(
-                        isDefault ? '思源黑體 (預設)' : font,
+                        isDefault ? Translations.tr('default_font', widget.locale) : font,
                         style: TextStyle(
                           fontFamily: font,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

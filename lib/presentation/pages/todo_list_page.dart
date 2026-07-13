@@ -6,7 +6,9 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_item_widget.dart';
 import '../../domain/entities/todo.dart';
+import '../providers/settings_provider.dart';
 import 'settings_page.dart';
+import '../../core/localization/translations.dart';
 
 class TodoListPage extends ConsumerStatefulWidget {
   const TodoListPage({super.key});
@@ -128,7 +130,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                             children: [
                               Icon(LucideIcons.infinity, size: 16, color: dialogAnytime ? ShadTheme.of(context).colorScheme.primary : null),
                               const SizedBox(width: 8.0),
-                              Text('設為隨時', style: TextStyle(color: dialogAnytime ? ShadTheme.of(context).colorScheme.primary : null)),
+                              Text(Translations.tr('set_anytime', ref.read(settingsProvider).locale), style: TextStyle(color: dialogAnytime ? ShadTheme.of(context).colorScheme.primary : null)),
                             ],
                           ),
                         ),
@@ -145,7 +147,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                     dialogRepeat = v;
                                   });
                                 },
-                                label: const Text('重複'),
+                                label: Text(Translations.tr('repeat', ref.read(settingsProvider).locale)),
                               ),
                             ],
                           ),
@@ -153,7 +155,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                             const SizedBox(height: 12),
                             Row(
                               children: [
-                                const Text('每 '),
+                                Text(Translations.tr('every', ref.read(settingsProvider).locale)),
                                 const SizedBox(width: 8),
                                 SizedBox(
                                   width: 60,
@@ -173,10 +175,10 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                   child: ShadSelect<String>(
                                     initialValue: dialogUnit,
                                     options: [
-                                      ShadOption(value: 'day', child: const Text('天')),
-                                      ShadOption(value: 'week', child: const Text('周')),
-                                      ShadOption(value: 'month', child: const Text('月')),
-                                      ShadOption(value: 'year', child: const Text('年')),
+                                      ShadOption(value: 'day', child: Text(Translations.tr('unit_day', ref.read(settingsProvider).locale))),
+                                      ShadOption(value: 'week', child: Text(Translations.tr('unit_week', ref.read(settingsProvider).locale))),
+                                      ShadOption(value: 'month', child: Text(Translations.tr('unit_month', ref.read(settingsProvider).locale))),
+                                      ShadOption(value: 'year', child: Text(Translations.tr('unit_year', ref.read(settingsProvider).locale))),
                                     ],
                                     onChanged: (v) {
                                       if (v != null) {
@@ -187,10 +189,10 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                     },
                                     selectedOptionBuilder: (context, value) {
                                       switch (value) {
-                                        case 'day': return const Text('天');
-                                        case 'week': return const Text('周');
-                                        case 'month': return const Text('月');
-                                        case 'year': return const Text('年');
+                                        case 'day': return Text(Translations.tr('unit_day', ref.read(settingsProvider).locale));
+                                        case 'week': return Text(Translations.tr('unit_week', ref.read(settingsProvider).locale));
+                                        case 'month': return Text(Translations.tr('unit_month', ref.read(settingsProvider).locale));
+                                        case 'year': return Text(Translations.tr('unit_year', ref.read(settingsProvider).locale));
                                         default: return const Text('');
                                       }
                                     },
@@ -206,7 +208,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                           children: [
                             ShadButton.ghost(
                               onPressed: () => Navigator.of(context).pop(null),
-                              child: const Text('取消'),
+                              child: Text(Translations.tr('cancel', ref.read(settingsProvider).locale)),
                             ),
                             const SizedBox(width: 8),
                             ShadButton(
@@ -219,7 +221,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                   'unit': dialogUnit,
                                 });
                               },
-                              child: const Text('確定'),
+                              child: Text(Translations.tr('confirm', ref.read(settingsProvider).locale)),
                             ),
                           ],
                         ),
@@ -249,6 +251,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   @override
   Widget build(BuildContext context) {
     final todosAsync = ref.watch(todoListStreamProvider);
+    final locale = ref.watch(settingsProvider).locale;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -309,7 +312,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                     fontSize: 14,
                                   ),
                                   decoration: InputDecoration(
-                                    hintText: 'Add a new task...',
+                                    hintText: Translations.tr('add_new_task', locale),
                                     hintStyle: ShadTheme.of(context).textTheme.p.copyWith(
                                       color: ShadTheme.of(context).colorScheme.mutedForeground,
                                       fontSize: 14,
@@ -404,7 +407,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                               if (uncompletedTodos.isEmpty && completedTodayTodos.isEmpty) {
                                 return Center(
                                   child: Text(
-                                    'No tasks yet.\nEnjoy the emptiness.',
+                                    Translations.tr('empty_state', locale),
                                     textAlign: TextAlign.center,
                                     style: ShadTheme.of(context).textTheme.p.copyWith(
                                           height: 1.5,
@@ -432,7 +435,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                     return Padding(
                                       padding: const EdgeInsets.only(top: 32, bottom: 8),
                                       child: Text(
-                                        '已完成',
+                                        Translations.tr('completed', locale),
                                         style: ShadTheme.of(context).textTheme.large.copyWith(
                                           color: ShadTheme.of(context).colorScheme.mutedForeground,
                                           fontWeight: FontWeight.w600,
@@ -525,10 +528,10 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                       children: [
                         Row(
                           children: [
-                            _buildNavItem(0, Icons.wb_sunny_outlined, Icons.wb_sunny, '今天'),
-                            _buildNavItem(1, Icons.calendar_today_outlined, Icons.calendar_today, '未來'),
-                            _buildNavItem(2, Icons.inbox_outlined, Icons.inbox, '某天'),
-                            _buildNavItem(3, Icons.all_inclusive_outlined, Icons.all_inclusive, '隨時'),
+                            _buildNavItem(0, Icons.wb_sunny_outlined, Icons.wb_sunny, Translations.tr('tab_today', locale)),
+                            _buildNavItem(1, Icons.calendar_today_outlined, Icons.calendar_today, Translations.tr('tab_upcoming', locale)),
+                            _buildNavItem(2, Icons.inbox_outlined, Icons.inbox, Translations.tr('tab_someday', locale)),
+                            _buildNavItem(3, Icons.all_inclusive_outlined, Icons.all_inclusive, Translations.tr('tab_anytime', locale)),
                           ],
                         ),
                         _buildFilletsOverlay(),
