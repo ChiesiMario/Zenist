@@ -12,39 +12,11 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  List<String> _systemFonts = [];
-  bool _isLoading = true;
-  String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadFonts();
-  }
-
-  Future<void> _loadFonts() async {
-    final fonts = await SystemFontsHelper.getSystemFonts();
-    
-    // Ensure NotoSansTC is always the first option (as default)
-    if (fonts.contains('NotoSansTC')) {
-      fonts.remove('NotoSansTC');
-    }
-    fonts.insert(0, 'NotoSansTC');
-
-    if (mounted) {
-      setState(() {
-        _systemFonts = fonts;
-        _isLoading = false;
-      });
-    }
-  }
-
   void _showFontSelectionDialog(BuildContext context, String currentFont) {
     showDialog(
       context: context,
       builder: (context) {
         return _FontSelectionDialog(
-          systemFonts: _systemFonts,
           currentFont: currentFont,
           onSelected: (font) {
             ref.read(settingsProvider.notifier).updateFontFamily(font);
@@ -76,9 +48,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           color: ShadTheme.of(context).colorScheme.foreground,
         ),
       ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator()) 
-        : ListView(
+      body: Stack(
+        children: [
+          ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
               Text(
@@ -101,17 +73,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ],
           ),
+        ],
+      ),
     );
   }
 }
 
 class _FontSelectionDialog extends StatefulWidget {
-  final List<String> systemFonts;
   final String currentFont;
   final ValueChanged<String> onSelected;
 
   const _FontSelectionDialog({
-    required this.systemFonts,
     required this.currentFont,
     required this.onSelected,
   });
@@ -122,10 +94,34 @@ class _FontSelectionDialog extends StatefulWidget {
 
 class _FontSelectionDialogState extends State<_FontSelectionDialog> {
   String _searchQuery = '';
+  List<String> _systemFonts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFonts();
+  }
+
+  Future<void> _loadFonts() async {
+    final fonts = await SystemFontsHelper.getSystemFonts();
+    
+    if (fonts.contains('NotoSansTC')) {
+      fonts.remove('NotoSansTC');
+    }
+    fonts.insert(0, 'NotoSansTC');
+
+    if (mounted) {
+      setState(() {
+        _systemFonts = fonts;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final filteredFonts = widget.systemFonts
+    final filteredFonts = _systemFonts
         .where((font) => font.toLowerCase().contains(_searchQuery.toLowerCase()))
         .toList();
 
@@ -141,37 +137,45 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
               style: ShadTheme.of(context).textTheme.h4,
             ),
             const SizedBox(height: 16),
-            ShadInput(
-              placeholder: const Text('搜尋字體...'),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: filteredFonts.length,
-                itemBuilder: (context, index) {
-                  final font = filteredFonts[index];
-                  final isSelected = font == widget.currentFont;
-                  final isDefault = font == 'NotoSansTC';
-                  
-                  return ListTile(
-                    title: Text(
-                      isDefault ? '思源黑體 (預設)' : font,
-                      style: TextStyle(
-                        fontFamily: font,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                    trailing: isSelected ? const Icon(LucideIcons.check, color: Colors.blue) : null,
-                    onTap: () => widget.onSelected(font),
-                  );
+            if (_isLoading)
+              const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else ...[
+              ShadInput(
+                placeholder: const Text('搜尋字體...'),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
                 },
               ),
-            ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: filteredFonts.length,
+                  itemBuilder: (context, index) {
+                    final font = filteredFonts[index];
+                    final isSelected = font == widget.currentFont;
+                    final isDefault = font == 'NotoSansTC';
+                    
+                    return ListTile(
+                      title: Text(
+                        isDefault ? '思源黑體 (預設)' : font,
+                        style: TextStyle(
+                          fontFamily: font,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      trailing: isSelected ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                      onTap: () => widget.onSelected(font),
+                    );
+                  },
+                ),
+              ),
+            ],
           ],
         ),
       ),
