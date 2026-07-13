@@ -32,10 +32,13 @@ class SettingsNotifier extends Notifier<SettingsState> {
   static const _fontKey = 'selectedFontFamily';
   static const _localeKey = 'selectedLocale';
 
+  String _getDefaultFont(String locale) {
+    return locale == 'zh_CN' ? 'NotoSansSC' : 'NotoSansTC';
+  }
+
   @override
   SettingsState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
-    final savedFont = prefs.getString(_fontKey) ?? 'NotoSansTC';
     
     // Auto detect locale if not saved
     String savedLocale = prefs.getString(_localeKey) ?? '';
@@ -52,10 +55,19 @@ class SettingsNotifier extends Notifier<SettingsState> {
       }
     }
 
+    final savedFont = prefs.getString(_fontKey);
+    final bool isUsingDefaultFont = savedFont == null || savedFont == 'NotoSansTC' || savedFont == 'NotoSansSC';
+
     return SettingsState(
-      fontFamily: savedFont,
+      fontFamily: isUsingDefaultFont ? _getDefaultFont(savedLocale) : savedFont,
       locale: savedLocale,
     );
+  }
+
+  Future<void> clearFontFamily() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove(_fontKey);
+    state = state.copyWith(fontFamily: _getDefaultFont(state.locale));
   }
 
   Future<void> updateFontFamily(String newFontFamily) async {
@@ -67,6 +79,13 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> updateLocale(String newLocale) async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_localeKey, newLocale);
-    state = state.copyWith(locale: newLocale);
+    
+    final savedFont = prefs.getString(_fontKey);
+    final bool isUsingDefaultFont = savedFont == null || savedFont == 'NotoSansTC' || savedFont == 'NotoSansSC';
+
+    state = state.copyWith(
+      locale: newLocale,
+      fontFamily: isUsingDefaultFont ? _getDefaultFont(newLocale) : savedFont,
+    );
   }
 }

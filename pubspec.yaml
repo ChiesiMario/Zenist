@@ -100,3 +100,6 @@ flutter:
           weight: 800
         - asset: assets/fonts/NotoSansTC/NotoSansTC-Black.ttf
           weight: 900
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/fonts/NotoSansSC/NotoSansSC-VariableFont_wght.ttf

@@ -41,6 +41,7 @@ class ZenistApp extends ConsumerWidget {
             final baseStyle = textStyle ?? const TextStyle();
             return baseStyle.copyWith(
               fontFamily: settings.fontFamily,
+              fontFamilyFallback: ['NotoSansSC'],
               color: color ?? baseStyle.color,
               backgroundColor: backgroundColor ?? baseStyle.backgroundColor,
               fontSize: fontSize ?? baseStyle.fontSize,

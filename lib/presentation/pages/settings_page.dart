@@ -20,8 +20,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         return _FontSelectionDialog(
           currentFont: currentFont,
           locale: locale,
-          onSelected: (font) {
-            ref.read(settingsProvider.notifier).updateFontFamily(font);
+          onSelected: (font, isDefault) {
+            if (isDefault) {
+              ref.read(settingsProvider.notifier).clearFontFamily();
+            } else {
+              ref.read(settingsProvider.notifier).updateFontFamily(font);
+            }
             Navigator.of(context).pop();
           },
         );
@@ -46,7 +50,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
                 const SizedBox(height: 16),
                 ListTile(
-                  title: const Text('繁體中文'),
+                  title: Text(Translations.tr('lang_zh_tw', currentLocale)),
                   trailing: currentLocale == 'zh_TW' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
                   onTap: () {
                     ref.read(settingsProvider.notifier).updateLocale('zh_TW');
@@ -54,7 +58,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('简体中文'),
+                  title: Text(Translations.tr('lang_zh_cn', currentLocale)),
                   trailing: currentLocale == 'zh_CN' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
                   onTap: () {
                     ref.read(settingsProvider.notifier).updateLocale('zh_CN');
@@ -62,7 +66,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   },
                 ),
                 ListTile(
-                  title: const Text('English'),
+                  title: Text(Translations.tr('lang_en', currentLocale)),
                   trailing: currentLocale == 'en' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
                   onTap: () {
                     ref.read(settingsProvider.notifier).updateLocale('en');
@@ -115,8 +119,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ListTile(
                       title: Text(Translations.tr('language', settings.locale)),
                       subtitle: Text(
-                        settings.locale == 'zh_TW' ? '繁體中文' :
-                        settings.locale == 'zh_CN' ? '简体中文' : 'English',
+                        settings.locale == 'zh_TW' ? Translations.tr('lang_zh_tw', settings.locale) :
+                        settings.locale == 'zh_CN' ? Translations.tr('lang_zh_cn', settings.locale) : 
+                        Translations.tr('lang_en', settings.locale),
                       ),
                       trailing: const Icon(LucideIcons.chevronRight),
                       onTap: () {
@@ -127,7 +132,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ListTile(
                       title: Text(Translations.tr('app_font', settings.locale)),
                       subtitle: Text(
-                        settings.fontFamily == 'NotoSansTC' ? Translations.tr('default_font', settings.locale) : settings.fontFamily,
+                        (settings.fontFamily == 'NotoSansTC' || settings.fontFamily == 'NotoSansSC') 
+                            ? Translations.tr('default_font', settings.locale) 
+                            : settings.fontFamily,
                       ),
                       trailing: const Icon(LucideIcons.chevronRight),
                       onTap: () {
@@ -148,7 +155,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 class _FontSelectionDialog extends StatefulWidget {
   final String currentFont;
   final String locale;
-  final ValueChanged<String> onSelected;
+  final void Function(String, bool) onSelected;
 
   const _FontSelectionDialog({
     required this.currentFont,
@@ -177,7 +184,12 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
     if (fonts.contains('NotoSansTC')) {
       fonts.remove('NotoSansTC');
     }
-    fonts.insert(0, 'NotoSansTC');
+    if (fonts.contains('NotoSansSC')) {
+      fonts.remove('NotoSansSC');
+    }
+    
+    final defaultFont = widget.locale == 'zh_CN' ? 'NotoSansSC' : 'NotoSansTC';
+    fonts.insert(0, defaultFont);
 
     if (mounted) {
       setState(() {
@@ -227,7 +239,8 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
                   itemBuilder: (context, index) {
                     final font = filteredFonts[index];
                     final isSelected = font == widget.currentFont;
-                    final isDefault = font == 'NotoSansTC';
+                    final defaultFont = widget.locale == 'zh_CN' ? 'NotoSansSC' : 'NotoSansTC';
+                    final isDefault = font == defaultFont;
                     
                     return ListTile(
                       title: Text(
@@ -238,7 +251,7 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
                         ),
                       ),
                       trailing: isSelected ? const Icon(LucideIcons.check, color: Colors.blue) : null,
-                      onTap: () => widget.onSelected(font),
+                      onTap: () => widget.onSelected(font, isDefault),
                     );
                   },
                 ),
