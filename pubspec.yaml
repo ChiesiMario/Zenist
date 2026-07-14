@@ -48,6 +48,7 @@ dependencies:
   flutter_web_auth_2: ^6.0.0-alpha.5
   flutter_secure_storage: ^10.3.1
   window_to_front: ^1.0.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

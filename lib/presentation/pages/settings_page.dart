@@ -6,6 +6,7 @@ import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
 import '../../application/services/sync_service.dart';
 import '../../data/datasources/remote/dropbox_datasource.dart';
+import '../../core/utils/toast_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -460,9 +461,7 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: $e')),
-        );
+        ToastUtils.show(context, 'Login failed: $e');
       }
     }
   }
@@ -483,15 +482,11 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
         setState(() {
           _lastSynced = DateTime.now().toString().split('.').first;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Sync completed successfully')),
-        );
+        ToastUtils.show(context, 'Sync completed successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sync failed: $e')),
-        );
+        ToastUtils.show(context, 'Sync failed: $e');
       }
     } finally {
       if (mounted) {

@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +13,14 @@ final dropboxDataSourceProvider = Provider<DropboxDataSource>((ref) {
 class DropboxDataSource {
   static const String _clientId = 'rin197bgs7odw7n';
   static const String _clientSecret = '0x4hd9xvwqtnfwj';
-  static const String _redirectUri = 'http://localhost:8080/';
+  
+  String get _redirectUri {
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      return 'http://localhost:45912/';
+    } else {
+      return 'zenist://oauth2redirect';
+    }
+  }
   
   static const String _tokenKey = 'dropbox_access_token';
   static const String _refreshTokenKey = 'dropbox_refresh_token';
@@ -32,12 +41,47 @@ class DropboxDataSource {
       'token_access_type': 'offline',
     });
 
-    final result = await FlutterWebAuth2.authenticate(
-      url: url.toString(),
-      callbackUrlScheme: 'http',
-    );
+    String? code;
 
-    final code = Uri.parse(result).queryParameters['code'];
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 45912);
+      try {
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url);
+        } else {
+          throw Exception('Could not launch $url');
+        }
+
+        await for (var request in server) {
+          final queryParams = request.uri.queryParameters;
+          if (queryParams.containsKey('code')) {
+            code = queryParams['code'];
+            request.response
+              ..statusCode = HttpStatus.ok
+              ..headers.contentType = ContentType.html
+              ..write('<html><body style="font-family:sans-serif;text-align:center;margin-top:50px;"><h1>Zenist 授權成功！</h1><p>您可以安全地關閉這個視窗並返回應用程式。</p><script>window.close();</script></body></html>');
+            await request.response.close();
+            break;
+          } else if (queryParams.containsKey('error')) {
+            request.response
+              ..statusCode = HttpStatus.badRequest
+              ..headers.contentType = ContentType.html
+              ..write('<html><body><h1>授權失敗</h1><p>${queryParams['error']}</p></body></html>');
+            await request.response.close();
+            throw Exception('Dropbox login error: ${queryParams['error']}');
+          }
+        }
+      } finally {
+        await server.close(force: true);
+      }
+    } else {
+      final result = await FlutterWebAuth2.authenticate(
+        url: url.toString(),
+        callbackUrlScheme: 'zenist',
+      );
+      code = Uri.parse(result).queryParameters['code'];
+    }
+
     if (code == null) throw Exception('No code returned from Dropbox');
 
     final tokenResponse = await http.post(
