@@ -8,6 +8,7 @@ import '../providers/todo_provider.dart';
 import '../widgets/todo_item_widget.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
+import '../widgets/all_done_zen_ring_widget.dart';
 
 import '../../core/localization/translations.dart';
 import '../../application/services/auto_sync_manager.dart';
@@ -1267,30 +1268,31 @@ void _showAddTaskDialog(String locale) {
                               final completedTodayTodos = <Todo>[];
 
                               for (final todo in allTodos) {
-                                bool matchesTab = false;
-                                if (_currentIndex == 0) { // 今天
-                                  if (todo.dueDate != null && !todo.isAnytime) {
-                                    if (todo.dueDate!.isBefore(todayStart)) {
-                                      if (!todo.isCompleted) matchesTab = true; // 過期但未完成
-                                    } else if (todo.dueDate!.isBefore(todayEnd)) {
-                                      matchesTab = true; // 今天之內
+                                if (!todo.isCompleted) {
+                                  bool matchesTab = false;
+                                  if (_currentIndex == 0) { // 今天
+                                    if (todo.dueDate != null && !todo.isAnytime) {
+                                      if (todo.dueDate!.isBefore(todayEnd)) {
+                                        matchesTab = true; // 過期或今天之內
+                                      }
                                     }
+                                  } else if (_currentIndex == 1) { // 未來
+                                    if (todo.dueDate != null && !todo.isAnytime && todo.dueDate!.isAfter(todayEnd.subtract(const Duration(milliseconds: 1)))) {
+                                      matchesTab = true;
+                                    }
+                                  } else if (_currentIndex == 2) { // 某天
+                                    if (todo.dueDate == null && !todo.isAnytime) matchesTab = true;
+                                  } else if (_currentIndex == 3) { // 隨時
+                                    if (todo.isAnytime) matchesTab = true;
                                   }
-                                } else if (_currentIndex == 1) { // 未來
-                                  if (todo.dueDate != null && !todo.isAnytime && todo.dueDate!.isAfter(todayEnd.subtract(const Duration(milliseconds: 1)))) {
-                                    matchesTab = true;
-                                  }
-                                } else if (_currentIndex == 2) { // 某天
-                                  if (todo.dueDate == null && !todo.isAnytime) matchesTab = true;
-                                } else if (_currentIndex == 3) { // 隨時
-                                  if (todo.isAnytime) matchesTab = true;
-                                }
-
-                                if (matchesTab) {
-                                  if (!todo.isCompleted) {
+                                  
+                                  if (matchesTab) {
                                     uncompletedTodos.add(todo);
-                                  } else {
-                                    // 僅限今天完成的
+                                  }
+                                } else {
+                                  // 已完成的任務
+                                  if (_currentIndex == 0) {
+                                    // 在「今天」標籤，顯示所有今天打勾完成的任務（戰利品）
                                     if (todo.completedAt != null && 
                                         !todo.completedAt!.isBefore(todayStart) && 
                                         todo.completedAt!.isBefore(todayEnd)) {
@@ -1300,33 +1302,65 @@ void _showAddTaskDialog(String locale) {
                                 }
                               }
 
+                              int _compareTodos(Todo a, Todo b) {
+                                if (a.dueDate != null && b.dueDate != null) {
+                                  return a.dueDate!.compareTo(b.dueDate!);
+                                } else if (a.dueDate != null) {
+                                  return -1; // a has due date, b doesn't -> a comes first
+                                } else if (b.dueDate != null) {
+                                  return 1;  // b has due date, a doesn't -> b comes first
+                                } else {
+                                  return a.createdAt.compareTo(b.createdAt);
+                                }
+                              }
+
+                              uncompletedTodos.sort(_compareTodos);
+                              completedTodayTodos.sort(_compareTodos);
+
                               if (uncompletedTodos.isEmpty && completedTodayTodos.isEmpty) {
                                 return Center(
                                   child: Text(
-                                    Translations.tr('empty_state', locale),
+                                    Translations.tr('empty_state_$_currentIndex', locale),
                                     textAlign: TextAlign.center,
                                     style: ShadTheme.of(context).textTheme.p.copyWith(
                                           height: 1.5,
-                                          color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                          color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.6),
                                         ),
                                   ),
                                 );
                               }
                               
-                              final itemCount = uncompletedTodos.length + (completedTodayTodos.isEmpty ? 0 : completedTodayTodos.length + 1);
+                              final showZenRing = _currentIndex == 0 && uncompletedTodos.isEmpty && completedTodayTodos.isNotEmpty;
+                              
+                              int itemCount = uncompletedTodos.length + (completedTodayTodos.isEmpty ? 0 : completedTodayTodos.length + 1);
+                              if (showZenRing) itemCount += 1;
 
                               return ListView.builder(
                                 padding: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
                                 itemCount: itemCount,
                                 itemBuilder: (context, index) {
-                                  if (index < uncompletedTodos.length) {
+                                  int adjustedIndex = index;
+                                  
+                                  if (showZenRing) {
+                                    if (adjustedIndex == 0) {
+                                      final subtitle = Translations.tr('completed_x_tasks', locale)
+                                          .replaceAll('{count}', completedTodayTodos.length.toString());
+                                      return AllDoneZenRingWidget(
+                                        message: Translations.tr('all_done_today', locale),
+                                        subtitle: subtitle,
+                                      );
+                                    }
+                                    adjustedIndex -= 1;
+                                  }
+
+                                  if (adjustedIndex < uncompletedTodos.length) {
                                     return TodoItemWidget(
-                                      key: ValueKey(uncompletedTodos[index].id),
-                                      todo: uncompletedTodos[index],
+                                      key: ValueKey(uncompletedTodos[adjustedIndex].id),
+                                      todo: uncompletedTodos[adjustedIndex],
                                     );
                                   }
                                   
-                                  final completedIndex = index - uncompletedTodos.length;
+                                  final completedIndex = adjustedIndex - uncompletedTodos.length;
                                   if (completedIndex == 0) {
                                     return Padding(
                                       padding: const EdgeInsets.only(top: 32, bottom: 8),
