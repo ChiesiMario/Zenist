@@ -141,4 +141,20 @@ class TodoNotifier extends Notifier<void> {
     );
     await repository.saveTodo(updatedTodo);
   }
+
+  Future<void> toggleSubtask(Todo todo, String subtaskId) async {
+    final repository = ref.read(todoRepositoryProvider);
+    final updatedSubtasks = todo.subtasks.map((s) {
+      if (s.id == subtaskId) {
+        return s.copyWith(isCompleted: !s.isCompleted);
+      }
+      return s;
+    }).toList();
+    
+    final updatedTodo = todo.copyWith(
+      subtasks: updatedSubtasks,
+      updatedAt: DateTime.now(),
+    );
+    await repository.saveTodo(updatedTodo);
+  }
 }

@@ -700,14 +700,17 @@ void _showAddTaskDialog(String locale) {
                             padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
                             child: Row(
                               children: [
-                                ShadCheckbox(
-                                  value: subtask.isCompleted,
-                                  onChanged: (v) {
-                                    setState(() {
-                                      final idx = tempSubtasks.indexOf(subtask);
-                                      tempSubtasks[idx] = subtask.copyWith(isCompleted: v);
-                                    });
-                                  },
+                                Opacity(
+                                  opacity: subtask.isCompleted ? 0.4 : 0.15,
+                                  child: ShadCheckbox(
+                                    value: subtask.isCompleted,
+                                    onChanged: (v) {
+                                      setState(() {
+                                        final idx = tempSubtasks.indexOf(subtask);
+                                        tempSubtasks[idx] = subtask.copyWith(isCompleted: v);
+                                      });
+                                    },
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(

@@ -44,6 +44,8 @@ class Translations {
       'format_mdy': 'MM/DD/YYYY',
       'format_dmy': 'DD/MM/YYYY',
       'clear_date': 'Clear Date',
+      'expand_subtasks': 'Expand subtasks',
+      'collapse_subtasks': 'Collapse subtasks',
     },
     'zh_TW': {
       'settings': '設置',
@@ -89,6 +91,8 @@ class Translations {
       'format_mdy': 'MM/DD/YYYY',
       'format_dmy': 'DD/MM/YYYY',
       'clear_date': '清除日期',
+      'expand_subtasks': '展開子任務',
+      'collapse_subtasks': '收起子任務',
     },
     'zh_CN': {
       'settings': '设置',
@@ -134,6 +138,8 @@ class Translations {
       'format_mdy': 'MM/DD/YYYY',
       'format_dmy': 'DD/MM/YYYY',
       'clear_date': '清除日期',
+      'expand_subtasks': '展开子任务',
+      'collapse_subtasks': '收起子任务',
     },
   };
 

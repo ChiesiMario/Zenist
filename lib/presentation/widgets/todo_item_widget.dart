@@ -20,6 +20,7 @@ class TodoItemWidget extends ConsumerStatefulWidget {
 
 class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
   bool _isHovered = false;
+  bool _isExpanded = false;
 
   bool get _isOverdue {
     if (widget.todo.dueDate == null) return false;
@@ -434,14 +435,17 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                             padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
                             child: Row(
                               children: [
-                                ShadCheckbox(
-                                  value: subtask.isCompleted,
-                                  onChanged: (v) {
-                                    setState(() {
-                                      final idx = tempSubtasks.indexOf(subtask);
-                                      tempSubtasks[idx] = subtask.copyWith(isCompleted: v);
-                                    });
-                                  },
+                                Opacity(
+                                  opacity: subtask.isCompleted ? 0.4 : 0.15,
+                                  child: ShadCheckbox(
+                                    value: subtask.isCompleted,
+                                    onChanged: (v) {
+                                      setState(() {
+                                        final idx = tempSubtasks.indexOf(subtask);
+                                        tempSubtasks[idx] = subtask.copyWith(isCompleted: v);
+                                      });
+                                    },
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -746,9 +750,103 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ],
                                 ),
                               ),
-                          ],
-                        ),
+                          if (widget.todo.subtasks.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: GestureDetector(
+                                onTap: () {}, // 阻止點擊事件向外冒泡
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _isExpanded = !_isExpanded;
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                                          size: 14,
+                                          color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _isExpanded 
+                                            ? Translations.tr('collapse_subtasks', locale) 
+                                            : Translations.tr('expand_subtasks', locale),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (widget.todo.subtasks.isNotEmpty && _isExpanded)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0, left: 12.0),
+                              child: GestureDetector(
+                                onTap: () {}, // 阻止點擊事件向外冒泡
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: widget.todo.subtasks.map((subtask) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        ref.read(todoNotifierProvider.notifier).toggleSubtask(widget.todo, subtask.id);
+                                      },
+                                      behavior: HitTestBehavior.opaque,
+                                      child: Padding(
+                                        key: ValueKey(subtask.id),
+                                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                        child: Row(
+                                          children: [
+                                            Opacity(
+                                              opacity: subtask.isCompleted ? 0.4 : 0.15,
+                                              child: SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child: GestureDetector(
+                                                  onTap: () {}, // 攔截點擊，不冒泡到外層 Row 的 GestureDetector
+                                                  child: ShadCheckbox(
+                                                    value: subtask.isCompleted,
+                                                    onChanged: (v) {
+                                                      ref.read(todoNotifierProvider.notifier).toggleSubtask(widget.todo, subtask.id);
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                subtask.title,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  decoration: subtask.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+                                                  color: subtask.isCompleted 
+                                                    ? ShadTheme.of(context).colorScheme.mutedForeground 
+                                                    : ShadTheme.of(context).colorScheme.foreground,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
+                    ),
                     ],
                   ),
                 ),
