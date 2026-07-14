@@ -10,7 +10,7 @@ import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
 
 import '../../core/localization/translations.dart';
-import '../../application/services/sync_service.dart';
+import '../../application/services/auto_sync_manager.dart';
 import '../providers/auth_provider.dart';
 import '../../core/utils/toast_utils.dart';
 import 'settings_page.dart';
@@ -1596,12 +1596,9 @@ class _SyncIconWidget extends ConsumerStatefulWidget {
   ConsumerState<_SyncIconWidget> createState() => _SyncIconWidgetState();
 }
 
-class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTickerProviderStateMixin {
-  bool _isSyncing = false;
-  bool _isSuccess = false;
-  bool _isError = false;
-
+class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with TickerProviderStateMixin {
   late AnimationController _rotationController;
+  late AnimationController _pulseController;
 
   @override
   void initState() {
@@ -1610,89 +1607,66 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
       vsync: this,
       duration: const Duration(seconds: 1),
     );
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+      lowerBound: 0.3,
+      upperBound: 1.0,
+    );
   }
 
   @override
   void dispose() {
     _rotationController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
-
-  Future<void> _handleSync() async {
-    final isLoggedIn = ref.read(authProvider).isLoggedIn;
-    if (!isLoggedIn || _isSyncing) return;
-
-    setState(() {
-      _isSyncing = true;
-      _isSuccess = false;
-      _isError = false;
-    });
-    _rotationController.repeat();
-
-    try {
-      final syncService = ref.read(syncServiceProvider);
-      await syncService.syncWithDropbox();
-      if (mounted) {
-        final now = DateTime.now().toString().split('.').first;
-        ref.read(settingsProvider.notifier).updateLastSyncTime(now);
-        setState(() {
-          _isSuccess = true;
-        });
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) setState(() => _isSuccess = false);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isError = true;
-        });
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted) setState(() => _isError = false);
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSyncing = false;
-        });
-        _rotationController.stop();
-        _rotationController.reset();
-      }
-    }
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
     final isLoggedIn = ref.watch(authProvider).isLoggedIn;
+    final syncState = ref.watch(autoSyncManagerProvider);
     
+    if (syncState == SyncState.manual) {
+      _pulseController.stop();
+      _rotationController.repeat();
+    } else if (syncState == SyncState.auto) {
+      _rotationController.stop();
+      _pulseController.repeat(reverse: true);
+    } else {
+      _rotationController.stop();
+      _rotationController.reset();
+      _pulseController.stop();
+      _pulseController.value = 1.0;
+    }
+
     IconData iconData;
     Color? iconColor;
 
     if (!isLoggedIn) {
       iconData = LucideIcons.cloudOff;
-      iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5);
-    } else if (_isSyncing) {
+      iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5);
+    } else if (syncState == SyncState.manual) {
       iconData = LucideIcons.loader2;
       iconColor = ShadTheme.of(context).colorScheme.primary;
-    } else if (_isSuccess) {
-      iconData = LucideIcons.checkCircle2;
-      iconColor = Colors.green;
-    } else if (_isError) {
-      iconData = LucideIcons.alertCircle;
-      iconColor = Colors.red;
+    } else if (syncState == SyncState.auto) {
+      iconData = LucideIcons.cloud;
+      iconColor = ShadTheme.of(context).colorScheme.primary;
     } else {
       iconData = LucideIcons.cloud;
-      iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5);
+      iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5);
     }
 
     Widget iconWidget = Icon(iconData, size: 24, color: iconColor);
 
-    if (_isSyncing) {
+    if (syncState == SyncState.manual) {
       iconWidget = RotationTransition(
         turns: _rotationController,
+        child: iconWidget,
+      );
+    } else if (syncState == SyncState.auto) {
+      iconWidget = FadeTransition(
+        opacity: _pulseController,
         child: iconWidget,
       );
     }
@@ -1701,8 +1675,8 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
       onPressed: () {
         if (!isLoggedIn) {
           ToastUtils.show(context, '請先前往「設置」頁面登入 Dropbox 以啟用雲端同步功能。');
-        } else {
-          _handleSync();
+        } else if (syncState == SyncState.idle) {
+          ref.read(autoSyncManagerProvider.notifier).manualSync();
         }
       },
       width: 36,

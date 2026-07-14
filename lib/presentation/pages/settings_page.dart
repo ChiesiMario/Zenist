@@ -5,7 +5,7 @@ import '../providers/settings_provider.dart';
 import '../providers/auth_provider.dart';
 import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
-import '../../application/services/sync_service.dart';
+import '../../application/services/auto_sync_manager.dart';
 import '../../core/utils/toast_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -492,13 +492,15 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
   Future<void> _handleSync() async {
     final authState = ref.read(authProvider);
     if (!authState.isLoggedIn) return;
+    
+    final syncManager = ref.read(autoSyncManagerProvider.notifier);
+    // Since autoSyncManager handles its own state, we don't need local _isSyncing, 
+    // but the UI currently uses it to disable the button.
+    // We can just call it and it will block if already syncing.
     setState(() => _isSyncing = true);
     try {
-      final syncService = ref.read(syncServiceProvider);
-      await syncService.syncWithDropbox();
+      await syncManager.manualSync();
       if (mounted) {
-        final now = DateTime.now().toString().split('.').first;
-        ref.read(settingsProvider.notifier).updateLastSyncTime(now);
         ToastUtils.show(context, 'Sync completed successfully');
       }
     } catch (e) {

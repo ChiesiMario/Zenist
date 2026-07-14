@@ -7,7 +7,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/providers/settings_provider.dart';
-import 'application/services/sync_service.dart';
+import 'application/services/auto_sync_manager.dart';
 import 'presentation/widgets/custom_title_bar.dart';
 
 void main() async {
@@ -61,14 +61,9 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
     super.initState();
     windowManager.addListener(this);
     
-    // 背景觸發雲端同步
-    Future.microtask(() async {
-      try {
-        final syncService = ref.read(syncServiceProvider);
-        await syncService.syncWithDropbox();
-      } catch (e) {
-        debugPrint('App Launch Sync failed: $e');
-      }
+    // 初始化 AutoSyncManager，讓其接管啟動、週期與喚醒同步
+    Future.microtask(() {
+      ref.read(autoSyncManagerProvider);
     });
   }
 

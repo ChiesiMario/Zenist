@@ -4,6 +4,7 @@ import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../../data/datasources/local/isar_datasource.dart';
 import '../../data/repositories/todo_repository_impl.dart';
+import '../../application/services/auto_sync_manager.dart';
 
 final isarDataSourceProvider = Provider<IsarDataSource>((ref) {
   return IsarDataSource();
@@ -45,6 +46,7 @@ class TodoNotifier extends Notifier<void> {
       subtasks: subtasks,
     );
     await repository.saveTodo(todo);
+    ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 
   Future<void> toggleTodo(Todo todo) async {
@@ -91,6 +93,7 @@ class TodoNotifier extends Notifier<void> {
         clearRepeat: true, 
       );
       await repository.saveTodo(updatedTodo);
+      ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
       return;
     }
 
@@ -101,11 +104,13 @@ class TodoNotifier extends Notifier<void> {
       clearCompletedAt: todo.isCompleted,
     );
     await repository.saveTodo(updatedTodo);
+    ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 
   Future<void> deleteTodo(String id) async {
     final repository = ref.read(todoRepositoryProvider);
     await repository.deleteTodo(id); // 觸發軟刪除
+    ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 
   Future<void> updateTodoTitle(Todo todo, String newTitle) async {
@@ -116,6 +121,7 @@ class TodoNotifier extends Notifier<void> {
       updatedAt: DateTime.now(),
     );
     await repository.saveTodo(updatedTodo);
+    ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 
   Future<void> updateTodoDetails(
@@ -143,6 +149,7 @@ class TodoNotifier extends Notifier<void> {
       updatedAt: DateTime.now(),
     );
     await repository.saveTodo(updatedTodo);
+    ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 
   Future<void> toggleSubtask(Todo todo, String subtaskId) async {
@@ -159,5 +166,6 @@ class TodoNotifier extends Notifier<void> {
       updatedAt: DateTime.now(),
     );
     await repository.saveTodo(updatedTodo);
+    ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 }
