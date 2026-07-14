@@ -9,6 +9,7 @@ import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
 import 'settings_page.dart';
 import '../../core/localization/translations.dart';
+import 'package:intl/intl.dart';
 
 class TodoListPage extends ConsumerStatefulWidget {
   const TodoListPage({super.key});
@@ -266,7 +267,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (dialogDate != null || dialogAnytime)
+                            if (_selectedDueDate != null || _isAnytimeSelected)
                               ShadButton.ghost(
                                 onPressed: () => Navigator.of(context).pop({'clear': true}),
                                 child: Text(Translations.tr('clear_date', ref.read(settingsProvider).locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.mutedForeground)),
@@ -326,6 +327,468 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
       }
       _focusNode.requestFocus();
     }
+  }
+
+  String _getRepeatUnitLabel(String unit, String locale) {
+    switch (unit) {
+      case 'day': return Translations.tr('unit_day', locale);
+      case 'week': return Translations.tr('unit_week', locale);
+      case 'month': return Translations.tr('unit_month', locale);
+      case 'year': return Translations.tr('unit_year', locale);
+      default: return unit;
+    }
+  }
+
+void _showAddTaskDialog(String locale) {
+    final textController = TextEditingController(text: _controller.text);
+    final focusNode = FocusNode();
+    DateTime? tempDueDate = _selectedDueDate;
+    
+    
+    bool isInputFocused = true;
+    
+    bool tempIsAnytime = _isAnytimeSelected;
+    bool tempRepeatEnabled = _isRepeatEnabled;
+    int tempRepeatInterval = _repeatInterval;
+    String tempRepeatUnit = _repeatUnit;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void updateFocus() {
+              if (mounted) {
+                setState(() {
+                  isInputFocused = focusNode.hasFocus;
+                });
+              }
+            }
+            focusNode.removeListener(updateFocus);
+            focusNode.addListener(updateFocus);
+            Future<void> pickDate() async {
+              focusNode.unfocus();
+              
+              DateTime? dialogDate = tempDueDate;
+              bool dialogAnytime = tempIsAnytime;
+              bool dialogRepeat = tempRepeatEnabled;
+              int dialogInterval = tempRepeatInterval;
+              String dialogUnit = tempRepeatUnit;
+
+              final result = await showDialog<Map<String, dynamic>>(
+                context: context,
+                builder: (context) {
+                  return StatefulBuilder(
+                    builder: (context, setStateDialog) {
+                      return Dialog(
+                        backgroundColor: ShadTheme.of(context).colorScheme.background,
+                        surfaceTintColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: ShadTheme.of(context).radius,
+                          side: BorderSide(color: ShadTheme.of(context).colorScheme.border),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: 270,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Center(
+                                    child: SizedBox(
+                                      width: 270,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          Opacity(
+                                            opacity: dialogAnytime ? 0.5 : 1.0,
+                                            child: IgnorePointer(
+                                              ignoring: dialogAnytime,
+                                              child: Center(
+                                                child: ShadCalendar(
+                                                  fixedWeeks: true,
+                                                  showOutsideDays: true,
+                                                  decoration: const ShadDecoration(
+                                                    border: ShadBorder.none,
+                                                  ),
+                                                  selected: dialogDate,
+                                                  onChanged: (v) {
+                                                    setStateDialog(() {
+                                                      dialogDate = v;
+                                                      dialogAnytime = false;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          SizedBox(
+                                            height: 40,
+                                            child: dialogAnytime
+                                                ? ShadButton(
+                                                    onPressed: () {
+                                                      setStateDialog(() {
+                                                        dialogAnytime = false;
+                                                      });
+                                                    },
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        const Icon(LucideIcons.infinity, size: 16),
+                                                        const SizedBox(width: 8.0),
+                                                        Text(Translations.tr('tab_anytime', locale)),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : ShadButton.outline(
+                                                    onPressed: () {
+                                                      setStateDialog(() {
+                                                        dialogAnytime = true;
+                                                        dialogDate = null;
+                                                        dialogRepeat = false;
+                                                      });
+                                                    },
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        const Icon(LucideIcons.infinity, size: 16),
+                                                        const SizedBox(width: 8.0),
+                                                        Text(Translations.tr('tab_anytime', locale)),
+                                                      ],
+                                                    ),
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Divider(),
+                                  const SizedBox(height: 16),
+                                  Opacity(
+                                    opacity: dialogAnytime ? 0.5 : 1.0,
+                                    child: IgnorePointer(
+                                      ignoring: dialogAnytime,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              SizedBox(
+                                                height: 40,
+                                                width: 84,
+                                                child: dialogRepeat
+                                                    ? ShadButton(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                        onPressed: () {
+                                                          setStateDialog(() {
+                                                            dialogRepeat = false;
+                                                          });
+                                                        },
+                                                        child: Text(Translations.tr('repeat', locale)),
+                                                      )
+                                                    : ShadButton.outline(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                        onPressed: () {
+                                                          setStateDialog(() {
+                                                            dialogRepeat = true;
+                                                          });
+                                                        },
+                                                        child: Text(Translations.tr('repeat', locale)),
+                                                      ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Opacity(
+                                                  opacity: dialogRepeat ? 1.0 : 0.5,
+                                                  child: IgnorePointer(
+                                                    ignoring: !dialogRepeat,
+                                                    child: Row(
+                                                      children: [
+                                                        SizedBox(
+                                                          width: 60,
+                                                          height: 40,
+                                                          child: ShadInput(
+                                                            initialValue: dialogInterval.toString(),
+                                                            keyboardType: TextInputType.number,
+                                                            onChanged: (v) {
+                                                              final val = int.tryParse(v);
+                                                              if (val != null && val > 0) {
+                                                                dialogInterval = val;
+                                                              }
+                                                            },
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 8),
+                                                        Expanded(
+                                                          child: SizedBox(
+                                                            height: 40,
+                                                            child: ShadSelect<String>(
+                                                              initialValue: dialogUnit,
+                                                              options: [
+                                                                ShadOption(value: 'day', child: Text(Translations.tr('unit_day', locale))),
+                                                                ShadOption(value: 'week', child: Text(Translations.tr('unit_week', locale))),
+                                                                ShadOption(value: 'month', child: Text(Translations.tr('unit_month', locale))),
+                                                                ShadOption(value: 'year', child: Text(Translations.tr('unit_year', locale))),
+                                                              ],
+                                                              onChanged: (v) {
+                                                                if (v != null) {
+                                                                  setStateDialog(() {
+                                                                    dialogUnit = v;
+                                                                  });
+                                                                  FocusScope.of(context).unfocus();
+                                                                }
+                                                              },
+                                                              selectedOptionBuilder: (context, value) {
+                                                                switch (value) {
+                                                                  case 'day': return Text(Translations.tr('unit_day', locale));
+                                                                  case 'week': return Text(Translations.tr('unit_week', locale));
+                                                                  case 'month': return Text(Translations.tr('unit_month', locale));
+                                                                  case 'year': return Text(Translations.tr('unit_year', locale));
+                                                                  default: return const Text('');
+                                                                }
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      if (tempDueDate != null || tempIsAnytime)
+                                        ShadButton.ghost(
+                                          onPressed: () => Navigator.of(context).pop({'clear': true}),
+                                          child: Text(Translations.tr('clear_date', locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.mutedForeground)),
+                                        )
+                                      else
+                                        const SizedBox(),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          ShadButton.ghost(
+                                            onPressed: () => Navigator.of(context).pop(null),
+                                            child: Text(Translations.tr('cancel', locale)),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          ShadButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop({
+                                                'date': dialogDate,
+                                                'anytime': dialogAnytime,
+                                                'repeat': dialogRepeat,
+                                                'interval': dialogInterval,
+                                                'unit': dialogUnit,
+                                              });
+                                            },
+                                            child: Text(Translations.tr('confirm', locale)),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  );
+                },
+              );
+              
+              if (result != null) {
+                if (result['clear'] == true) {
+                  setState(() {
+                    tempIsAnytime = false;
+                    tempDueDate = null;
+                    tempRepeatEnabled = false;
+                  });
+                } else {
+                  setState(() {
+                    tempIsAnytime = result['anytime'] as bool;
+                    tempDueDate = result['date'] as DateTime?;
+                    tempRepeatEnabled = result['repeat'] as bool;
+                    tempRepeatInterval = result['interval'] as int;
+                    tempRepeatUnit = result['unit'] as String;
+                  });
+                }
+                focusNode.requestFocus();
+              }
+            }
+
+            return Dialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            Translations.tr('add_new_task', locale),
+                            style: ShadTheme.of(context).textTheme.h4,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: isInputFocused
+                                ? ShadTheme.of(context).colorScheme.ring
+                                : ShadTheme.of(context).colorScheme.border,
+                            width: isInputFocused ? 2.0 : 1.0,
+                          ),
+                          borderRadius: ShadTheme.of(context).radius,
+                        ),
+                        child: TextField(
+                          focusNode: focusNode,
+                          controller: textController,
+                          autofocus: true,
+                          style: ShadTheme.of(context).textTheme.p.copyWith(
+                            fontSize: 14,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.only(left: 12, right: 12, top: 11, bottom: 11),
+                            isDense: true,
+                          ),
+                          cursorColor: ShadTheme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: pickDate,
+                            borderRadius: BorderRadius.circular(4),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    tempIsAnytime ? LucideIcons.infinity : LucideIcons.calendar, 
+                                    size: 14, 
+                                    color: ShadTheme.of(context).colorScheme.mutedForeground
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    (() {
+                                      String dateStr = '';
+                                      if (tempIsAnytime) {
+                                        dateStr = Translations.tr('tab_anytime', locale);
+                                      } else if (tempDueDate != null) {
+                                        final date = tempDueDate!;
+                                        final now = DateTime.now();
+                                        final today = DateTime(now.year, now.month, now.day);
+                                        final tomorrow = today.add(const Duration(days: 1));
+                                        final dateStart = DateTime(date.year, date.month, date.day);
+                                        
+                                        if (dateStart == today) {
+                                          dateStr = Translations.tr('tab_today', locale);
+                                        } else if (dateStart == tomorrow) {
+                                          dateStr = Translations.tr('tomorrow', locale);
+                                        } else {
+                                          dateStr = DateFormat(ref.watch(settingsProvider).dateFormat).format(date);
+                                        }
+                                      } else {
+                                        dateStr = Translations.tr('set_due_date', locale);
+                                      }
+                                      
+                                      if (tempRepeatEnabled) {
+                                        final repeatStr = '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
+                                        return '$dateStr · $repeatStr';
+                                      }
+                                      
+                                      return dateStr;
+                                    })(),
+                                    style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ShadButton.outline(
+                            child: Text(Translations.tr('cancel', locale)),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          ShadButton(
+                            child: Text(Translations.tr('confirm', locale)),
+                            onPressed: () {
+                              final newTitle = textController.text.trim();
+                              if (newTitle.isNotEmpty) {
+                                ref.read(todoNotifierProvider.notifier).addTodo(
+                                  newTitle, 
+                                  dueDate: tempDueDate,
+                                  isAnytime: tempIsAnytime,
+                                  repeatInterval: tempRepeatEnabled ? tempRepeatInterval : null,
+                                  repeatUnit: tempRepeatEnabled ? tempRepeatUnit : null,
+                                );
+                                _controller.clear();
+                                // Clear page state
+                                this.setState(() {
+                                  _selectedDueDate = null;
+                                  _isAnytimeSelected = false;
+                                  _isRepeatEnabled = false;
+                                  _repeatInterval = 1;
+                                  _repeatUnit = 'week';
+                                });
+                              }
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      focusNode.dispose();
+      textController.dispose();
+    });
   }
 
   @override
@@ -402,7 +865,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                     enabledBorder: InputBorder.none,
                                     errorBorder: InputBorder.none,
                                     disabledBorder: InputBorder.none,
-                                    contentPadding: const EdgeInsets.only(left: 12, right: 80, top: 11, bottom: 11),
+                                    contentPadding: const EdgeInsets.only(left: 12, right: 112, top: 11, bottom: 11),
                                     isDense: true,
                                   ),
                                   cursorColor: ShadTheme.of(context).colorScheme.primary,
@@ -414,16 +877,81 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     ShadButton.ghost(
-                                      onPressed: _pickDate,
-                                      width: 32,
+                                      onPressed: () => _showAddTaskDialog(locale),
                                       height: 32,
+                                      width: 32,
                                       padding: EdgeInsets.zero,
                                       child: Icon(
-                                        _isAnytimeSelected ? LucideIcons.infinity : LucideIcons.calendar,
+                                        LucideIcons.maximize2,
                                         size: 16,
-                                        color: (_selectedDueDate != null || _isAnytimeSelected)
-                                            ? ShadTheme.of(context).colorScheme.primary
-                                            : ShadTheme.of(context).colorScheme.mutedForeground,
+                                        color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    ShadButton.ghost(
+                                      onPressed: _pickDate,
+                                      height: 32,
+                                      padding: EdgeInsets.symmetric(horizontal: (_selectedDueDate != null || _isAnytimeSelected) ? 8 : 8), // Keep 8 for icon, expand if text
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            _isAnytimeSelected ? LucideIcons.infinity : LucideIcons.calendar,
+                                            size: 16,
+                                            color: (_selectedDueDate != null || _isAnytimeSelected)
+                                                ? ShadTheme.of(context).colorScheme.primary
+                                                : ShadTheme.of(context).colorScheme.mutedForeground,
+                                          ),
+                                          if (_isAnytimeSelected || _selectedDueDate != null) ...[
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              (() {
+                                                final locale = ref.watch(settingsProvider).locale;
+                                                
+                                                String getRepeatUnitLabel(String unit) {
+                                                  switch (unit) {
+                                                    case 'day': return Translations.tr('unit_day', locale);
+                                                    case 'week': return Translations.tr('unit_week', locale);
+                                                    case 'month': return Translations.tr('unit_month', locale);
+                                                    case 'year': return Translations.tr('unit_year', locale);
+                                                    default: return unit;
+                                                  }
+                                                }
+
+                                                String dateStr = '';
+                                                if (_isAnytimeSelected) {
+                                                  dateStr = Translations.tr('tab_anytime', locale);
+                                                } else {
+                                                  final date = _selectedDueDate!;
+                                                  final now = DateTime.now();
+                                                  final today = DateTime(now.year, now.month, now.day);
+                                                  final tomorrow = today.add(const Duration(days: 1));
+                                                  final dateStart = DateTime(date.year, date.month, date.day);
+                                                  
+                                                  if (dateStart == today) {
+                                                    dateStr = Translations.tr('tab_today', locale);
+                                                  } else if (dateStart == tomorrow) {
+                                                    dateStr = Translations.tr('tomorrow', locale);
+                                                  } else {
+                                                    dateStr = DateFormat(ref.watch(settingsProvider).dateFormat).format(date);
+                                                  }
+                                                }
+
+                                                if (_isRepeatEnabled) {
+                                                  final repeatStr = '${Translations.tr('every', locale)}$_repeatInterval ${getRepeatUnitLabel(_repeatUnit)}';
+                                                  return '$dateStr · $repeatStr';
+                                                }
+
+                                                return dateStr;
+                                              })(),
+                                              style: TextStyle(
+                                                color: ShadTheme.of(context).colorScheme.primary,
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(width: 4),

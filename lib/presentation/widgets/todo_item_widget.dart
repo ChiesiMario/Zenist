@@ -440,17 +440,37 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    tempIsAnytime
-                                        ? Translations.tr('tab_anytime', locale)
-                                        : tempDueDate != null
-                                            ? DateFormat(ref.watch(settingsProvider).dateFormat).format(tempDueDate!)
-                                            : Translations.tr('set_due_date', locale),
+                                    (() {
+                                      String dateStr = '';
+                                      if (tempIsAnytime) {
+                                        dateStr = Translations.tr('tab_anytime', locale);
+                                      } else if (tempDueDate != null) {
+                                        final date = tempDueDate!;
+                                        final now = DateTime.now();
+                                        final today = DateTime(now.year, now.month, now.day);
+                                        final tomorrow = today.add(const Duration(days: 1));
+                                        final dateStart = DateTime(date.year, date.month, date.day);
+                                        
+                                        if (dateStart == today) {
+                                          dateStr = Translations.tr('tab_today', locale);
+                                        } else if (dateStart == tomorrow) {
+                                          dateStr = Translations.tr('tomorrow', locale);
+                                        } else {
+                                          dateStr = DateFormat(ref.watch(settingsProvider).dateFormat).format(date);
+                                        }
+                                      } else {
+                                        dateStr = Translations.tr('set_due_date', locale);
+                                      }
+                                      
+                                      if (tempRepeatEnabled) {
+                                        final repeatStr = '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
+                                        return '$dateStr · $repeatStr';
+                                      }
+                                      
+                                      return dateStr;
+                                    })(),
                                     style: ShadTheme.of(context).textTheme.muted.copyWith(fontSize: 13),
                                   ),
-                                  if (tempRepeatEnabled) ...[
-                                    const SizedBox(width: 6),
-                                    Icon(LucideIcons.repeat, size: 14, color: ShadTheme.of(context).colorScheme.mutedForeground),
-                                  ],
                                 ],
                               ),
                             ),
@@ -499,48 +519,6 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
     });
   }
 
-
-  void _showContextMenu(Offset position, String locale) {
-    showMenu(
-      context: context,
-      position: RelativeRect.fromLTRB(position.dx, position.dy, position.dx, position.dy),
-      items: [
-        PopupMenuItem(
-          onTap: () {
-            Future.delayed(const Duration(milliseconds: 50), () {
-              if (mounted) _showDetailsDialog(locale);
-            });
-          },
-          child: Row(
-            children: [
-              const Icon(LucideIcons.edit2, size: 16),
-              const SizedBox(width: 8),
-              Text(Translations.tr('edit', locale)),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          onTap: () {
-            ref.read(todoNotifierProvider.notifier).deleteTodo(widget.todo.id);
-          },
-          child: Row(
-            children: [
-              Icon(LucideIcons.trash2, size: 16, color: ShadTheme.of(context).colorScheme.destructive),
-              const SizedBox(width: 8),
-              Text(Translations.tr('delete', locale), style: TextStyle(color: ShadTheme.of(context).colorScheme.destructive)),
-            ],
-          ),
-        ),
-      ],
-      color: ShadTheme.of(context).colorScheme.background,
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: ShadTheme.of(context).colorScheme.border, width: 1),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final locale = ref.watch(settingsProvider).locale;
@@ -556,32 +534,14 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
             ),
           ),
         ),
-        child: Dismissible(
-          key: Key(widget.todo.id),
-          direction: DismissDirection.endToStart,
-          onDismissed: (_) {
-            ref.read(todoNotifierProvider.notifier).deleteTodo(widget.todo.id);
-          },
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 24),
-            color: ShadTheme.of(context).colorScheme.destructive,
-            child: Icon(LucideIcons.trash2, color: ShadTheme.of(context).colorScheme.destructiveForeground),
-          ),
-          child: MouseRegion(
-            onEnter: (_) => setState(() => _isHovered = true),
-            onExit: (_) => setState(() => _isHovered = false),
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () {
-                _showDetailsDialog(locale);
-              },
-              onLongPressStart: (details) {
-                _showContextMenu(details.globalPosition, locale);
-              },
-              onSecondaryTapDown: (details) {
-                _showContextMenu(details.globalPosition, locale);
-              },
+        child: MouseRegion(
+          onEnter: (_) => setState(() => _isHovered = true),
+          onExit: (_) => setState(() => _isHovered = false),
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              _showDetailsDialog(locale);
+            },
               child: Container(
                 decoration: const BoxDecoration(
                   color: Colors.transparent,
@@ -618,54 +578,55 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ),
                               child: Text(widget.todo.title),
                             ),
-                            if ((widget.todo.dueDate != null && !_isToday) || (widget.todo.repeatInterval != null && widget.todo.repeatUnit != null))
+                            if (widget.todo.dueDate != null || (widget.todo.repeatInterval != null && widget.todo.repeatUnit != null))
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
-                                child: Wrap(
-                                  spacing: 12,
-                                  runSpacing: 4,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    if (widget.todo.dueDate != null && !_isToday)
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            LucideIcons.calendarClock,
-                                            size: 12,
-                                            color: _isOverdue
-                                                ? ShadTheme.of(context).colorScheme.destructive
-                                                : ShadTheme.of(context).colorScheme.mutedForeground,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            DateFormat(ref.watch(settingsProvider).dateFormat).format(widget.todo.dueDate!),
-                                            style: ShadTheme.of(context).textTheme.muted.copyWith(
-                                              fontSize: 12,
-                                              color: _isOverdue
-                                                  ? ShadTheme.of(context).colorScheme.destructive
-                                                  : ShadTheme.of(context).colorScheme.mutedForeground,
-                                            ),
-                                          ),
-                                        ],
+                                    Icon(
+                                      LucideIcons.calendarClock,
+                                      size: 12,
+                                      color: _isOverdue
+                                          ? ShadTheme.of(context).colorScheme.destructive
+                                          : ShadTheme.of(context).colorScheme.mutedForeground,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      (() {
+                                        String dateStr = '';
+                                        if (widget.todo.isAnytime) {
+                                          dateStr = Translations.tr('tab_anytime', locale);
+                                        } else if (widget.todo.dueDate != null) {
+                                          final date = widget.todo.dueDate!;
+                                          final now = DateTime.now();
+                                          final today = DateTime(now.year, now.month, now.day);
+                                          final tomorrow = today.add(const Duration(days: 1));
+                                          final dateStart = DateTime(date.year, date.month, date.day);
+                                          
+                                          if (dateStart == today) {
+                                            dateStr = Translations.tr('tab_today', locale);
+                                          } else if (dateStart == tomorrow) {
+                                            dateStr = Translations.tr('tomorrow', locale);
+                                          } else {
+                                            dateStr = DateFormat(ref.watch(settingsProvider).dateFormat).format(date);
+                                          }
+                                        }
+                                        
+                                        if (widget.todo.repeatInterval != null && widget.todo.repeatUnit != null) {
+                                          final repeatStr = '${Translations.tr('every', locale)}${widget.todo.repeatInterval} ${_getRepeatUnitLabel(widget.todo.repeatUnit!, locale)}';
+                                          return dateStr.isEmpty ? repeatStr : '$dateStr · $repeatStr';
+                                        }
+                                        
+                                        return dateStr;
+                                      })(),
+                                      style: ShadTheme.of(context).textTheme.muted.copyWith(
+                                        fontSize: 12,
+                                        color: _isOverdue
+                                            ? ShadTheme.of(context).colorScheme.destructive
+                                            : ShadTheme.of(context).colorScheme.mutedForeground,
                                       ),
-                                    if (widget.todo.repeatInterval != null && widget.todo.repeatUnit != null)
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            LucideIcons.repeat,
-                                            size: 12,
-                                            color: ShadTheme.of(context).colorScheme.mutedForeground,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${Translations.tr('every', locale)}${widget.todo.repeatInterval} ${_getRepeatUnitLabel(widget.todo.repeatUnit!, locale)}',
-                                            style: ShadTheme.of(context).textTheme.muted.copyWith(
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -678,7 +639,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
               ),
             ),
           ),
-      ),
-    ));
+        ),
+    );
   }
 }
