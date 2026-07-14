@@ -1301,37 +1301,38 @@ void _showAddTaskDialog(String locale) {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 10.0),
-                              child: Text(
-                                'Zenist.',
-                                style: GoogleFonts.nunito(
-                                  textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 32,
-                                        letterSpacing: -0.5,
-                                      ),
-                                ),
-                              ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child: Text(
+                            'Zenist.',
+                            style: GoogleFonts.nunito(
+                              textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 32,
+                                    letterSpacing: -0.5,
+                                  ),
                             ),
-                            const SizedBox(width: 8),
-                            _SyncIconWidget(key: _syncIconKey),
-                          ],
+                          ),
                         ),
-                        ShadButton.ghost(
-                          onPressed: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const SettingsPage(),
-                              ),
-                            );
-                          },
-                          width: 48,
-                          height: 48,
-                          padding: EdgeInsets.zero,
-                          child: const Icon(LucideIcons.settings, size: 24),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _SyncIconWidget(key: _syncIconKey),
+                            const SizedBox(width: 4),
+                            ShadButton.ghost(
+                              onPressed: () async {
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const SettingsPage(),
+                                  ),
+                                );
+                              },
+                              width: 36,
+                              height: 36,
+                              padding: EdgeInsets.zero,
+                              child: const Icon(LucideIcons.settings, size: 24),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -1608,10 +1609,10 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
       iconColor = Colors.red;
     } else {
       iconData = LucideIcons.cloud;
-      iconColor = ShadTheme.of(context).colorScheme.foreground;
+      iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5);
     }
 
-    Widget iconWidget = Icon(iconData, size: 22, color: iconColor);
+    Widget iconWidget = Icon(iconData, size: 24, color: iconColor);
 
     if (_isSyncing) {
       iconWidget = RotationTransition(
@@ -1628,8 +1629,8 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
           _handleSync();
         }
       },
-      width: 40,
-      height: 40,
+      width: 36,
+      height: 36,
       padding: EdgeInsets.zero,
       child: iconWidget,
     );
