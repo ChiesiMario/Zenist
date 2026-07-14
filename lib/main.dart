@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'application/services/sync_service.dart';
+import 'presentation/widgets/custom_title_bar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,7 @@ void main() async {
 
   WindowOptions windowOptions = const WindowOptions(
     title: 'Zenist',
+    titleBarStyle: TitleBarStyle.hidden,
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     final double? x = sharedPreferences.getDouble('window_x');
@@ -138,17 +140,37 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
       ),
       builder: (context, child) {
         final scaffoldChild = ScaffoldMessenger(child: child!);
-        return CallbackShortcuts(
-          bindings: <ShortcutActivator, VoidCallback>{
-            const SingleActivator(LogicalKeyboardKey.escape): () {
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-          },
-          child: Focus(
-            autofocus: true,
-            canRequestFocus: false,
-            descendantsAreFocusable: true,
-            child: scaffoldChild,
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 32.0), // kWindowCaptionHeight is usually 32
+                child: CallbackShortcuts(
+                  bindings: <ShortcutActivator, VoidCallback>{
+                    const SingleActivator(LogicalKeyboardKey.escape): () {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    },
+                  },
+                  child: Focus(
+                    autofocus: true,
+                    canRequestFocus: false,
+                    descendantsAreFocusable: true,
+                    child: scaffoldChild,
+                  ),
+                ),
+              ),
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 32.0,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: CustomTitleBar(),
+                ),
+              ),
+            ],
           ),
         );
       },
