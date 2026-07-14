@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'presentation/pages/todo_list_page.dart';
+import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -124,6 +125,21 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
         ),
         radius: BorderRadius.circular(12),
       ),
+      builder: (context, child) {
+        return CallbackShortcuts(
+          bindings: <ShortcutActivator, VoidCallback>{
+            const SingleActivator(LogicalKeyboardKey.escape): () {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+          },
+          child: Focus(
+            autofocus: true,
+            canRequestFocus: false,
+            descendantsAreFocusable: true,
+            child: child!,
+          ),
+        );
+      },
       home: const TodoListPage(),
     );
   }
