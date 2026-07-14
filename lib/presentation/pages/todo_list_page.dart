@@ -32,6 +32,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   int _repeatInterval = 1;
   String _repeatUnit = 'week';
   int _currentIndex = 0;
+  bool _isInputExpanded = false;
 
   final GlobalKey<_SyncIconWidgetState> _syncIconKey = GlobalKey<_SyncIconWidgetState>();
 
@@ -39,7 +40,12 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      setState(() {});
+      setState(() {
+        // Automatically collapse if focus is lost and input is empty
+        if (!_focusNode.hasFocus && _controller.text.trim().isEmpty) {
+          _isInputExpanded = false;
+        }
+      });
     });
   }
 
@@ -72,6 +78,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
         _isRepeatEnabled = false;
         _repeatInterval = 1;
         _repeatUnit = 'week';
+        _isInputExpanded = false;
       });
     }
   }
@@ -1043,141 +1050,210 @@ void _showAddTaskDialog(String locale) {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Stack(
-                            alignment: Alignment.centerRight,
-                            children: [
-                              Container(
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: _focusNode.hasFocus 
-                                        ? ShadTheme.of(context).colorScheme.ring 
-                                        : ShadTheme.of(context).colorScheme.border,
-                                    width: _focusNode.hasFocus ? 2.0 : 1.0,
-                                  ),
-                                  borderRadius: ShadTheme.of(context).radius,
-                                ),
-                                child: TextField(
-                                  focusNode: _focusNode,
-                                  controller: _controller,
-                                  onSubmitted: (_) => _submit(),
-                                  style: ShadTheme.of(context).textTheme.p.copyWith(
-                                    fontSize: 14,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: Translations.tr('add_new_task', locale),
-                                    hintStyle: ShadTheme.of(context).textTheme.p.copyWith(
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground,
-                                      fontSize: 14,
+                        AnimatedPadding(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.easeOutCubic,
+                          padding: EdgeInsets.only(
+                            left: 24.0,
+                            right: 24.0,
+                            top: _isInputExpanded ? 24.0 : 10.0,
+                            bottom: _isInputExpanded ? 12.0 : 0.0,
+                          ),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final double targetWidth = _isInputExpanded ? constraints.maxWidth : 32.0;
+                              final double targetHeight = _isInputExpanded ? 44.0 : 32.0;
+
+                              return Center(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeOutCubic,
+                                  width: targetWidth,
+                                  height: targetHeight,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: (_isInputExpanded && _focusNode.hasFocus
+                                              ? ShadTheme.of(context).colorScheme.ring
+                                              : ShadTheme.of(context).colorScheme.border)
+                                          .withOpacity(_isInputExpanded ? 1.0 : 0.0),
+                                      width: _isInputExpanded && _focusNode.hasFocus ? 2.0 : 1.0,
                                     ),
-                                    border: InputBorder.none,
-                                    focusedBorder: InputBorder.none,
-                                    enabledBorder: InputBorder.none,
-                                    errorBorder: InputBorder.none,
-                                    disabledBorder: InputBorder.none,
-                                    contentPadding: const EdgeInsets.only(left: 12, right: 112, top: 11, bottom: 11),
-                                    isDense: true,
+                                    borderRadius: ShadTheme.of(context).radius,
                                   ),
-                                  cursorColor: ShadTheme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                              Positioned(
-                                right: 6,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    ShadButton.ghost(
-                                      onPressed: () => _showAddTaskDialog(locale),
-                                      height: 32,
-                                      width: 32,
-                                      padding: EdgeInsets.zero,
-                                      child: Icon(
-                                        LucideIcons.expand,
-                                        size: 15,
-                                        color: ShadTheme.of(context).colorScheme.mutedForeground,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    ShadButton.ghost(
-                                      onPressed: _pickDate,
-                                      height: 32,
-                                      padding: EdgeInsets.symmetric(horizontal: (_selectedDueDate != null || _isAnytimeSelected) ? 8 : 8), // Keep 8 for icon, expand if text
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            _isAnytimeSelected ? LucideIcons.infinity : LucideIcons.calendar,
-                                            size: 16,
-                                            color: (_selectedDueDate != null || _isAnytimeSelected)
-                                                ? ShadTheme.of(context).colorScheme.primary
-                                                : ShadTheme.of(context).colorScheme.mutedForeground,
-                                          ),
-                                          if (_isAnytimeSelected || _selectedDueDate != null) ...[
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              (() {
-                                                final locale = ref.watch(settingsProvider).locale;
-                                                
-                                                String getRepeatUnitLabel(String unit) {
-                                                  switch (unit) {
-                                                    case 'day': return Translations.tr('unit_day', locale);
-                                                    case 'week': return Translations.tr('unit_week', locale);
-                                                    case 'month': return Translations.tr('unit_month', locale);
-                                                    case 'year': return Translations.tr('unit_year', locale);
-                                                    default: return unit;
-                                                  }
-                                                }
-
-                                                String dateStr = '';
-                                                if (_isAnytimeSelected) {
-                                                  dateStr = Translations.tr('tab_anytime', locale);
-                                                } else {
-                                                  final date = _selectedDueDate!;
-                                                  final now = DateTime.now();
-                                                  final today = DateTime(now.year, now.month, now.day);
-                                                  final tomorrow = today.add(const Duration(days: 1));
-                                                  final dateStart = DateTime(date.year, date.month, date.day);
-                                                  
-                                                  if (dateStart == today) {
-                                                    dateStr = Translations.tr('tab_today', locale);
-                                                  } else if (dateStart == tomorrow) {
-                                                    dateStr = Translations.tr('tomorrow', locale);
-                                                  } else {
-                                                    dateStr = DateFormat(ref.watch(settingsProvider).dateFormat).format(date);
-                                                  }
-                                                }
-
-                                                if (_isRepeatEnabled) {
-                                                  final repeatStr = '${Translations.tr('every', locale)}$_repeatInterval ${getRepeatUnitLabel(_repeatUnit)}';
-                                                  return '$dateStr · $repeatStr';
-                                                }
-
-                                                return dateStr;
-                                              })(),
-                                              style: TextStyle(
-                                                color: ShadTheme.of(context).colorScheme.primary,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
+                                  child: ClipRRect(
+                                    borderRadius: ShadTheme.of(context).radius,
+                                    child: Stack(
+                                      alignment: Alignment.center,
+                                      children: [
+                                        // Expanded State Content
+                                        AnimatedOpacity(
+                                          opacity: _isInputExpanded ? 1.0 : 0.0,
+                                          duration: const Duration(milliseconds: 200),
+                                          curve: _isInputExpanded ? const Interval(0.4, 1.0, curve: Curves.easeOut) : Curves.easeIn,
+                                          child: IgnorePointer(
+                                            ignoring: !_isInputExpanded,
+                                            child: OverflowBox(
+                                              maxWidth: constraints.maxWidth,
+                                              maxHeight: 44.0,
+                                              alignment: Alignment.center,
+                                              child: SizedBox(
+                                                width: constraints.maxWidth,
+                                                height: 44.0,
+                                                child: Stack(
+                                                  alignment: Alignment.centerRight,
+                                                  children: [
+                                                    TextField(
+                                                      focusNode: _focusNode,
+                                                      controller: _controller,
+                                                      onSubmitted: (_) => _submit(),
+                                                      style: ShadTheme.of(context).textTheme.p.copyWith(
+                                                        fontSize: 14,
+                                                      ),
+                                                      decoration: InputDecoration(
+                                                        hintText: Translations.tr('add_new_task', locale),
+                                                        hintStyle: ShadTheme.of(context).textTheme.p.copyWith(
+                                                          color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                                          fontSize: 14,
+                                                        ),
+                                                        border: InputBorder.none,
+                                                        focusedBorder: InputBorder.none,
+                                                        enabledBorder: InputBorder.none,
+                                                        errorBorder: InputBorder.none,
+                                                        disabledBorder: InputBorder.none,
+                                                        contentPadding: const EdgeInsets.only(left: 12, right: 112, top: 11, bottom: 11),
+                                                        isDense: true,
+                                                      ),
+                                                      cursorColor: ShadTheme.of(context).colorScheme.primary,
+                                                    ),
+                                                    Positioned(
+                                                      right: 6,
+                                                      child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          ShadButton.ghost(
+                                                            onPressed: () => _showAddTaskDialog(locale),
+                                                            height: 32,
+                                                            width: 32,
+                                                            padding: EdgeInsets.zero,
+                                                            child: Icon(
+                                                              LucideIcons.expand,
+                                                              size: 15,
+                                                              color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          ShadButton.ghost(
+                                                            onPressed: _pickDate,
+                                                            height: 32,
+                                                            padding: EdgeInsets.symmetric(horizontal: (_selectedDueDate != null || _isAnytimeSelected) ? 8 : 8),
+                                                            child: Row(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [
+                                                                Icon(
+                                                                  _isAnytimeSelected ? LucideIcons.infinity : LucideIcons.calendar,
+                                                                  size: 16,
+                                                                  color: (_selectedDueDate != null || _isAnytimeSelected)
+                                                                      ? ShadTheme.of(context).colorScheme.primary
+                                                                      : ShadTheme.of(context).colorScheme.mutedForeground,
+                                                                ),
+                                                                if (_isAnytimeSelected || _selectedDueDate != null) ...[
+                                                                  const SizedBox(width: 6),
+                                                                  Text(
+                                                                    (() {
+                                                                      final locale = ref.watch(settingsProvider).locale;
+                                                                      String getRepeatUnitLabel(String unit) {
+                                                                        switch (unit) {
+                                                                          case 'day': return Translations.tr('unit_day', locale);
+                                                                          case 'week': return Translations.tr('unit_week', locale);
+                                                                          case 'month': return Translations.tr('unit_month', locale);
+                                                                          case 'year': return Translations.tr('unit_year', locale);
+                                                                          default: return unit;
+                                                                        }
+                                                                      }
+                                                                      String dateStr = '';
+                                                                      if (_isAnytimeSelected) {
+                                                                        dateStr = Translations.tr('tab_anytime', locale);
+                                                                      } else {
+                                                                        final date = _selectedDueDate!;
+                                                                        final now = DateTime.now();
+                                                                        final today = DateTime(now.year, now.month, now.day);
+                                                                        final tomorrow = today.add(const Duration(days: 1));
+                                                                        final dateStart = DateTime(date.year, date.month, date.day);
+                                                                        if (dateStart == today) {
+                                                                          dateStr = Translations.tr('tab_today', locale);
+                                                                        } else if (dateStart == tomorrow) {
+                                                                          dateStr = Translations.tr('tomorrow', locale);
+                                                                        } else {
+                                                                          dateStr = DateFormat(ref.watch(settingsProvider).dateFormat).format(date);
+                                                                        }
+                                                                      }
+                                                                      if (_isRepeatEnabled) {
+                                                                        final repeatStr = '${Translations.tr('every', locale)}$_repeatInterval ${getRepeatUnitLabel(_repeatUnit)}';
+                                                                        return '$dateStr · $repeatStr';
+                                                                      }
+                                                                      return dateStr;
+                                                                    })(),
+                                                                    style: TextStyle(
+                                                                      color: ShadTheme.of(context).colorScheme.primary,
+                                                                      fontSize: 13,
+                                                                      fontWeight: FontWeight.w500,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          ShadButton.ghost(
+                                                            onPressed: _submit,
+                                                            width: 32,
+                                                            height: 32,
+                                                            padding: EdgeInsets.zero,
+                                                            child: const Icon(LucideIcons.arrowUp, size: 16),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
-                                          ],
-                                        ],
-                                      ),
+                                          ),
+                                        ),
+
+                                        // Collapsed State Content (+)
+                                        AnimatedOpacity(
+                                          opacity: _isInputExpanded ? 0.0 : 1.0,
+                                          duration: Duration(milliseconds: _isInputExpanded ? 50 : 150),
+                                          curve: _isInputExpanded ? Curves.easeOut : const Interval(0.5, 1.0, curve: Curves.easeOut),
+                                          child: IgnorePointer(
+                                            ignoring: _isInputExpanded,
+                                            child: ShadButton.ghost(
+                                              width: 32,
+                                              height: 32,
+                                              padding: EdgeInsets.zero,
+                                              onPressed: () {
+                                                setState(() {
+                                                  _isInputExpanded = true;
+                                                });
+                                                Future.delayed(const Duration(milliseconds: 50), () {
+                                                  _focusNode.requestFocus();
+                                                });
+                                              },
+                                              child: Icon(
+                                                LucideIcons.plus,
+                                                size: 16,
+                                                color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 4),
-                                    ShadButton.ghost(
-                                      onPressed: _submit,
-                                      width: 32,
-                                      height: 32,
-                                      padding: EdgeInsets.zero,
-                                      child: const Icon(LucideIcons.arrowUp, size: 16),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ),
                         Expanded(
