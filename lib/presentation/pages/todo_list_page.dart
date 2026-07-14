@@ -9,6 +9,7 @@ import '../widgets/todo_item_widget.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/all_done_zen_ring_widget.dart';
+import '../widgets/future_empty_widgets.dart';
 
 import '../../core/localization/translations.dart';
 import '../../application/services/auto_sync_manager.dart';
@@ -1318,16 +1319,33 @@ void _showAddTaskDialog(String locale) {
                               completedTodayTodos.sort(_compareTodos);
 
                               if (uncompletedTodos.isEmpty && completedTodayTodos.isEmpty) {
-                                return Center(
-                                  child: Text(
-                                    Translations.tr('empty_state_$_currentIndex', locale),
-                                    textAlign: TextAlign.center,
-                                    style: ShadTheme.of(context).textTheme.p.copyWith(
-                                          height: 1.5,
-                                          color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.6),
-                                        ),
-                                  ),
-                                );
+                                if (_currentIndex == 1) {
+                                  return UpcomingEmptyWidget(
+                                    title: Translations.tr('empty_upcoming_title', locale),
+                                    subtitle: Translations.tr('empty_upcoming_subtitle', locale),
+                                  );
+                                } else if (_currentIndex == 2) {
+                                  return SomedayEmptyWidget(
+                                    title: Translations.tr('empty_someday_title', locale),
+                                    subtitle: Translations.tr('empty_someday_subtitle', locale),
+                                  );
+                                } else if (_currentIndex == 3) {
+                                  return AnytimeEmptyWidget(
+                                    title: Translations.tr('empty_anytime_title', locale),
+                                    subtitle: Translations.tr('empty_anytime_subtitle', locale),
+                                  );
+                                } else {
+                                  return Center(
+                                    child: Text(
+                                      Translations.tr('empty_state_0', locale), // Keep for default today empty
+                                      textAlign: TextAlign.center,
+                                      style: ShadTheme.of(context).textTheme.p.copyWith(
+                                            height: 1.5,
+                                            color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.6),
+                                          ),
+                                    ),
+                                  );
+                                }
                               }
                               
                               final showZenRing = _currentIndex == 0 && uncompletedTodos.isEmpty && completedTodayTodos.isNotEmpty;

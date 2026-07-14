@@ -82,6 +82,7 @@ class _AllDoneZenRingWidgetState extends State<AllDoneZenRingWidget> with Ticker
     final successColor = Colors.green.shade500;
 
     return Container(
+      alignment: Alignment.center,
       padding: const EdgeInsets.only(top: 78.0, bottom: 48.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
