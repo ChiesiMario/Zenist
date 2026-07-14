@@ -704,7 +704,7 @@ void _showAddTaskDialog(String locale) {
                                   opacity: subtask.isCompleted ? 0.4 : 0.15,
                                   child: ShadCheckbox(
                                     value: subtask.isCompleted,
-                                    onChanged: (v) {
+                                    onChanged: (subtask.id == tempSubtasks.last.id && subtask.title.trim().isEmpty) ? null : (v) {
                                       setState(() {
                                         final idx = tempSubtasks.indexOf(subtask);
                                         tempSubtasks[idx] = subtask.copyWith(isCompleted: v);
@@ -742,7 +742,7 @@ void _showAddTaskDialog(String locale) {
                                         contentPadding: EdgeInsets.zero,
                                         hintText: Translations.tr('subtask_placeholder', locale),
                                         hintStyle: TextStyle(
-                                          color: ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5)
+                                          color: ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.4)
                                         ),
                                       ),
                                       onChanged: (v) {
@@ -789,7 +789,7 @@ void _showAddTaskDialog(String locale) {
                           )).toList(),
                         ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
