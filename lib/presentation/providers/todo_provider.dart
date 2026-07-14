@@ -28,7 +28,7 @@ class TodoNotifier extends Notifier<void> {
   @override
   void build() {}
 
-  Future<void> addTodo(String title, {DateTime? dueDate, bool isAnytime = false, int? repeatInterval, String? repeatUnit}) async {
+  Future<void> addTodo(String title, {DateTime? dueDate, bool isAnytime = false, int? repeatInterval, String? repeatUnit, List<Subtask> subtasks = const []}) async {
     if (title.trim().isEmpty) return;
     
     final repository = ref.read(todoRepositoryProvider);
@@ -41,6 +41,7 @@ class TodoNotifier extends Notifier<void> {
       isAnytime: isAnytime,
       repeatInterval: repeatInterval,
       repeatUnit: repeatUnit,
+      subtasks: subtasks,
     );
     await repository.saveTodo(todo);
   }
@@ -78,6 +79,7 @@ class TodoNotifier extends Notifier<void> {
         isAnytime: todo.isAnytime,
         repeatInterval: todo.repeatInterval,
         repeatUnit: todo.repeatUnit,
+        subtasks: todo.subtasks.map((s) => s.copyWith(isCompleted: false)).toList(),
       );
       await repository.saveTodo(nextTodo);
       
@@ -122,6 +124,7 @@ class TodoNotifier extends Notifier<void> {
     bool isAnytime = false,
     int? repeatInterval,
     String? repeatUnit,
+    List<Subtask>? newSubtasks,
   }) async {
     if (newTitle.trim().isEmpty) return;
     final repository = ref.read(todoRepositoryProvider);
@@ -133,6 +136,7 @@ class TodoNotifier extends Notifier<void> {
       repeatInterval: repeatInterval,
       repeatUnit: repeatUnit,
       clearRepeat: repeatInterval == null || repeatUnit == null,
+      subtasks: newSubtasks ?? todo.subtasks,
       updatedAt: DateTime.now(),
     );
     await repository.saveTodo(updatedTodo);

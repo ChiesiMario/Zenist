@@ -1,3 +1,27 @@
+class Subtask {
+  final String id;
+  final String title;
+  final bool isCompleted;
+
+  Subtask({
+    required this.id,
+    required this.title,
+    this.isCompleted = false,
+  });
+
+  Subtask copyWith({
+    String? id,
+    String? title,
+    bool? isCompleted,
+  }) {
+    return Subtask(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      isCompleted: isCompleted ?? this.isCompleted,
+    );
+  }
+}
+
 class Todo {
   final String id;
   final String title;
@@ -11,6 +35,7 @@ class Todo {
   final DateTime? completedAt;
   final int? repeatInterval;
   final String? repeatUnit;
+  final List<Subtask> subtasks;
 
   Todo({
     required this.id,
@@ -25,6 +50,7 @@ class Todo {
     this.completedAt,
     this.repeatInterval,
     this.repeatUnit,
+    this.subtasks = const [],
   });
 
   Todo copyWith({
@@ -41,6 +67,7 @@ class Todo {
     int? repeatInterval,
     String? repeatUnit,
     bool clearRepeat = false,
+    List<Subtask>? subtasks,
   }) {
     return Todo(
       id: id,
@@ -55,6 +82,7 @@ class Todo {
       completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
       repeatInterval: clearRepeat ? null : (repeatInterval ?? this.repeatInterval),
       repeatUnit: clearRepeat ? null : (repeatUnit ?? this.repeatUnit),
+      subtasks: subtasks ?? this.subtasks,
     );
   }
 }

@@ -1,6 +1,8 @@
-import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/todo_provider.dart';
@@ -9,7 +11,7 @@ import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
 import 'settings_page.dart';
 import '../../core/localization/translations.dart';
-import 'package:intl/intl.dart';
+
 
 class TodoListPage extends ConsumerStatefulWidget {
   const TodoListPage({super.key});
@@ -351,6 +353,11 @@ void _showAddTaskDialog(String locale) {
     bool tempRepeatEnabled = _isRepeatEnabled;
     int tempRepeatInterval = _repeatInterval;
     String tempRepeatUnit = _repeatUnit;
+    List<Subtask> tempSubtasks = [];
+    if (tempSubtasks.isEmpty || tempSubtasks.last.title.trim().isNotEmpty) {
+      tempSubtasks.add(Subtask(id: const Uuid().v4(), title: ''));
+    }
+
 
     showDialog(
       context: context,
@@ -685,7 +692,101 @@ void _showAddTaskDialog(String locale) {
                           cursorColor: ShadTheme.of(context).colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
+                      if (tempSubtasks.isNotEmpty)
+                        Column(
+                          children: tempSubtasks.map((subtask) => Padding(
+                            key: ValueKey(subtask.id),
+                            padding: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+                            child: Row(
+                              children: [
+                                ShadCheckbox(
+                                  value: subtask.isCompleted,
+                                  onChanged: (v) {
+                                    setState(() {
+                                      final idx = tempSubtasks.indexOf(subtask);
+                                      tempSubtasks[idx] = subtask.copyWith(isCompleted: v);
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Focus(
+                                    onFocusChange: (hasFocus) {
+                                      if (!hasFocus) {
+                                        final idx = tempSubtasks.indexWhere((s) => s.id == subtask.id);
+                                        if (idx != -1) {
+                                          final currentSubtask = tempSubtasks[idx];
+                                          if (idx == tempSubtasks.length - 1 && currentSubtask.title.trim().isNotEmpty) {
+                                            setState(() {
+                                              tempSubtasks.add(Subtask(id: const Uuid().v4(), title: ''));
+                                            });
+                                          }
+                                        }
+                                      }
+                                    },
+                                    child: TextFormField(
+                                      initialValue: subtask.title,
+                                      autofocus: subtask.title.isEmpty,
+                                      style: TextStyle(
+                                        decoration: subtask.isCompleted ? TextDecoration.lineThrough : null,
+                                        color: subtask.isCompleted ? ShadTheme.of(context).colorScheme.mutedForeground : ShadTheme.of(context).colorScheme.foreground,
+                                        fontSize: 14,
+                                      ),
+                                      decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                        hintText: Translations.tr('subtask_placeholder', locale),
+                                        hintStyle: TextStyle(
+                                          color: ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5)
+                                        ),
+                                      ),
+                                      onChanged: (v) {
+                                        final idx = tempSubtasks.indexWhere((s) => s.id == subtask.id);
+                                        if (idx != -1) {
+                                          tempSubtasks[idx] = tempSubtasks[idx].copyWith(title: v);
+                                        }
+                                      },
+                                      onFieldSubmitted: (v) {
+                                        final idx = tempSubtasks.indexWhere((s) => s.id == subtask.id);
+                                        if (idx == tempSubtasks.length - 1 && v.trim().isNotEmpty) {
+                                          setState(() {
+                                            tempSubtasks[idx] = tempSubtasks[idx].copyWith(title: v);
+                                            tempSubtasks.add(Subtask(id: const Uuid().v4(), title: ''));
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                if (subtask.id == tempSubtasks.last.id && subtask.title.trim().isEmpty)
+                                  const SizedBox(width: 32)
+                                else
+                                  ShadButton.ghost(
+                                    width: 32,
+                                    height: 32,
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () {
+                                      setState(() {
+                                        tempSubtasks.removeWhere((s) => s.id == subtask.id);
+                                        if (tempSubtasks.isEmpty || tempSubtasks.last.title.trim().isNotEmpty) {
+                                          tempSubtasks.add(Subtask(id: const Uuid().v4(), title: ''));
+                                        }
+                                      });
+                                    },
+                                    child: Icon(
+                                      LucideIcons.x, 
+                                      size: 16,
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                    ),
+                                  )
+                              ],
+                            ),
+                          )).toList(),
+                        ),
+
+                      const SizedBox(height: 16),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -761,6 +862,7 @@ void _showAddTaskDialog(String locale) {
                                   isAnytime: tempIsAnytime,
                                   repeatInterval: tempRepeatEnabled ? tempRepeatInterval : null,
                                   repeatUnit: tempRepeatEnabled ? tempRepeatUnit : null,
+                                  subtasks: tempSubtasks.where((s) => s.title.trim().isNotEmpty).toList(),
                                 );
                                 _controller.clear();
                                 // Clear page state

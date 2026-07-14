@@ -3,6 +3,28 @@ import '../../domain/entities/todo.dart';
 
 part 'todo_model.g.dart';
 
+@embedded
+class SubtaskModel {
+  late String uuid;
+  late String title;
+  late bool isCompleted;
+
+  static SubtaskModel fromEntity(Subtask entity) {
+    return SubtaskModel()
+      ..uuid = entity.id
+      ..title = entity.title
+      ..isCompleted = entity.isCompleted;
+  }
+
+  Subtask toEntity() {
+    return Subtask(
+      id: uuid,
+      title: title,
+      isCompleted: isCompleted,
+    );
+  }
+}
+
 @collection
 class TodoModel {
   Id id = Isar.autoIncrement;
@@ -24,6 +46,10 @@ class TodoModel {
   int? repeatInterval;
   String? repeatUnit;
 
+  List<SubtaskModel>? subtasks;
+
+
+
   // 從 Entity 轉換為 Isar 支援的 Model
   static TodoModel fromEntity(Todo entity) {
     return TodoModel()
@@ -38,7 +64,8 @@ class TodoModel {
       ..isAnytime = entity.isAnytime
       ..completedAt = entity.completedAt
       ..repeatInterval = entity.repeatInterval
-      ..repeatUnit = entity.repeatUnit;
+      ..repeatUnit = entity.repeatUnit
+      ..subtasks = entity.subtasks.map((s) => SubtaskModel.fromEntity(s)).toList();
   }
 
   // 將 Isar Model 轉換為 Domain 核心的 Entity
@@ -56,6 +83,7 @@ class TodoModel {
       completedAt: completedAt,
       repeatInterval: repeatInterval,
       repeatUnit: repeatUnit,
+      subtasks: subtasks?.map((s) => s.toEntity()).toList() ?? [],
     );
   }
 }

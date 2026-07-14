@@ -62,18 +62,24 @@ const TodoModelSchema = CollectionSchema(
       name: r'repeatUnit',
       type: IsarType.string,
     ),
-    r'title': PropertySchema(
+    r'subtasks': PropertySchema(
       id: 9,
+      name: r'subtasks',
+      type: IsarType.objectList,
+      target: r'SubtaskModel',
+    ),
+    r'title': PropertySchema(
+      id: 10,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 10,
+      id: 11,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'uuid': PropertySchema(
-      id: 11,
+      id: 12,
       name: r'uuid',
       type: IsarType.string,
     )
@@ -112,7 +118,7 @@ const TodoModelSchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {},
+  embeddedSchemas: {r'SubtaskModel': SubtaskModelSchema},
   getId: _todoModelGetId,
   getLinks: _todoModelGetLinks,
   attach: _todoModelAttach,
@@ -130,6 +136,20 @@ int _todoModelEstimateSize(
     final value = object.repeatUnit;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final list = object.subtasks;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[SubtaskModel]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount +=
+              SubtaskModelSchema.estimateSize(value, offsets, allOffsets);
+        }
+      }
     }
   }
   bytesCount += 3 + object.title.length * 3;
@@ -152,9 +172,15 @@ void _todoModelSerialize(
   writer.writeBool(offsets[6], object.isDeleted);
   writer.writeLong(offsets[7], object.repeatInterval);
   writer.writeString(offsets[8], object.repeatUnit);
-  writer.writeString(offsets[9], object.title);
-  writer.writeDateTime(offsets[10], object.updatedAt);
-  writer.writeString(offsets[11], object.uuid);
+  writer.writeObjectList<SubtaskModel>(
+    offsets[9],
+    allOffsets,
+    SubtaskModelSchema.serialize,
+    object.subtasks,
+  );
+  writer.writeString(offsets[10], object.title);
+  writer.writeDateTime(offsets[11], object.updatedAt);
+  writer.writeString(offsets[12], object.uuid);
 }
 
 TodoModel _todoModelDeserialize(
@@ -174,9 +200,15 @@ TodoModel _todoModelDeserialize(
   object.isDeleted = reader.readBool(offsets[6]);
   object.repeatInterval = reader.readLongOrNull(offsets[7]);
   object.repeatUnit = reader.readStringOrNull(offsets[8]);
-  object.title = reader.readString(offsets[9]);
-  object.updatedAt = reader.readDateTime(offsets[10]);
-  object.uuid = reader.readString(offsets[11]);
+  object.subtasks = reader.readObjectList<SubtaskModel>(
+    offsets[9],
+    SubtaskModelSchema.deserialize,
+    allOffsets,
+    SubtaskModel(),
+  );
+  object.title = reader.readString(offsets[10]);
+  object.updatedAt = reader.readDateTime(offsets[11]);
+  object.uuid = reader.readString(offsets[12]);
   return object;
 }
 
@@ -206,10 +238,17 @@ P _todoModelDeserializeProp<P>(
     case 8:
       return (reader.readStringOrNull(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readObjectList<SubtaskModel>(
+        offset,
+        SubtaskModelSchema.deserialize,
+        allOffsets,
+        SubtaskModel(),
+      )) as P;
     case 10:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 11:
+      return (reader.readDateTime(offset)) as P;
+    case 12:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1161,6 +1200,111 @@ extension TodoModelQueryFilter
     });
   }
 
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> subtasksIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'subtasks',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      subtasksIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'subtasks',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      subtasksLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'subtasks',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> subtasksIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'subtasks',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      subtasksIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'subtasks',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      subtasksLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'subtasks',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      subtasksLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'subtasks',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      subtasksLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'subtasks',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1477,7 +1621,14 @@ extension TodoModelQueryFilter
 }
 
 extension TodoModelQueryObject
-    on QueryBuilder<TodoModel, TodoModel, QFilterCondition> {}
+    on QueryBuilder<TodoModel, TodoModel, QFilterCondition> {
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> subtasksElement(
+      FilterQuery<SubtaskModel> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'subtasks');
+    });
+  }
+}
 
 extension TodoModelQueryLinks
     on QueryBuilder<TodoModel, TodoModel, QFilterCondition> {}
@@ -1928,6 +2079,13 @@ extension TodoModelQueryProperty
     });
   }
 
+  QueryBuilder<TodoModel, List<SubtaskModel>?, QQueryOperations>
+      subtasksProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'subtasks');
+    });
+  }
+
   QueryBuilder<TodoModel, String, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
@@ -1946,3 +2104,373 @@ extension TodoModelQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const SubtaskModelSchema = Schema(
+  name: r'SubtaskModel',
+  id: -3209624334885294238,
+  properties: {
+    r'isCompleted': PropertySchema(
+      id: 0,
+      name: r'isCompleted',
+      type: IsarType.bool,
+    ),
+    r'title': PropertySchema(
+      id: 1,
+      name: r'title',
+      type: IsarType.string,
+    ),
+    r'uuid': PropertySchema(
+      id: 2,
+      name: r'uuid',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _subtaskModelEstimateSize,
+  serialize: _subtaskModelSerialize,
+  deserialize: _subtaskModelDeserialize,
+  deserializeProp: _subtaskModelDeserializeProp,
+);
+
+int _subtaskModelEstimateSize(
+  SubtaskModel object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.title.length * 3;
+  bytesCount += 3 + object.uuid.length * 3;
+  return bytesCount;
+}
+
+void _subtaskModelSerialize(
+  SubtaskModel object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeBool(offsets[0], object.isCompleted);
+  writer.writeString(offsets[1], object.title);
+  writer.writeString(offsets[2], object.uuid);
+}
+
+SubtaskModel _subtaskModelDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = SubtaskModel();
+  object.isCompleted = reader.readBool(offsets[0]);
+  object.title = reader.readString(offsets[1]);
+  object.uuid = reader.readString(offsets[2]);
+  return object;
+}
+
+P _subtaskModelDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readBool(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension SubtaskModelQueryFilter
+    on QueryBuilder<SubtaskModel, SubtaskModel, QFilterCondition> {
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      isCompletedEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isCompleted',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> titleEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'title',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      titleGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'title',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> titleLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'title',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> titleBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'title',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      titleStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'title',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> titleEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'title',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> titleContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'title',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> titleMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'title',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      titleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'title',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      titleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'title',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> uuidEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      uuidGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> uuidLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> uuidBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'uuid',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      uuidStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> uuidEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> uuidContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'uuid',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition> uuidMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'uuid',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      uuidIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'uuid',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SubtaskModel, SubtaskModel, QAfterFilterCondition>
+      uuidIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'uuid',
+        value: '',
+      ));
+    });
+  }
+}
+
+extension SubtaskModelQueryObject
+    on QueryBuilder<SubtaskModel, SubtaskModel, QFilterCondition> {}
