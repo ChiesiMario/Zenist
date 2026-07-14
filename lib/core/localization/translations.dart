@@ -48,6 +48,11 @@ class Translations {
       'clear_date': 'Clear Date',
       'expand_subtasks': 'Expand subtasks',
       'collapse_subtasks': 'Collapse subtasks',
+      'cloud_sync': 'Cloud Sync',
+      'dropbox_link': 'Link Dropbox',
+      'dropbox_unlink': 'Unlink Dropbox',
+      'sync_now': 'Sync Now',
+      'last_synced': 'Last synced: ',
     },
     'zh_TW': {
       'settings': '設置',
@@ -97,6 +102,11 @@ class Translations {
       'clear_date': '清除日期',
       'expand_subtasks': '展開子任務',
       'collapse_subtasks': '收起子任務',
+      'cloud_sync': '雲端同步 (Cloud Sync)',
+      'dropbox_link': '連結 Dropbox',
+      'dropbox_unlink': '登出 Dropbox',
+      'sync_now': '立即同步',
+      'last_synced': '最後同步時間：',
     },
     'zh_CN': {
       'settings': '设置',
@@ -146,6 +156,11 @@ class Translations {
       'clear_date': '清除日期',
       'expand_subtasks': '展开子任务',
       'collapse_subtasks': '收起子任务',
+      'cloud_sync': '云端同步 (Cloud Sync)',
+      'dropbox_link': '连接 Dropbox',
+      'dropbox_unlink': '注销 Dropbox',
+      'sync_now': '立即同步',
+      'last_synced': '最后同步时间：',
     },
   };
 

@@ -4,6 +4,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/settings_provider.dart';
 import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
+import '../../application/services/sync_service.dart';
+import '../../data/datasources/remote/dropbox_datasource.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -236,6 +238,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                     _showFontSelectionDialog(context, settings.fontFamily, locale);
                                   },
                                 ),
+                                Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                                  child: Text(
+                                    Translations.tr('cloud_sync', locale),
+                                    style: ShadTheme.of(context).textTheme.large,
+                                  ),
+                                ),
+                                _SyncSection(locale: locale),
                               ],
                             ),
                           ),
@@ -406,6 +417,112 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
         ),
         ),
       ),
+    );
+  }
+}
+
+class _SyncSection extends ConsumerStatefulWidget {
+  final String locale;
+  const _SyncSection({required this.locale});
+
+  @override
+  ConsumerState<_SyncSection> createState() => _SyncSectionState();
+}
+
+class _SyncSectionState extends ConsumerState<_SyncSection> {
+  bool _isLoggedIn = false;
+  bool _isSyncing = false;
+  String _lastSynced = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final dropbox = ref.read(dropboxDataSourceProvider);
+    final loggedIn = await dropbox.isLoggedIn();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = loggedIn;
+      });
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    try {
+      final dropbox = ref.read(dropboxDataSourceProvider);
+      await dropbox.login();
+      await _checkLoginStatus();
+      if (_isLoggedIn) {
+        await _handleSync();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Login failed: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    final dropbox = ref.read(dropboxDataSourceProvider);
+    await dropbox.logout();
+    await _checkLoginStatus();
+  }
+
+  Future<void> _handleSync() async {
+    if (!_isLoggedIn) return;
+    setState(() => _isSyncing = true);
+    try {
+      final syncService = ref.read(syncServiceProvider);
+      await syncService.syncWithDropbox();
+      if (mounted) {
+        setState(() {
+          _lastSynced = DateTime.now().toString().split('.').first;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sync completed successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Sync failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSyncing = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          title: Text(_isLoggedIn ? Translations.tr('dropbox_unlink', widget.locale) : Translations.tr('dropbox_link', widget.locale)),
+          trailing: const Icon(LucideIcons.cloud, size: 20),
+          onTap: _isLoggedIn ? _handleLogout : _handleLogin,
+        ),
+        if (_isLoggedIn)
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+            title: Text(Translations.tr('sync_now', widget.locale)),
+            subtitle: _lastSynced.isNotEmpty 
+                ? Text('${Translations.tr('last_synced', widget.locale)} $_lastSynced')
+                : null,
+            trailing: _isSyncing 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(LucideIcons.refreshCw, size: 20),
+            onTap: _isSyncing ? null : _handleSync,
+          ),
+      ],
     );
   }
 }

@@ -1,0 +1,172 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+final dropboxDataSourceProvider = Provider<DropboxDataSource>((ref) {
+  return DropboxDataSource();
+});
+
+class DropboxDataSource {
+  static const String _clientId = 'rin197bgs7odw7n';
+  static const String _clientSecret = '0x4hd9xvwqtnfwj';
+  static const String _redirectUri = 'http://localhost:8080/';
+  
+  static const String _tokenKey = 'dropbox_access_token';
+  static const String _refreshTokenKey = 'dropbox_refresh_token';
+
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  String? _accessToken;
+
+  Future<bool> isLoggedIn() async {
+    final refreshToken = await _storage.read(key: _refreshTokenKey);
+    return refreshToken != null;
+  }
+
+  Future<void> login() async {
+    final url = Uri.https('www.dropbox.com', '/oauth2/authorize', {
+      'client_id': _clientId,
+      'response_type': 'code',
+      'redirect_uri': _redirectUri,
+      'token_access_type': 'offline',
+    });
+
+    final result = await FlutterWebAuth2.authenticate(
+      url: url.toString(),
+      callbackUrlScheme: 'http',
+    );
+
+    final code = Uri.parse(result).queryParameters['code'];
+    if (code == null) throw Exception('No code returned from Dropbox');
+
+    final tokenResponse = await http.post(
+      Uri.parse('https://api.dropboxapi.com/oauth2/token'),
+      body: {
+        'code': code,
+        'grant_type': 'authorization_code',
+        'client_id': _clientId,
+        'client_secret': _clientSecret,
+        'redirect_uri': _redirectUri,
+      },
+    );
+
+    if (tokenResponse.statusCode == 200) {
+      final data = jsonDecode(tokenResponse.body);
+      _accessToken = data['access_token'];
+      final refreshToken = data['refresh_token'];
+      if (_accessToken != null) {
+        await _storage.write(key: _tokenKey, value: _accessToken);
+      }
+      if (refreshToken != null) {
+        await _storage.write(key: _refreshTokenKey, value: refreshToken);
+      }
+    } else {
+      throw Exception('Failed to exchange token: ${tokenResponse.body}');
+    }
+  }
+
+  Future<void> logout() async {
+    _accessToken = null;
+    await _storage.delete(key: _tokenKey);
+    await _storage.delete(key: _refreshTokenKey);
+  }
+
+  Future<bool> _refreshToken() async {
+    final refreshToken = await _storage.read(key: _refreshTokenKey);
+    if (refreshToken == null) return false;
+
+    final response = await http.post(
+      Uri.parse('https://api.dropboxapi.com/oauth2/token'),
+      body: {
+        'grant_type': 'refresh_token',
+        'refresh_token': refreshToken,
+        'client_id': _clientId,
+        'client_secret': _clientSecret,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      _accessToken = data['access_token'];
+      await _storage.write(key: _tokenKey, value: _accessToken!);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<T> _withAuth<T>(Future<T> Function() action) async {
+    if (_accessToken == null) {
+      _accessToken = await _storage.read(key: _tokenKey);
+    }
+    
+    try {
+      return await action();
+    } catch (e) {
+      // 假設遇到 401 代表 token 過期
+      if (e.toString().contains('401')) {
+        final refreshed = await _refreshToken();
+        if (refreshed) {
+          return await action();
+        } else {
+          throw Exception('Failed to refresh token');
+        }
+      }
+      rethrow;
+    }
+  }
+
+  Future<String?> downloadBackup() async {
+    if (!await isLoggedIn()) return null;
+
+    return _withAuth(() async {
+      final response = await http.post(
+        Uri.parse('https://content.dropboxapi.com/2/files/download'),
+        headers: {
+          'Authorization': 'Bearer $_accessToken',
+          'Dropbox-API-Arg': jsonEncode({'path': '/zenist_backup.json'}),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return utf8.decode(response.bodyBytes);
+      } else if (response.statusCode == 409) {
+        // File not found (path_not_found)
+        return null;
+      } else if (response.statusCode == 401) {
+        throw Exception('401 Unauthorized');
+      } else {
+        throw Exception('Failed to download backup: ${response.statusCode} ${response.body}');
+      }
+    });
+  }
+
+  Future<void> uploadBackup(String jsonContent) async {
+    if (!await isLoggedIn()) return;
+
+    return _withAuth(() async {
+      final response = await http.post(
+        Uri.parse('https://content.dropboxapi.com/2/files/upload'),
+        headers: {
+          'Authorization': 'Bearer $_accessToken',
+          'Dropbox-API-Arg': jsonEncode({
+            'path': '/zenist_backup.json',
+            'mode': 'overwrite',
+            'autorename': false,
+            'mute': true,
+            'strict_conflict': false
+          }),
+          'Content-Type': 'application/octet-stream',
+        },
+        body: utf8.encode(jsonContent),
+      );
+
+      if (response.statusCode == 401) {
+        throw Exception('401 Unauthorized');
+      } else if (response.statusCode != 200) {
+        throw Exception('Failed to upload backup: ${response.statusCode} ${response.body}');
+      }
+    });
+  }
+}

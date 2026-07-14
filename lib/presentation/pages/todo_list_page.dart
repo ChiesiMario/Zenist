@@ -8,8 +8,11 @@ import '../providers/todo_provider.dart';
 import '../widgets/todo_item_widget.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
-import 'settings_page.dart';
+import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
+import '../../application/services/sync_service.dart';
+import '../../data/datasources/remote/dropbox_datasource.dart';
+import 'settings_page.dart';
 
 
 class TodoListPage extends ConsumerStatefulWidget {
@@ -28,6 +31,8 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   int _repeatInterval = 1;
   String _repeatUnit = 'week';
   int _currentIndex = 0;
+
+  final GlobalKey<_SyncIconWidgetState> _syncIconKey = GlobalKey<_SyncIconWidgetState>();
 
   @override
   void initState() {
@@ -1295,26 +1300,33 @@ void _showAddTaskDialog(String locale) {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: Text(
-                            'Zenist.',
-                            style: GoogleFonts.nunito(
-                              textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 32,
-                                    letterSpacing: -0.5,
-                                  ),
+                        Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 10.0),
+                              child: Text(
+                                'Zenist.',
+                                style: GoogleFonts.nunito(
+                                  textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 32,
+                                        letterSpacing: -0.5,
+                                      ),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            _SyncIconWidget(key: _syncIconKey),
+                          ],
                         ),
                         ShadButton.ghost(
-                          onPressed: () {
-                            Navigator.of(context).push(
+                          onPressed: () async {
+                            await Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (context) => const SettingsPage(),
                               ),
                             );
+                            _syncIconKey.currentState?._checkLoginStatus();
                           },
                           width: 48,
                           height: 48,
@@ -1499,3 +1511,179 @@ void _showAddTaskDialog(String locale) {
     );
   }
 }
+
+class _SyncIconWidget extends ConsumerStatefulWidget {
+  const _SyncIconWidget({super.key});
+
+  @override
+  ConsumerState<_SyncIconWidget> createState() => _SyncIconWidgetState();
+}
+
+class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTickerProviderStateMixin {
+  bool _isLoggedIn = false;
+  bool _isSyncing = false;
+  bool _isSuccess = false;
+  bool _isError = false;
+
+  late AnimationController _rotationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _rotationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+    _checkLoginStatus();
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final dropbox = ref.read(dropboxDataSourceProvider);
+    final loggedIn = await dropbox.isLoggedIn();
+    if (mounted && _isLoggedIn != loggedIn) {
+      setState(() {
+        _isLoggedIn = loggedIn;
+      });
+    }
+  }
+
+  Future<void> _handleSync() async {
+    if (!_isLoggedIn || _isSyncing) return;
+
+    setState(() {
+      _isSyncing = true;
+      _isSuccess = false;
+      _isError = false;
+    });
+    _rotationController.repeat();
+
+    try {
+      final syncService = ref.read(syncServiceProvider);
+      await syncService.syncWithDropbox();
+      if (mounted) {
+        setState(() {
+          _isSuccess = true;
+        });
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) setState(() => _isSuccess = false);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isError = true;
+        });
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) setState(() => _isError = false);
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSyncing = false;
+        });
+        _rotationController.stop();
+        _rotationController.reset();
+      }
+    }
+  }
+
+  void _showOverlayToast(BuildContext context, String message) {
+    final overlayState = Overlay.of(context, rootOverlay: true);
+    final themeRadius = ShadTheme.of(context).radius;
+    late OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          bottom: 70,
+          left: 0,
+          right: 0,
+          child: Material(
+            color: Colors.transparent,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: themeRadius,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  message,
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    overlayState.insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    IconData iconData;
+    Color? iconColor;
+
+    if (!_isLoggedIn) {
+      iconData = LucideIcons.cloudOff;
+      iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5);
+    } else if (_isSyncing) {
+      iconData = LucideIcons.loader2;
+      iconColor = ShadTheme.of(context).colorScheme.primary;
+    } else if (_isSuccess) {
+      iconData = LucideIcons.checkCircle2;
+      iconColor = Colors.green;
+    } else if (_isError) {
+      iconData = LucideIcons.alertCircle;
+      iconColor = Colors.red;
+    } else {
+      iconData = LucideIcons.cloud;
+      iconColor = ShadTheme.of(context).colorScheme.foreground;
+    }
+
+    Widget iconWidget = Icon(iconData, size: 22, color: iconColor);
+
+    if (_isSyncing) {
+      iconWidget = RotationTransition(
+        turns: _rotationController,
+        child: iconWidget,
+      );
+    }
+
+    return ShadButton.ghost(
+      onPressed: () {
+        if (!_isLoggedIn) {
+          _showOverlayToast(context, '請先前往「設置」頁面登入 Dropbox 以啟用雲端同步功能。');
+        } else {
+          _handleSync();
+        }
+      },
+      width: 40,
+      height: 40,
+      padding: EdgeInsets.zero,
+      child: iconWidget,
+    );
+  }
+}
+

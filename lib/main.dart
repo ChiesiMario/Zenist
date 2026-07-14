@@ -7,6 +7,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/providers/settings_provider.dart';
+import 'application/services/sync_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +58,16 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
   void initState() {
     super.initState();
     windowManager.addListener(this);
+    
+    // 背景觸發雲端同步
+    Future.microtask(() async {
+      try {
+        final syncService = ref.read(syncServiceProvider);
+        await syncService.syncWithDropbox();
+      } catch (e) {
+        debugPrint('App Launch Sync failed: $e');
+      }
+    });
   }
 
   @override
@@ -126,6 +137,7 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
         radius: BorderRadius.circular(12),
       ),
       builder: (context, child) {
+        final scaffoldChild = ScaffoldMessenger(child: child!);
         return CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
             const SingleActivator(LogicalKeyboardKey.escape): () {
@@ -136,7 +148,7 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
             autofocus: true,
             canRequestFocus: false,
             descendantsAreFocusable: true,
-            child: child!,
+            child: scaffoldChild,
           ),
         );
       },
