@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/settings_provider.dart';
 import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -154,7 +155,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: SizedBox.expand(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 80.0, bottom: 24.0),
+                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 70.0, bottom: 24.0),
                     child: Container(
                       decoration: BoxDecoration(
                         color: ShadTheme.of(context).colorScheme.card,
@@ -251,10 +252,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             bottom: false,
             child: Align(
               alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
                 child: SizedBox(
-                  height: 80.0,
+                  height: 60.0,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Row(
@@ -270,9 +273,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         const SizedBox(width: 8),
                         Text(
                           Translations.tr('settings', locale),
-                          style: ShadTheme.of(context).textTheme.h3.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
+                          style: GoogleFonts.nunito(
+                            textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 24,
+                                  letterSpacing: -0.5,
+                                ),
+                          ),
                         ),
                       ],
                     ),
@@ -280,6 +287,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
             ),
+          ),
           ),
         ],
       ),
