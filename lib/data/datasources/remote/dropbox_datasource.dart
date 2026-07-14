@@ -161,6 +161,25 @@ class DropboxDataSource {
     }
   }
 
+  Future<String?> getCurrentAccountEmail() async {
+    if (!await isLoggedIn()) return null;
+
+    return _withAuth(() async {
+      final response = await http.post(
+        Uri.parse('https://api.dropboxapi.com/2/users/get_current_account'),
+        headers: {
+          'Authorization': 'Bearer $_accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['email'] as String?;
+      }
+      return null;
+    });
+  }
+
   Future<String?> downloadBackup() async {
     if (!await isLoggedIn()) return null;
 

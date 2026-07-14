@@ -8,10 +8,10 @@ import '../providers/todo_provider.dart';
 import '../widgets/todo_item_widget.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
-import '../../core/utils/system_fonts.dart';
+
 import '../../core/localization/translations.dart';
 import '../../application/services/sync_service.dart';
-import '../../data/datasources/remote/dropbox_datasource.dart';
+import '../providers/auth_provider.dart';
 import '../../core/utils/toast_utils.dart';
 import 'settings_page.dart';
 
@@ -1327,7 +1327,6 @@ void _showAddTaskDialog(String locale) {
                                 builder: (context) => const SettingsPage(),
                               ),
                             );
-                            _syncIconKey.currentState?._checkLoginStatus();
                           },
                           width: 48,
                           height: 48,
@@ -1521,7 +1520,6 @@ class _SyncIconWidget extends ConsumerStatefulWidget {
 }
 
 class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTickerProviderStateMixin {
-  bool _isLoggedIn = false;
   bool _isSyncing = false;
   bool _isSuccess = false;
   bool _isError = false;
@@ -1535,7 +1533,6 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
       vsync: this,
       duration: const Duration(seconds: 1),
     );
-    _checkLoginStatus();
   }
 
   @override
@@ -1544,18 +1541,9 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
     super.dispose();
   }
 
-  Future<void> _checkLoginStatus() async {
-    final dropbox = ref.read(dropboxDataSourceProvider);
-    final loggedIn = await dropbox.isLoggedIn();
-    if (mounted && _isLoggedIn != loggedIn) {
-      setState(() {
-        _isLoggedIn = loggedIn;
-      });
-    }
-  }
-
   Future<void> _handleSync() async {
-    if (!_isLoggedIn || _isSyncing) return;
+    final isLoggedIn = ref.read(authProvider).isLoggedIn;
+    if (!isLoggedIn || _isSyncing) return;
 
     setState(() {
       _isSyncing = true;
@@ -1568,6 +1556,8 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
       final syncService = ref.read(syncServiceProvider);
       await syncService.syncWithDropbox();
       if (mounted) {
+        final now = DateTime.now().toString().split('.').first;
+        ref.read(settingsProvider.notifier).updateLastSyncTime(now);
         setState(() {
           _isSuccess = true;
         });
@@ -1599,10 +1589,12 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = ref.watch(authProvider).isLoggedIn;
+    
     IconData iconData;
     Color? iconColor;
 
-    if (!_isLoggedIn) {
+    if (!isLoggedIn) {
       iconData = LucideIcons.cloudOff;
       iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5);
     } else if (_isSyncing) {
@@ -1630,7 +1622,7 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget> with SingleTic
 
     return ShadButton.ghost(
       onPressed: () {
-        if (!_isLoggedIn) {
+        if (!isLoggedIn) {
           ToastUtils.show(context, '請先前往「設置」頁面登入 Dropbox 以啟用雲端同步功能。');
         } else {
           _handleSync();

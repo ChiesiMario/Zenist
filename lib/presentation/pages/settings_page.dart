@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/settings_provider.dart';
+import '../providers/auth_provider.dart';
 import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
 import '../../application/services/sync_service.dart';
-import '../../data/datasources/remote/dropbox_datasource.dart';
 import '../../core/utils/toast_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -159,100 +159,139 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 child: SizedBox.expand(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 70.0, bottom: 24.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: ShadTheme.of(context).colorScheme.card,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: ShadTheme.of(context).colorScheme.border, width: 1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
-                            blurRadius: 24,
-                            offset: const Offset(0, -4),
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        // 第一張卡片：外觀與顯示
+                        Container(
+                          decoration: BoxDecoration(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: ShadTheme.of(context).colorScheme.border, width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 24,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                            child: Text(
-                              Translations.tr('appearance_and_display', locale),
-                              style: ShadTheme.of(context).textTheme.large,
-                            ),
-                          ),
-                          Expanded(
-                            child: ListView(
-                              padding: EdgeInsets.zero,
-                              children: [
-                                ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                                  title: Text(Translations.tr('language', locale)),
-                                  subtitle: Text(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                                child: Text(
+                                  Translations.tr('appearance_and_display', locale),
+                                  style: ShadTheme.of(context).textTheme.large,
+                                ),
+                              ),
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                leading: const Icon(LucideIcons.globe, size: 20),
+                                title: Text(Translations.tr('language', locale), 
+                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
                                     locale == 'zh_TW' ? Translations.tr('lang_zh_tw', locale) :
                                     locale == 'zh_CN' ? Translations.tr('lang_zh_cn', locale) : 
                                     Translations.tr('lang_en', locale),
                                     style: ShadTheme.of(context).textTheme.small.copyWith(
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.7),
+                                      fontSize: 12,
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ),
-                                  trailing: const Icon(LucideIcons.chevronRight, size: 20),
-                                  onTap: () {
-                                    _showLanguageSelectionDialog(context, locale);
-                                  },
                                 ),
-                                Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
-                                ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                                  title: Text(Translations.tr('date_format', locale)),
-                                  subtitle: Text(
+                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                onTap: () {
+                                  _showLanguageSelectionDialog(context, locale);
+                                },
+                              ),
+                              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                leading: const Icon(LucideIcons.calendar, size: 20),
+                                title: Text(Translations.tr('date_format', locale),
+                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
                                     settings.dateFormat == 'yyyy/MM/dd' ? Translations.tr('format_ymd', locale) :
                                     settings.dateFormat == 'MM/dd/yyyy' ? Translations.tr('format_mdy', locale) : 
                                     Translations.tr('format_dmy', locale),
                                     style: ShadTheme.of(context).textTheme.small.copyWith(
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.7),
+                                      fontSize: 12,
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ),
-                                  trailing: const Icon(LucideIcons.chevronRight, size: 20),
-                                  onTap: () {
-                                    _showDateFormatSelectionDialog(context, settings.dateFormat, locale);
-                                  },
                                 ),
-                                Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
-                                ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                                  title: Text(Translations.tr('app_font', locale)),
-                                  subtitle: Text(
+                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                onTap: () {
+                                  _showDateFormatSelectionDialog(context, settings.dateFormat, locale);
+                                },
+                              ),
+                              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                leading: const Icon(LucideIcons.type, size: 20),
+                                title: Text(Translations.tr('app_font', locale),
+                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
                                     (settings.fontFamily == 'NotoSansTC' || settings.fontFamily == 'NotoSansSC') 
                                         ? Translations.tr('default_font', locale) 
                                         : settings.fontFamily,
                                     style: ShadTheme.of(context).textTheme.small.copyWith(
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.7),
+                                      fontSize: 12,
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
                                       fontWeight: FontWeight.normal,
                                     ),
                                   ),
-                                  trailing: const Icon(LucideIcons.chevronRight, size: 20),
-                                  onTap: () {
-                                    _showFontSelectionDialog(context, settings.fontFamily, locale);
-                                  },
                                 ),
-                                Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
-                                Padding(
-                                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                                  child: Text(
-                                    Translations.tr('cloud_sync', locale),
-                                    style: ShadTheme.of(context).textTheme.large,
-                                  ),
-                                ),
-                                _SyncSection(locale: locale),
-                              ],
-                            ),
+                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                onTap: () {
+                                  _showFontSelectionDialog(context, settings.fontFamily, locale);
+                                },
+                              ),
+                              const SizedBox(height: 8), // 底部留白
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 24),
+                        // 第二張卡片：雲端同步
+                        Container(
+                          decoration: BoxDecoration(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: ShadTheme.of(context).colorScheme.border, width: 1),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 24,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                                child: Text(
+                                  Translations.tr('cloud_sync', locale),
+                                  style: ShadTheme.of(context).textTheme.large,
+                                ),
+                              ),
+                              _SyncSection(locale: locale),
+                              const SizedBox(height: 8), // 底部留白
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -431,32 +470,12 @@ class _SyncSection extends ConsumerStatefulWidget {
 }
 
 class _SyncSectionState extends ConsumerState<_SyncSection> {
-  bool _isLoggedIn = false;
   bool _isSyncing = false;
-  String _lastSynced = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _checkLoginStatus();
-  }
-
-  Future<void> _checkLoginStatus() async {
-    final dropbox = ref.read(dropboxDataSourceProvider);
-    final loggedIn = await dropbox.isLoggedIn();
-    if (mounted) {
-      setState(() {
-        _isLoggedIn = loggedIn;
-      });
-    }
-  }
 
   Future<void> _handleLogin() async {
     try {
-      final dropbox = ref.read(dropboxDataSourceProvider);
-      await dropbox.login();
-      await _checkLoginStatus();
-      if (_isLoggedIn) {
+      await ref.read(authProvider.notifier).login();
+      if (ref.read(authProvider).isLoggedIn) {
         await _handleSync();
       }
     } catch (e) {
@@ -467,21 +486,19 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
   }
 
   Future<void> _handleLogout() async {
-    final dropbox = ref.read(dropboxDataSourceProvider);
-    await dropbox.logout();
-    await _checkLoginStatus();
+    await ref.read(authProvider.notifier).logout();
   }
 
   Future<void> _handleSync() async {
-    if (!_isLoggedIn) return;
+    final authState = ref.read(authProvider);
+    if (!authState.isLoggedIn) return;
     setState(() => _isSyncing = true);
     try {
       final syncService = ref.read(syncServiceProvider);
       await syncService.syncWithDropbox();
       if (mounted) {
-        setState(() {
-          _lastSynced = DateTime.now().toString().split('.').first;
-        });
+        final now = DateTime.now().toString().split('.').first;
+        ref.read(settingsProvider.notifier).updateLastSyncTime(now);
         ToastUtils.show(context, 'Sync completed successfully');
       }
     } catch (e) {
@@ -497,24 +514,52 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final isLoggedIn = authState.isLoggedIn;
+    final lastSyncTime = ref.watch(settingsProvider).lastSyncTime;
+
     return Column(
       children: [
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-          title: Text(_isLoggedIn ? Translations.tr('dropbox_unlink', widget.locale) : Translations.tr('dropbox_link', widget.locale)),
-          trailing: const Icon(LucideIcons.cloud, size: 20),
-          onTap: _isLoggedIn ? _handleLogout : _handleLogin,
+          leading: const Icon(LucideIcons.cloud, size: 20),
+          title: Text(isLoggedIn ? Translations.tr('dropbox_unlink', widget.locale) : Translations.tr('dropbox_link', widget.locale),
+            style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+          subtitle: (isLoggedIn && authState.email != null) 
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(authState.email!,
+                    style: ShadTheme.of(context).textTheme.small.copyWith(
+                      fontSize: 12,
+                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                )
+              : null,
+          onTap: isLoggedIn ? _handleLogout : _handleLogin,
         ),
-        if (_isLoggedIn)
+        if (isLoggedIn)
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-            title: Text(Translations.tr('sync_now', widget.locale)),
-            subtitle: _lastSynced.isNotEmpty 
-                ? Text('${Translations.tr('last_synced', widget.locale)} $_lastSynced')
-                : null,
-            trailing: _isSyncing 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(LucideIcons.refreshCw, size: 20),
+            leading: _isSyncing 
+                ? const SizedBox(width: 19, height: 19, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(LucideIcons.refreshCw, size: 19),
+            title: Text(Translations.tr('sync_now', widget.locale),
+              style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                lastSyncTime != null 
+                    ? '${Translations.tr('last_synced', widget.locale)} $lastSyncTime'
+                    : '尚未同步 (Never synced)',
+                style: ShadTheme.of(context).textTheme.small.copyWith(
+                  fontSize: 12,
+                  color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
             onTap: _isSyncing ? null : _handleSync,
           ),
       ],
