@@ -1088,8 +1088,8 @@ void _showAddTaskDialog(String locale) {
                                       width: 32,
                                       padding: EdgeInsets.zero,
                                       child: Icon(
-                                        LucideIcons.maximize2,
-                                        size: 16,
+                                        LucideIcons.expand,
+                                        size: 15,
                                         color: ShadTheme.of(context).colorScheme.mutedForeground,
                                       ),
                                     ),
