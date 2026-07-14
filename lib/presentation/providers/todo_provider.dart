@@ -28,13 +28,14 @@ class TodoNotifier extends Notifier<void> {
   @override
   void build() {}
 
-  Future<void> addTodo(String title, {DateTime? dueDate, bool isAnytime = false, int? repeatInterval, String? repeatUnit, List<Subtask> subtasks = const []}) async {
+  Future<void> addTodo(String title, {String description = '', DateTime? dueDate, bool isAnytime = false, int? repeatInterval, String? repeatUnit, List<Subtask> subtasks = const []}) async {
     if (title.trim().isEmpty) return;
     
     final repository = ref.read(todoRepositoryProvider);
     final todo = Todo(
       id: const Uuid().v4(),
       title: title.trim(),
+      description: description,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       dueDate: dueDate,
@@ -121,6 +122,7 @@ class TodoNotifier extends Notifier<void> {
     Todo todo, 
     String newTitle, 
     DateTime? newDueDate, {
+    String description = '',
     bool isAnytime = false,
     int? repeatInterval,
     String? repeatUnit,
@@ -130,6 +132,7 @@ class TodoNotifier extends Notifier<void> {
     final repository = ref.read(todoRepositoryProvider);
     final updatedTodo = todo.copyWith(
       title: newTitle.trim(),
+      description: description,
       dueDate: newDueDate,
       clearDueDate: newDueDate == null,
       isAnytime: isAnytime,

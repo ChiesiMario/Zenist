@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/todo_provider.dart';
@@ -61,6 +59,11 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
     bool tempRepeatEnabled = widget.todo.repeatInterval != null;
     int tempRepeatInterval = widget.todo.repeatInterval ?? 1;
     String tempRepeatUnit = widget.todo.repeatUnit ?? 'week';
+    String tempDescription = widget.todo.description;
+    bool showNoteInput = tempDescription.isNotEmpty;
+    final noteFocusNode = FocusNode();
+    bool isNoteEditing = false;
+    final noteController = TextEditingController(text: tempDescription);
     List<Subtask> tempSubtasks = List.from(widget.todo.subtasks);
     if (tempSubtasks.isEmpty || tempSubtasks.last.title.trim().isNotEmpty) {
       tempSubtasks.add(Subtask(id: const Uuid().v4(), title: ''));
@@ -81,6 +84,21 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
             }
             focusNode.removeListener(updateFocus);
             focusNode.addListener(updateFocus);
+
+            void updateNoteFocus() {
+              if (mounted) {
+                setState(() {
+                  if (!noteFocusNode.hasFocus) {
+                    isNoteEditing = false;
+                  }
+                });
+              }
+            }
+            noteFocusNode.removeListener(updateNoteFocus);
+            noteFocusNode.addListener(updateNoteFocus);
+
+
+
             Future<void> pickDate() async {
               focusNode.unfocus();
               
@@ -397,37 +415,117 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      Container(
-                        height: 44,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: isInputFocused
-                                ? ShadTheme.of(context).colorScheme.ring
-                                : ShadTheme.of(context).colorScheme.border,
-                            width: isInputFocused ? 2.0 : 1.0,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: isInputFocused
+                                      ? ShadTheme.of(context).colorScheme.ring
+                                      : ShadTheme.of(context).colorScheme.border,
+                                  width: isInputFocused ? 2.0 : 1.0,
+                                ),
+                                borderRadius: ShadTheme.of(context).radius,
+                              ),
+                              child: TextField(
+                                focusNode: focusNode,
+                                controller: textController,
+                                autofocus: true,
+                                style: ShadTheme.of(context).textTheme.p.copyWith(
+                                  fontSize: 14,
+                                ),
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.only(left: 12, right: 12, top: 11, bottom: 11),
+                                  isDense: true,
+                                ),
+                                cursorColor: ShadTheme.of(context).colorScheme.primary,
+                              ),
+                            ),
                           ),
-                          borderRadius: ShadTheme.of(context).radius,
-                        ),
-                        child: TextField(
-                          focusNode: focusNode,
-                          controller: textController,
-                          autofocus: true,
-                          style: ShadTheme.of(context).textTheme.p.copyWith(
-                            fontSize: 14,
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            errorBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            contentPadding: EdgeInsets.only(left: 12, right: 12, top: 11, bottom: 11),
-                            isDense: true,
-                          ),
-                          cursorColor: ShadTheme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                          const SizedBox(width: 8),
+                           ShadButton.ghost(
+                             width: 44,
+                             height: 44,
+                             padding: EdgeInsets.zero,
+                             child: Icon(
+                               showNoteInput ? LucideIcons.chevronUp : LucideIcons.chevronDown, 
+                               color: ShadTheme.of(context).colorScheme.mutedForeground,
+                             ),
+                             onPressed: () {
+                               setState(() {
+                                 showNoteInput = !showNoteInput;
+                               });
+                             },
+                           ),
+                         ],
+                       ),
+                       if (showNoteInput) ...[
+                         const SizedBox(height: 8),
+                         (!isNoteEditing && noteController.text.isNotEmpty) ? GestureDetector(
+                           onTap: () {
+                             setState(() {
+                               isNoteEditing = true;
+                               Future.delayed(const Duration(milliseconds: 50), () {
+                                 if (noteFocusNode.context != null) {
+                                   noteFocusNode.requestFocus();
+                                 }
+                               });
+                             });
+                           },
+                           behavior: HitTestBehavior.opaque,
+                           child: Container(
+                             width: double.infinity,
+                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                             child: Text(
+                               noteController.text,
+                               style: ShadTheme.of(context).textTheme.p.copyWith(
+                                 fontSize: 13,
+                                 color: ShadTheme.of(context).colorScheme.mutedForeground,
+                               ),
+                             ),
+                           ),
+                         ) : Container(
+                           decoration: BoxDecoration(
+                             border: Border.all(
+                               color: ShadTheme.of(context).colorScheme.border,
+                               width: 1.0,
+                             ),
+                             borderRadius: ShadTheme.of(context).radius,
+                           ),
+                           child: TextField(
+                             focusNode: noteFocusNode,
+                             controller: noteController,
+                             maxLines: null,
+                             style: ShadTheme.of(context).textTheme.p.copyWith(
+                               fontSize: 13,
+                               color: ShadTheme.of(context).colorScheme.mutedForeground,
+                             ),
+                             decoration: InputDecoration(
+                               border: InputBorder.none,
+                               focusedBorder: InputBorder.none,
+                               enabledBorder: InputBorder.none,
+                               errorBorder: InputBorder.none,
+                               disabledBorder: InputBorder.none,
+                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                               hintText: Translations.tr('add_note', locale),
+                               hintStyle: TextStyle(
+                                 color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.4),
+                               ),
+                               isDense: true,
+                             ),
+                             cursorColor: ShadTheme.of(context).colorScheme.primary,
+                           ),
+                         ),
+                       ],
+                      SizedBox(height: showNoteInput ? 8 : 16),
                       if (tempSubtasks.isNotEmpty)
                         Column(
                           children: tempSubtasks.map((subtask) => Padding(
@@ -598,6 +696,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   widget.todo, 
                                   newTitle, 
                                   tempDueDate,
+                                  description: noteController.text.trim(),
                                   isAnytime: tempIsAnytime,
                                   repeatInterval: tempRepeatEnabled ? tempRepeatInterval : null,
                                   repeatUnit: tempRepeatEnabled ? tempRepeatUnit : null,
@@ -620,6 +719,8 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
     ).then((_) {
       focusNode.dispose();
       textController.dispose();
+      noteFocusNode.dispose();
+      noteController.dispose();
     });
   }
 
@@ -698,6 +799,19 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                 ],
                               ),
                             ),
+                            if (widget.todo.description.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Text(
+                                  widget.todo.description,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: ShadTheme.of(context).textTheme.p.copyWith(
+                                    fontSize: 13,
+                                    color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                  ),
+                                ),
+                              ),
                             if (widget.todo.dueDate != null || (widget.todo.repeatInterval != null && widget.todo.repeatUnit != null))
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
@@ -752,7 +866,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                               ),
                           if (widget.todo.subtasks.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
+                              padding: const EdgeInsets.only(top: 4.0),
                               child: GestureDetector(
                                 onTap: () {}, // 阻止點擊事件向外冒泡
                                 child: InkWell(
@@ -780,7 +894,6 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: ShadTheme.of(context).colorScheme.mutedForeground,
-                                            fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                       ],
@@ -789,59 +902,75 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                 ),
                               ),
                             ),
-                          if (widget.todo.subtasks.isNotEmpty && _isExpanded)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0, left: 12.0),
-                              child: GestureDetector(
-                                onTap: () {}, // 阻止點擊事件向外冒泡
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: widget.todo.subtasks.map((subtask) {
-                                    return GestureDetector(
-                                      onTap: () {
-                                        ref.read(todoNotifierProvider.notifier).toggleSubtask(widget.todo, subtask.id);
-                                      },
-                                      behavior: HitTestBehavior.opaque,
-                                      child: Padding(
-                                        key: ValueKey(subtask.id),
-                                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                        child: Row(
-                                          children: [
-                                            Opacity(
-                                              opacity: subtask.isCompleted ? 0.4 : 0.15,
-                                              child: SizedBox(
-                                                width: 20,
-                                                height: 20,
-                                                child: GestureDetector(
-                                                  onTap: () {}, // 攔截點擊，不冒泡到外層 Row 的 GestureDetector
-                                                  child: ShadCheckbox(
-                                                    value: subtask.isCompleted,
-                                                    onChanged: (v) {
-                                                      ref.read(todoNotifierProvider.notifier).toggleSubtask(widget.todo, subtask.id);
-                                                    },
+                          AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 200),
+                            firstCurve: Curves.easeInOutCubic,
+                            secondCurve: Curves.easeInOutCubic,
+                            sizeCurve: Curves.easeInOutCubic,
+                            alignment: Alignment.topCenter,
+                            crossFadeState: (widget.todo.subtasks.isNotEmpty && _isExpanded)
+                                ? CrossFadeState.showFirst
+                                : CrossFadeState.showSecond,
+                            firstChild: SizedBox(
+                              width: double.infinity,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 8.0, left: 12.0),
+                                child: GestureDetector(
+                                  onTap: () {}, // 阻止點擊事件向外冒泡
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: widget.todo.subtasks.map((subtask) {
+                                      return GestureDetector(
+                                        onTap: () {
+                                          ref.read(todoNotifierProvider.notifier).toggleSubtask(widget.todo, subtask.id);
+                                        },
+                                        behavior: HitTestBehavior.opaque,
+                                        child: Padding(
+                                          key: ValueKey(subtask.id),
+                                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                          child: Row(
+                                            children: [
+                                              Opacity(
+                                                opacity: subtask.isCompleted ? 0.4 : 0.15,
+                                                child: SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: GestureDetector(
+                                                    onTap: () {}, // 攔截點擊，不冒泡到外層 Row 的 GestureDetector
+                                                    child: ShadCheckbox(
+                                                      value: subtask.isCompleted,
+                                                      onChanged: (v) {
+                                                        ref.read(todoNotifierProvider.notifier).toggleSubtask(widget.todo, subtask.id);
+                                                      },
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 10),
-                                            Expanded(
-                                              child: Text(
-                                                subtask.title,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  decoration: subtask.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
-                                                  color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                              const SizedBox(width: 10),
+                                              Expanded(
+                                                child: Text(
+                                                  subtask.title,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    decoration: subtask.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
+                                                    color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }).toList(),
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
                               ),
                             ),
+                            secondChild: const SizedBox(
+                              width: double.infinity,
+                              height: 0,
+                            ),
+                          ),
                         ],
                       ),
                     ),
