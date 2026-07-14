@@ -468,7 +468,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                       autofocus: subtask.title.isEmpty,
                                       style: TextStyle(
                                         decoration: subtask.isCompleted ? TextDecoration.lineThrough : null,
-                                        color: subtask.isCompleted ? ShadTheme.of(context).colorScheme.mutedForeground : ShadTheme.of(context).colorScheme.foreground,
+                                        color: ShadTheme.of(context).colorScheme.mutedForeground,
                                         fontSize: 14,
                                       ),
                                       decoration: InputDecoration(
@@ -499,7 +499,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ),
                                 ),
                                 if (subtask.id == tempSubtasks.last.id && subtask.title.trim().isEmpty)
-                                  const SizedBox(width: 32)
+                                  const SizedBox(width: 32, height: 32)
                                 else
                                   ShadButton.ghost(
                                     width: 32,
@@ -830,9 +830,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                                 style: TextStyle(
                                                   fontSize: 14,
                                                   decoration: subtask.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
-                                                  color: subtask.isCompleted 
-                                                    ? ShadTheme.of(context).colorScheme.mutedForeground 
-                                                    : ShadTheme.of(context).colorScheme.foreground,
+                                                  color: ShadTheme.of(context).colorScheme.mutedForeground,
                                                 ),
                                               ),
                                             ),

@@ -40,7 +40,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: const BoxConstraints(maxWidth: 350),
             child: Container(
               padding: const EdgeInsets.all(16),
             child: Column(
@@ -91,7 +91,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints: const BoxConstraints(maxWidth: 350),
             child: Container(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -343,7 +343,7 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
+        constraints: const BoxConstraints(maxWidth: 350),
         child: Container(
           padding: const EdgeInsets.all(16),
         height: MediaQuery.of(context).size.height * 0.6,
