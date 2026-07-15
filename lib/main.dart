@@ -10,10 +10,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/providers/settings_provider.dart';
 import 'application/services/auto_sync_manager.dart';
 import 'presentation/widgets/custom_title_bar.dart';
+import 'application/services/tray_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
+  await TrayService.instance.init();
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -112,6 +114,9 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
         appThemeMode == ThemeMode.dark ||
         (appThemeMode == ThemeMode.system &&
             PlatformDispatcher.instance.platformBrightness == Brightness.dark);
+
+    // 更新系統托盤圖示
+    TrayService.instance.updateIcon(isDark);
 
     return ShadApp(
       title: 'Zenist',
