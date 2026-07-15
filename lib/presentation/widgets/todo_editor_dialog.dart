@@ -581,45 +581,72 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                     style: ShadTheme.of(context).textTheme.h4,
                   ),
                   if (isEdit)
-                    AnimatedCrossFade(
-                      duration: const Duration(milliseconds: 200),
-                      crossFadeState: isConfirmingDelete
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOutCubic,
                       alignment: Alignment.centerRight,
-                      firstChild: ShadButton.ghost(
-                        width: 32,
-                        height: 32,
-                        padding: EdgeInsets.zero,
-                        child: Icon(
-                          LucideIcons.trash2,
-                          color: ShadTheme.of(
-                            context,
-                          ).colorScheme.mutedForeground,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            isConfirmingDelete = true;
-                          });
-                          final currentId = ++deleteConfirmId;
-                          Future.delayed(const Duration(seconds: 3), () {
-                            if (mounted && currentId == deleteConfirmId) {
-                              setState(() {
-                                isConfirmingDelete = false;
-                              });
-                            }
-                          });
-                        },
-                      ),
-                      secondChild: ShadButton.destructive(
-                        child: Text(Translations.tr('confirm', locale)),
-                        onPressed: () {
-                          ref
-                              .read(todoNotifierProvider.notifier)
-                              .deleteTodo(widget.existingTodo!.id);
-                          Navigator.of(context).pop();
-                        },
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        switchInCurve: Curves.easeOut,
+                        switchOutCurve: Curves.easeIn,
+                        layoutBuilder:
+                            (
+                              Widget? currentChild,
+                              List<Widget> previousChildren,
+                            ) {
+                              return Stack(
+                                alignment: Alignment.centerRight,
+                                children: <Widget>[
+                                  ...previousChildren,
+                                  if (currentChild != null) currentChild,
+                                ],
+                              );
+                            },
+                        child: isConfirmingDelete
+                            ? ShadButton.destructive(
+                                key: const ValueKey('confirm'),
+                                height: 32,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                child: Text(Translations.tr('confirm', locale)),
+                                onPressed: () {
+                                  ref
+                                      .read(todoNotifierProvider.notifier)
+                                      .deleteTodo(widget.existingTodo!.id);
+                                  Navigator.of(context).pop();
+                                },
+                              )
+                            : ShadButton.ghost(
+                                key: const ValueKey('delete'),
+                                width: 32,
+                                height: 32,
+                                padding: EdgeInsets.zero,
+                                child: Icon(
+                                  LucideIcons.trash2,
+                                  color: ShadTheme.of(
+                                    context,
+                                  ).colorScheme.mutedForeground,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    isConfirmingDelete = true;
+                                  });
+                                  final currentId = ++deleteConfirmId;
+                                  Future.delayed(
+                                    const Duration(seconds: 3),
+                                    () {
+                                      if (mounted &&
+                                          currentId == deleteConfirmId) {
+                                        setState(() {
+                                          isConfirmingDelete = false;
+                                        });
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
                       ),
                     ),
                 ],
@@ -654,9 +681,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                               context,
                             ).textTheme.p.copyWith(fontSize: 14),
                             decoration: InputDecoration(
-                              hintText: isEdit ? null : Translations.tr('add_new_task', locale),
+                              hintText: isEdit
+                                  ? null
+                                  : Translations.tr('add_new_task', locale),
                               hintStyle: TextStyle(
-                                color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.4),
+                                color: ShadTheme.of(context)
+                                    .colorScheme
+                                    .mutedForeground
+                                    .withValues(alpha: 0.4),
                               ),
                               border: InputBorder.none,
                               focusedBorder: InputBorder.none,
