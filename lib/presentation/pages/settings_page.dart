@@ -41,7 +41,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white.withValues(alpha: 0.1) 
+              : Colors.transparent,
+          width: 1,
+        ),
+      ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 350),
             child: Container(
@@ -87,12 +97,84 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+
+  void _showThemeSelectionDialog(BuildContext context, String currentTheme, String locale) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white.withValues(alpha: 0.1) 
+              : Colors.transparent,
+          width: 1,
+        ),
+      ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 350),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    Translations.tr('appearance', locale),
+                    style: ShadTheme.of(context).textTheme.h4,
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    title: Text(Translations.tr('theme_system', locale)),
+                    trailing: currentTheme == 'system' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateThemeMode('system');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ListTile(
+                    title: Text(Translations.tr('theme_light', locale)),
+                    trailing: currentTheme == 'light' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateThemeMode('light');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ListTile(
+                    title: Text(Translations.tr('theme_dark', locale)),
+                    trailing: currentTheme == 'dark' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateThemeMode('dark');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _showDateFormatSelectionDialog(BuildContext context, String currentFormat, String locale) {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white.withValues(alpha: 0.1) 
+              : Colors.transparent,
+          width: 1,
+        ),
+      ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 350),
             child: Container(
@@ -185,6 +267,30 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                   style: ShadTheme.of(context).textTheme.large,
                                 ),
                               ),
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                leading: const Icon(LucideIcons.sunMoon, size: 20),
+                                title: Text(Translations.tr('appearance', locale), 
+                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    settings.themeMode == 'light' ? Translations.tr('theme_light', locale) :
+                                    settings.themeMode == 'dark' ? Translations.tr('theme_dark', locale) : 
+                                    Translations.tr('theme_system', locale),
+                                    style: ShadTheme.of(context).textTheme.small.copyWith(
+                                      fontSize: 12,
+                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                onTap: () {
+                                  _showThemeSelectionDialog(context, settings.themeMode, locale);
+                                },
+                              ),
+                              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
                               ListTile(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 24),
                                 leading: const Icon(LucideIcons.globe, size: 20),
@@ -398,7 +504,17 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
         .toList();
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white.withValues(alpha: 0.1) 
+              : Colors.transparent,
+          width: 1,
+        ),
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 350),
         child: Container(

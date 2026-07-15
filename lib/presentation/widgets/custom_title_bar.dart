@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class CustomTitleBar extends StatefulWidget {
-  const CustomTitleBar({super.key});
+  final bool isDark;
+  const CustomTitleBar({super.key, this.isDark = false});
 
   @override
   State<CustomTitleBar> createState() => _CustomTitleBarState();
@@ -43,10 +45,11 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
   Widget build(BuildContext context) {
     // Avoid using Theme.of(context) here because ShadApp might not provide a Material Theme
     // at this high level in the widget tree.
-    Widget caption = const WindowCaption(
-      brightness: Brightness.light,
+    final isDark = widget.isDark;
+    Widget caption = WindowCaption(
+      brightness: isDark ? Brightness.dark : Brightness.light,
       backgroundColor: Colors.transparent,
-      title: SizedBox.shrink(),
+      title: const SizedBox.shrink(),
     );
 
     if (_isWindows10) {
@@ -58,7 +61,7 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
             left: 0,
             right: 0,
             height: 0.8,
-            child: Container(color: const Color(0xFF7D7D7D)),
+            child: Container(color: isDark ? const Color(0xFF09090B) : const Color(0xFF7D7D7D)),
           ),
         ],
       );

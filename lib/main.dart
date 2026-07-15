@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'presentation/pages/todo_list_page.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -96,14 +97,36 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
 
+    ThemeMode appThemeMode;
+    switch (settings.themeMode) {
+      case 'light':
+        appThemeMode = ThemeMode.light;
+        break;
+      case 'dark':
+        appThemeMode = ThemeMode.dark;
+        break;
+      default:
+        appThemeMode = ThemeMode.system;
+    }
+
+    bool isDark = appThemeMode == ThemeMode.dark || 
+        (appThemeMode == ThemeMode.system && PlatformDispatcher.instance.platformBrightness == Brightness.dark);
+
     return ShadApp(
       title: 'Zenist',
       debugShowCheckedModeBanner: false,
-      themeMode: ThemeMode.light,
+      themeMode: appThemeMode,
       theme: ShadThemeData(
+        brightness: Brightness.light,
         colorScheme: const ShadZincColorScheme.light(
           background: Color(0xFFFAFAFA), // 極淡灰背景，突顯卡片
         ),
+        textTheme: ShadTextTheme(family: settings.fontFamily),
+        radius: BorderRadius.circular(12),
+      ),
+      darkTheme: ShadThemeData(
+        brightness: Brightness.dark,
+        colorScheme: const ShadZincColorScheme.dark(),
         textTheme: ShadTextTheme(family: settings.fontFamily),
         radius: BorderRadius.circular(12),
       ),
@@ -129,14 +152,14 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
                   ),
                 ),
               ),
-              const Positioned(
+              Positioned(
                 top: 0,
                 left: 0,
                 right: 0,
                 height: 32.0,
                 child: Material(
                   type: MaterialType.transparency,
-                  child: CustomTitleBar(),
+                  child: CustomTitleBar(isDark: isDark),
                 ),
               ),
             ],

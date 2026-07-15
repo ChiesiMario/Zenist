@@ -110,11 +110,16 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                   return StatefulBuilder(
                     builder: (context, setStateDialog) {
                       return Dialog(
-                        backgroundColor: ShadTheme.of(context).colorScheme.background,
+                        backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
                         surfaceTintColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
                           borderRadius: ShadTheme.of(context).radius,
-                          side: BorderSide(color: ShadTheme.of(context).colorScheme.border),
+                          side: BorderSide(
+                            color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white.withValues(alpha: 0.1) 
+                                : ShadTheme.of(context).colorScheme.border,
+                            width: 1,
+                          ),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -364,7 +369,17 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
             }
 
             return Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).brightness == Brightness.dark 
+              ? Colors.white.withValues(alpha: 0.1) 
+              : Colors.transparent,
+          width: 1,
+        ),
+      ),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 400),
                 child: Container(

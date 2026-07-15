@@ -3,6 +3,10 @@ class Translations {
     'en': {
       'settings': 'Settings',
       'appearance_and_display': 'Appearance & Display',
+      'appearance': 'Appearance',
+      'theme_system': 'Follow System',
+      'theme_light': 'Light Mode',
+      'theme_dark': 'Dark Mode',
       'app_font': 'Application Font',
       'language': 'Language',
       'select_font': 'Select Font',
@@ -69,6 +73,10 @@ class Translations {
     'zh_TW': {
       'settings': '設置',
       'appearance_and_display': '外觀與顯示',
+      'appearance': '外觀',
+      'theme_system': '跟隨系統',
+      'theme_light': '淺色模式',
+      'theme_dark': '深色模式',
       'app_font': '應用程式字體',
       'language': '語言 / Language',
       'select_font': '選擇字體',
@@ -135,6 +143,10 @@ class Translations {
     'zh_CN': {
       'settings': '设置',
       'appearance_and_display': '外观与显示',
+      'appearance': '外观',
+      'theme_system': '跟随系统',
+      'theme_light': '浅色模式',
+      'theme_dark': '深色模式',
       'app_font': '应用程序字体',
       'language': '语言 / Language',
       'select_font': '选择字体',
