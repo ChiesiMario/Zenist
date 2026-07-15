@@ -7,7 +7,6 @@ import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
 import '../../application/services/auto_sync_manager.dart';
 import '../../core/utils/toast_utils.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -324,13 +323,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         const SizedBox(width: 8),
                         Text(
                           Translations.tr('settings', locale),
-                          style: GoogleFonts.nunito(
-                            textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 24,
-                                  letterSpacing: -0.5,
-                                ),
-                          ),
+                          style: ShadTheme.of(context).textTheme.h2.copyWith(
+                                fontFamily: 'Nunito',
+                                fontWeight: FontWeight.w800,
+                                fontSize: 24,
+                                letterSpacing: -0.5,
+                              ),
                         ),
                       ],
                     ),

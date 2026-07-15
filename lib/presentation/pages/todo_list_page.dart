@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../providers/todo_provider.dart';
 import '../widgets/todo_item_widget.dart';
@@ -1433,13 +1432,12 @@ void _showAddTaskDialog(String locale) {
                           padding: const EdgeInsets.only(left: 10.0),
                           child: Text(
                             'Zenist.',
-                            style: GoogleFonts.nunito(
-                              textStyle: ShadTheme.of(context).textTheme.h2.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 32,
-                                    letterSpacing: -0.5,
-                                  ),
-                            ),
+                            style: ShadTheme.of(context).textTheme.h2.copyWith(
+                                  fontFamily: 'Nunito',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 32,
+                                  letterSpacing: -0.5,
+                                ),
                           ),
                         ),
                         Row(

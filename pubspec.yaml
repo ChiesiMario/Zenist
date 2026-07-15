@@ -37,7 +37,6 @@ dependencies:
   isar: ^3.1.0+1
   isar_flutter_libs: ^3.1.0+1
   flutter_riverpod: ^2.6.1
-  google_fonts: ^8.1.0
   uuid: ^4.5.3
   path_provider: ^2.1.6
   shadcn_ui: ^0.55.0
@@ -87,8 +86,14 @@ flutter:
   # https://flutter.dev/to/asset-from-package
 
   fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito/Nunito-VariableFont_wght.ttf
     - family: NotoSansTC
       fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito/Nunito-VariableFont_wght.ttf
         - asset: assets/fonts/NotoSansTC/NotoSansTC-Thin.ttf
           weight: 100
         - asset: assets/fonts/NotoSansTC/NotoSansTC-ExtraLight.ttf
@@ -109,4 +114,7 @@ flutter:
           weight: 900
     - family: NotoSansSC
       fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito/Nunito-VariableFont_wght.ttf
         - asset: assets/fonts/NotoSansSC/NotoSansSC-VariableFont_wght.ttf
