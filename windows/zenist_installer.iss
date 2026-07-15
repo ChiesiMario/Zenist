@@ -7,12 +7,18 @@
 #define MyAppExeName "zenist.exe"
 #define MyBuildDir "..\build\windows\x64\runner\Release"
 #define MyAppVersion GetStringFileInfo(MyBuildDir + "\" + MyAppExeName, "ProductVersion")
+#define PlusPos Pos("+", MyAppVersion)
+#if PlusPos > 0
+  #define CleanVersion Copy(MyAppVersion, 1, PlusPos - 1)
+#else
+  #define CleanVersion MyAppVersion
+#endif
 
 [Setup]
 ; 應用程式的基本資訊
 AppId={{5A18C3B4-9F2B-4A92-A2D0-2B3E11C4F7D3}
 AppName={#MyAppName}
-AppVersion={#MyAppVersion}
+AppVersion={#CleanVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -24,7 +30,7 @@ DefaultGroupName={#MyAppName}
 
 ; 輸出的安裝檔名稱與存放位置
 OutputDir=..\build\windows\x64\installer
-OutputBaseFilename=Zenist-Setup-v{#MyAppVersion}
+OutputBaseFilename=Zenist-Setup-v{#CleanVersion}
 
 ; 安裝圖示與介面設定
 SetupIconFile=runner\resources\app_icon.ico
