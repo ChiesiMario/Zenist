@@ -115,8 +115,9 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
         (appThemeMode == ThemeMode.system &&
             PlatformDispatcher.instance.platformBrightness == Brightness.dark);
 
-    // 更新系統托盤圖示
+    // 更新系統托盤圖示與語言
     TrayService.instance.updateIcon(isDark);
+    TrayService.instance.updateMenu(settings.locale);
 
     return ShadApp(
       title: 'Zenist',

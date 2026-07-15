@@ -2,11 +2,15 @@ import 'dart:io';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../core/localization/translations.dart';
+
 class TrayService with TrayListener {
   static final TrayService instance = TrayService._();
   TrayService._();
 
   bool _isInit = false;
+  String? _lastLocale;
+  bool? _lastIsDark;
 
   Future<void> init() async {
     if (_isInit || !Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) return;
@@ -19,28 +23,32 @@ class TrayService with TrayListener {
       Platform.isWindows ? 'assets/tray_icon_light.ico' : 'assets/app_icon.png',
     );
     await trayManager.setToolTip('Zenist');
+  }
+
+  Future<void> updateMenu(String locale) async {
+    if (!_isInit) return;
+    if (_lastLocale == locale) return;
+    _lastLocale = locale;
 
     Menu menu = Menu(
       items: [
         MenuItem(
           key: 'show_app',
-          label: '顯示 Zenist',
+          label: Translations.tr('tray_show', locale),
         ),
         MenuItem(
           key: 'hide_app',
-          label: '隱藏 Zenist',
+          label: Translations.tr('tray_hide', locale),
         ),
         MenuItem.separator(),
         MenuItem(
           key: 'exit_app',
-          label: '離開',
+          label: Translations.tr('tray_exit', locale),
         ),
       ],
     );
     await trayManager.setContextMenu(menu);
   }
-
-  bool? _lastIsDark;
 
   Future<void> updateIcon(bool isDark) async {
     if (!_isInit) return;

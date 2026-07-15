@@ -71,6 +71,9 @@ class Translations {
       'dropbox_unlink': 'Unlink Dropbox',
       'sync_now': 'Sync Now',
       'last_synced': 'Last synced: ',
+      'tray_show': 'Show Zenist',
+      'tray_hide': 'Hide Zenist',
+      'tray_exit': 'Exit',
     },
     'zh_TW': {
       'settings': '設置',
@@ -141,6 +144,9 @@ class Translations {
       'dropbox_unlink': '登出 Dropbox',
       'sync_now': '立即同步',
       'last_synced': '最後同步時間：',
+      'tray_show': '顯示 Zenist',
+      'tray_hide': '隱藏 Zenist',
+      'tray_exit': '離開',
     },
     'zh_CN': {
       'settings': '设置',
@@ -211,6 +217,9 @@ class Translations {
       'dropbox_unlink': '注销 Dropbox',
       'sync_now': '立即同步',
       'last_synced': '最后同步时间：',
+      'tray_show': '显示 Zenist',
+      'tray_hide': '隐藏 Zenist',
+      'tray_exit': '退出',
     },
   };
 
