@@ -330,3 +330,92 @@ class _RipplePainter extends CustomPainter {
     return oldDelegate.progress != progress || oldDelegate.color != color;
   }
 }
+
+// ----------------------------------------------------------------------
+// 4. Today - Breathing Ring
+// ----------------------------------------------------------------------
+class TodayEmptyWidget extends StatefulWidget {
+  final String title;
+  final String subtitle;
+
+  const TodayEmptyWidget({super.key, required this.title, required this.subtitle});
+
+  @override
+  State<TodayEmptyWidget> createState() => _TodayEmptyWidgetState();
+}
+
+class _TodayEmptyWidgetState extends State<TodayEmptyWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseFutureEmptyWidget(
+      title: widget.title,
+      subtitle: widget.subtitle,
+      animationWidget: SizedBox(
+        width: 80,
+        height: 80,
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final curvedProgress = Curves.easeInOutSine.transform(_controller.value);
+            return CustomPaint(
+              painter: _BreathingRingPainter(
+                progress: curvedProgress,
+                color: ShadTheme.of(context).colorScheme.primary,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _BreathingRingPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+
+  _BreathingRingPainter({required this.progress, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    
+    final minRadius = 36.0;
+    final maxRadius = 40.0;
+    final currentRadius = minRadius + (maxRadius - minRadius) * progress;
+    
+    final currentOpacity = 0.8 - (0.6 * progress); 
+    
+    final currentStroke = 3.0 - (0.5 * progress);
+
+    final paint = Paint()
+      ..color = color.withValues(alpha: currentOpacity)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = currentStroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, currentRadius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BreathingRingPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
+  }
+}

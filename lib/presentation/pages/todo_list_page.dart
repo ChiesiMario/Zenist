@@ -1049,8 +1049,8 @@ void _showAddTaskDialog(String locale) {
                       ],
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         AnimatedPadding(
                           duration: const Duration(milliseconds: 250),
                           curve: Curves.easeOutCubic,
@@ -1258,7 +1258,9 @@ void _showAddTaskDialog(String locale) {
                           ),
                         ),
                         Expanded(
-                          child: todosAsync.when(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: todosAsync.when(
                             data: (allTodos) {
                               final now = DateTime.now();
                               final todayStart = DateTime(now.year, now.month, now.day);
@@ -1334,15 +1336,9 @@ void _showAddTaskDialog(String locale) {
                                     subtitle: Translations.tr('empty_anytime_subtitle', locale),
                                   );
                                 } else {
-                                  return Center(
-                                    child: Text(
-                                      Translations.tr('empty_state_0', locale), // Keep for default today empty
-                                      textAlign: TextAlign.center,
-                                      style: ShadTheme.of(context).textTheme.p.copyWith(
-                                            height: 1.5,
-                                            color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.6),
-                                          ),
-                                    ),
+                                  return TodayEmptyWidget(
+                                    title: Translations.tr('empty_today_title', locale),
+                                    subtitle: Translations.tr('empty_today_subtitle', locale),
                                   );
                                 }
                               }
@@ -1401,6 +1397,7 @@ void _showAddTaskDialog(String locale) {
                             },
                             loading: () => Center(child: CircularProgressIndicator(color: ShadTheme.of(context).colorScheme.foreground)),
                             error: (err, stack) => Center(child: Text('Error: $err')),
+                          ),
                           ),
                         ),
                       ],
