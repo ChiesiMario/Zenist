@@ -74,6 +74,9 @@ class Translations {
       'tray_show': 'Show Zenist',
       'tray_hide': 'Hide Zenist',
       'tray_exit': 'Exit',
+      'about': 'About',
+      'version': 'Version',
+      'source_code': 'Source Code',
     },
     'zh_TW': {
       'settings': '設置',
@@ -147,6 +150,9 @@ class Translations {
       'tray_show': '顯示 Zenist',
       'tray_hide': '隱藏 Zenist',
       'tray_exit': '離開',
+      'about': '關於',
+      'version': '版本',
+      'source_code': '原始碼',
     },
     'zh_CN': {
       'settings': '设置',
@@ -220,6 +226,9 @@ class Translations {
       'tray_show': '显示 Zenist',
       'tray_hide': '隐藏 Zenist',
       'tray_exit': '退出',
+      'about': '关于',
+      'version': '版本',
+      'source_code': '源代码',
     },
   };
 

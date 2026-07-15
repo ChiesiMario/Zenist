@@ -7,6 +7,8 @@ import '../../core/utils/system_fonts.dart';
 import '../../core/localization/translations.dart';
 import '../../application/services/auto_sync_manager.dart';
 import '../../core/utils/toast_utils.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -579,6 +581,27 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             ],
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        // 第三張卡片：關於
+                        Container(
+                          decoration: BoxDecoration(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: ShadTheme.of(context).colorScheme.border,
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 24,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
+                          ),
+                          child: _AboutSection(locale: locale),
+                        ),
+                        const SizedBox(height: 48), // Bottom padding for scroll
                       ],
                     ),
                   ),
@@ -893,6 +916,94 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
             ),
             onTap: _isSyncing ? null : _handleSync,
           ),
+      ],
+    );
+  }
+}
+
+class _AboutSection extends StatefulWidget {
+  final String locale;
+  const _AboutSection({required this.locale});
+
+  @override
+  State<_AboutSection> createState() => _AboutSectionState();
+}
+
+class _AboutSectionState extends State<_AboutSection> {
+  String _version = '1.0.0';
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _version = info.version;
+        });
+      }
+    } catch (e) {
+      // Ignored
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          child: Text(
+            Translations.tr('about', widget.locale),
+            style: ShadTheme.of(context).textTheme.large,
+          ),
+        ),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: Image.asset('assets/app_icon.png', width: 24, height: 24),
+          title: Text(
+            'Zenist',
+            style: ShadTheme.of(context).textTheme.p.copyWith(
+              fontSize: 15,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              '${Translations.tr('version', widget.locale)} $_version',
+              style: ShadTheme.of(context).textTheme.small.copyWith(
+                fontSize: 12,
+                color: ShadTheme.of(context).colorScheme.mutedForeground.withOpacity(0.5),
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ),
+        ),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+          leading: const Icon(LucideIcons.code, size: 20),
+          title: Text(
+            Translations.tr('source_code', widget.locale),
+            style: ShadTheme.of(context).textTheme.p.copyWith(
+              fontSize: 15,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          trailing: const Icon(LucideIcons.externalLink, size: 20),
+          onTap: () async {
+            final uri = Uri.parse('https://github.com/ChiesiMario/Zenist');
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri);
+            }
+          },
+        ),
+        const SizedBox(height: 8),
       ],
     );
   }

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.zenist" "\0"
-            VALUE "FileDescription", "zenist" "\0"
+            VALUE "CompanyName", "Zenist" "\0"
+            VALUE "FileDescription", "Zenist" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "zenist" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.zenist. All rights reserved." "\0"
+            VALUE "InternalName", "Zenist" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Zenist. All rights reserved." "\0"
             VALUE "OriginalFilename", "zenist.exe" "\0"
-            VALUE "ProductName", "zenist" "\0"
+            VALUE "ProductName", "Zenist" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

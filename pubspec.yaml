@@ -50,6 +50,7 @@ dependencies:
   url_launcher: ^6.3.2
   device_info_plus: ^13.2.0
   tray_manager: ^0.5.3
+  package_info_plus: ^10.2.1
 
 dev_dependencies:
   flutter_test:
