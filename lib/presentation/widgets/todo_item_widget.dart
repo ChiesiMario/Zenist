@@ -389,6 +389,9 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                             crossFadeState: isConfirmingDelete ? CrossFadeState.showSecond : CrossFadeState.showFirst,
                             alignment: Alignment.centerRight,
                             firstChild: ShadButton.ghost(
+                              width: 32,
+                              height: 32,
+                              padding: EdgeInsets.zero,
                               child: Icon(LucideIcons.trash2, color: ShadTheme.of(context).colorScheme.mutedForeground, size: 20),
                               onPressed: () {
                                 setState(() {
