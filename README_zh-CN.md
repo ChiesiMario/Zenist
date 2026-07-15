@@ -4,7 +4,7 @@
   <br />
   
   [![Release](https://img.shields.io/github/v/release/ChiesiMario/Zenist?color=black&style=flat-square)](https://github.com/ChiesiMario/Zenist/releases)
-  [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey?style=flat-square)](#)
+  [![Platform](https://img.shields.io/badge/Platform-Windows_(目前)-lightgrey?style=flat-square)](#)
   [![Flutter](https://img.shields.io/badge/Flutter-3.x-black?style=flat-square)](https://flutter.dev)
   [![License](https://img.shields.io/github/license/ChiesiMario/Zenist?color=black&style=flat-square)](LICENSE)
 </div>
@@ -15,7 +15,7 @@
 
 ---
 
-**Zenist** 是一款专为 Windows 打造，专注于极简与离线优先的待办事项管理工具。
+**Zenist** 是一款专注于极简与离线优先的待办事项管理工具。*(本项目拥有全平台的发展计划，目前暂时仅提供 Windows 版本)*。
 
 Zenist 的设计核心建立于以下三大绝不妥协的理念：
 * **简单**：纯粹、无干扰的黑白灰界面设计。
@@ -24,14 +24,14 @@ Zenist 的设计核心建立于以下三大绝不妥协的理念：
 
 ## ✨ 核心特色
 * **极简界面**：采用最克制的黑白灰纯粹视觉，让您全神贯注于当下的任务。
-* **后台运行**：无缝支持常驻系统托盘，随点随唤醒，不占用任务栏空间。
+* **后台运行**：无缝支持常驻系统托盘，随点随唤醒。
 * **单一实例防护**：完美控制系统资源，防止软件被重复启动（多开）。
 * **离线优先 (Offline-First)**：搭配极速的本地数据库，无需网络即可获得最流畅的操作体验，并在连线时于后台安静同步。
-* **纯净卸载**：安装与卸载过程皆具备智能防护，自动清理注册表与强制关闭后台进程，不留垃圾。
+* **纯净卸载**：安装与卸载过程皆具备智能防护，自动清理注册表与强制关闭后台进程。
 
 ## 🛠️ 技术架构
-Zenist 采用现代化、高效的跨平台技术栈开发：
-- **核心框架**：[Flutter](https://flutter.dev/) (Desktop)
+Zenist 采用现代化的跨平台技术栈开发，为未来的全平台支持打下坚实基础：
+- **核心框架**：[Flutter](https://flutter.dev/)
 - **状态管理**：[Riverpod](https://riverpod.dev/)
 - **本地数据库**：[Isar](https://isar.dev/) (高性能 NoSQL)
 - **UI 组件库**：[Shadcn UI for Flutter](https://shadcn-ui.dev/)
@@ -40,12 +40,12 @@ Zenist 采用现代化、高效的跨平台技术栈开发：
 ## 🚀 快速开始
 
 ### 下载安装
-请前往 [Releases](https://github.com/ChiesiMario/Zenist/releases/latest) 页面下载最新版本的 Windows 安装程序 (`.exe`)。
+请前往 [Releases](https://github.com/ChiesiMario/Zenist/releases/latest) 页面下载最新版本的安装程序 (`.exe`)。
 
 ### 从源码编译
 如果您希望亲手编译 Zenist 或是参与开源贡献：
 
-1. 请确保您的电脑已经安装好 [Flutter](https://docs.flutter.dev/get-started/install/windows) 开发环境。
+1. 请确保您的电脑已经安装好 [Flutter](https://docs.flutter.dev/get-started/install)。
 2. 克隆此仓库：
    ```bash
    git clone https://github.com/ChiesiMario/Zenist.git
@@ -55,15 +55,15 @@ Zenist 采用现代化、高效的跨平台技术栈开发：
    ```bash
    flutter pub get
    ```
-4. 在本地运行：
+4. 在本地运行（目前支持 Windows）：
    ```bash
    flutter run -d windows
    ```
-5. 编译成 Windows 执行文件：
+5. 编译成执行文件：
    ```bash
    flutter build windows
    ```
-*(若要制作安装包，您需要安装 Inno Setup 并编译 `windows/zenist_installer.iss` 脚本)。*
+*(若要制作 Windows 安装包，您需要安装 Inno Setup 并编译 `windows/zenist_installer.iss` 脚本)。*
 
 ## 📄 开源协议
 本项目采用 MIT 授权协议，详细信息请参阅 [LICENSE](LICENSE) 文件。
