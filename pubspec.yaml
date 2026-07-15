@@ -91,9 +91,6 @@ flutter:
         - asset: assets/fonts/Nunito/Nunito-VariableFont_wght.ttf
     - family: NotoSansTC
       fonts:
-    - family: Nunito
-      fonts:
-        - asset: assets/fonts/Nunito/Nunito-VariableFont_wght.ttf
         - asset: assets/fonts/NotoSansTC/NotoSansTC-Thin.ttf
           weight: 100
         - asset: assets/fonts/NotoSansTC/NotoSansTC-ExtraLight.ttf
@@ -114,7 +111,4 @@ flutter:
           weight: 900
     - family: NotoSansSC
       fonts:
-    - family: Nunito
-      fonts:
-        - asset: assets/fonts/Nunito/Nunito-VariableFont_wght.ttf
         - asset: assets/fonts/NotoSansSC/NotoSansSC-VariableFont_wght.ttf
