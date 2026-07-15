@@ -36,8 +36,9 @@ OutputBaseFilename=Zenist-Setup-v{#CleanVersion}
 SetupIconFile=runner\resources\app_icon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+PrivilegesRequired=lowest
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 DisableWelcomePage=no
 
 [Languages]
@@ -65,3 +66,22 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 ; 解除安裝時自動清理開機自啟動登錄檔
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "zenist"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "Zenist"; Flags: uninsdeletevalue
+[Code]
+procedure KillApp();
+var
+  ResultCode: Integer;
+begin
+  Exec('taskkill.exe', '/F /IM zenist.exe /T', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+function InitializeSetup(): Boolean;
+begin
+  KillApp();
+  Result := True;
+end;
+
+function InitializeUninstall(): Boolean;
+begin
+  KillApp();
+  Result := True;
+end;
