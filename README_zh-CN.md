@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="image.png" alt="Zenist Banner" width="100%">
+  <img src="Screenshot/image.png" alt="Zenist Banner" width="100%">
 </div>
 
 # Zenist
