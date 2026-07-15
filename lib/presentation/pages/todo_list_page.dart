@@ -369,8 +369,7 @@ void _showAddTaskDialog(String locale) {
     String tempDescription = '';
     bool showNoteInput = false;
     final noteFocusNode = FocusNode();
-    bool isNoteEditing = false;
-    final noteController = TextEditingController(text: tempDescription);
+        final noteController = TextEditingController(text: tempDescription);
     List<Subtask> tempSubtasks = [];
     if (tempSubtasks.isEmpty || tempSubtasks.last.title.trim().isNotEmpty) {
       tempSubtasks.add(Subtask(id: const Uuid().v4(), title: ''));
@@ -396,9 +395,6 @@ void _showAddTaskDialog(String locale) {
             void updateNoteFocus() {
               if (mounted) {
                 setState(() {
-                  if (!noteFocusNode.hasFocus) {
-                    isNoteEditing = false;
-                  }
                 });
               }
             }
@@ -694,116 +690,97 @@ void _showAddTaskDialog(String locale) {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 44,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: isInputFocused
-                                      ? ShadTheme.of(context).colorScheme.ring
-                                      : ShadTheme.of(context).colorScheme.border,
-                                  width: isInputFocused ? 2.0 : 1.0,
+                      Container(
+                        padding: EdgeInsets.all((isInputFocused || noteFocusNode.hasFocus) ? 0.0 : 1.0),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: (isInputFocused || noteFocusNode.hasFocus)
+                                ? ShadTheme.of(context).colorScheme.ring
+                                : ShadTheme.of(context).colorScheme.border,
+                            width: (isInputFocused || noteFocusNode.hasFocus) ? 2.0 : 1.0,
+                          ),
+                          borderRadius: ShadTheme.of(context).radius,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    focusNode: focusNode,
+                                    controller: textController,
+                                    autofocus: true,
+                                    style: ShadTheme.of(context).textTheme.p.copyWith(
+                                      fontSize: 14,
+                                    ),
+                                    decoration: const InputDecoration(
+                                      border: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      errorBorder: InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                      contentPadding: EdgeInsets.only(left: 12, right: 0, top: 11, bottom: 11),
+                                      isDense: true,
+                                    ),
+                                    cursorColor: ShadTheme.of(context).colorScheme.primary,
+                                  ),
                                 ),
-                                borderRadius: ShadTheme.of(context).radius,
+                                SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Center(
+                                    child: ShadButton.ghost(
+                                      width: 32,
+                                      height: 32,
+                                      padding: EdgeInsets.zero,
+                                      child: Icon(
+                                        showNoteInput ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                                        color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          showNoteInput = !showNoteInput;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (showNoteInput) ...[
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: ShadTheme.of(context).colorScheme.border.withValues(alpha: 0.5),
                               ),
-                              child: TextField(
-                                focusNode: focusNode,
-                                controller: textController,
-                                autofocus: true,
+                              TextField(
+                                focusNode: noteFocusNode,
+                                controller: noteController,
+                                maxLines: null,
                                 style: ShadTheme.of(context).textTheme.p.copyWith(
-                                  fontSize: 14,
+                                  fontSize: 13,
+                                  color: ShadTheme.of(context).colorScheme.mutedForeground,
                                 ),
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   border: InputBorder.none,
                                   focusedBorder: InputBorder.none,
                                   enabledBorder: InputBorder.none,
                                   errorBorder: InputBorder.none,
                                   disabledBorder: InputBorder.none,
-                                  contentPadding: EdgeInsets.only(left: 12, right: 12, top: 11, bottom: 11),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  hintText: Translations.tr('add_note', locale),
+                                  hintStyle: TextStyle(
+                                    color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.4),
+                                  ),
                                   isDense: true,
                                 ),
                                 cursorColor: ShadTheme.of(context).colorScheme.primary,
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ShadButton.ghost(
-                            width: 44,
-                            height: 44,
-                            padding: EdgeInsets.zero,
-                            child: Icon(
-                              showNoteInput ? LucideIcons.chevronUp : LucideIcons.chevronDown, 
-                              color: ShadTheme.of(context).colorScheme.mutedForeground,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                showNoteInput = !showNoteInput;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      if (showNoteInput) ...[
-                        const SizedBox(height: 8),
-                        (!isNoteEditing && noteController.text.isNotEmpty) ? GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isNoteEditing = true;
-                              Future.delayed(const Duration(milliseconds: 50), () {
-                                if (noteFocusNode.context != null) {
-                                  noteFocusNode.requestFocus();
-                                }
-                              });
-                            });
-                          },
-                          behavior: HitTestBehavior.opaque,
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            child: Text(
-                              noteController.text,
-                              style: ShadTheme.of(context).textTheme.p.copyWith(
-                                fontSize: 13,
-                                color: ShadTheme.of(context).colorScheme.mutedForeground,
-                              ),
-                            ),
-                          ),
-                        ) : Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: ShadTheme.of(context).colorScheme.border,
-                              width: 1.0,
-                            ),
-                            borderRadius: ShadTheme.of(context).radius,
-                          ),
-                          child: TextField(
-                            focusNode: noteFocusNode,
-                            controller: noteController,
-                            maxLines: null,
-                            style: ShadTheme.of(context).textTheme.p.copyWith(
-                              fontSize: 13,
-                              color: ShadTheme.of(context).colorScheme.mutedForeground,
-                            ),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              hintText: Translations.tr('add_note', locale),
-                              hintStyle: TextStyle(
-                                color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.4),
-                              ),
-                              isDense: true,
-                            ),
-                            cursorColor: ShadTheme.of(context).colorScheme.primary,
-                          ),
+                            ],
+                          ],
                         ),
-                      ],
+                      ),
                       SizedBox(height: showNoteInput ? 8 : 16),
                       if (tempSubtasks.isNotEmpty)
                         Column(
