@@ -11,6 +11,8 @@ class TrayService with TrayListener {
   bool _isInit = false;
   String? _lastLocale;
   bool? _lastIsDark;
+  bool _lastLaunchAtStartup = true;
+  void Function(bool)? onToggleStartup;
 
   Future<void> init() async {
     if (_isInit || !Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) return;
@@ -25,10 +27,11 @@ class TrayService with TrayListener {
     await trayManager.setToolTip('Zenist');
   }
 
-  Future<void> updateMenu(String locale) async {
+  Future<void> updateMenu(String locale, bool launchAtStartup) async {
     if (!_isInit) return;
-    if (_lastLocale == locale) return;
+    if (_lastLocale == locale && _lastLaunchAtStartup == launchAtStartup) return;
     _lastLocale = locale;
+    _lastLaunchAtStartup = launchAtStartup;
 
     Menu menu = Menu(
       items: [
@@ -39,6 +42,12 @@ class TrayService with TrayListener {
         MenuItem(
           key: 'hide_app',
           label: Translations.tr('tray_hide', locale),
+        ),
+        MenuItem.separator(),
+        MenuItem.checkbox(
+          key: 'toggle_startup',
+          label: Translations.tr('launch_at_startup', locale),
+          checked: launchAtStartup,
         ),
         MenuItem.separator(),
         MenuItem(
@@ -81,6 +90,11 @@ class TrayService with TrayListener {
         break;
       case 'hide_app':
         windowManager.hide();
+        break;
+      case 'toggle_startup':
+        if (onToggleStartup != null) {
+          onToggleStartup!(!_lastLaunchAtStartup);
+        }
         break;
       case 'exit_app':
         // Exit the app gracefully

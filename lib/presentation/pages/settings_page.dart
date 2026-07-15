@@ -9,6 +9,7 @@ import '../../application/services/auto_sync_manager.dart';
 import '../../core/utils/toast_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../application/services/startup_service.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -582,7 +583,99 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        // 第三張卡片：關於
+                        // 第三張卡片：系統
+                        Container(
+                          decoration: BoxDecoration(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: ShadTheme.of(context).colorScheme.border,
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.02),
+                                blurRadius: 24,
+                                offset: const Offset(0, -4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  24,
+                                  24,
+                                  16,
+                                ),
+                                child: Text(
+                                  Translations.tr('system_settings', locale),
+                                  style: ShadTheme.of(context).textTheme.large,
+                                ),
+                              ),
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                leading: const Icon(
+                                  LucideIcons.power,
+                                  size: 20,
+                                ),
+                                title: Text(
+                                  Translations.tr('launch_at_startup', locale),
+                                  style: ShadTheme.of(context).textTheme.p.copyWith(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                                trailing: ShadSwitch(
+                                  value: settings.launchAtStartup,
+                                  onChanged: (v) async {
+                                    await ref.read(settingsProvider.notifier).updateLaunchAtStartup(v);
+                                    if (v) {
+                                      await StartupService.enable();
+                                    } else {
+                                      await StartupService.disable();
+                                    }
+                                  },
+                                ),
+                              ),
+                              Divider(
+                                height: 1,
+                                color: ShadTheme.of(
+                                  context,
+                                ).colorScheme.border.withOpacity(0.5),
+                              ),
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                leading: const Icon(
+                                  LucideIcons.arrowDownToLine,
+                                  size: 20,
+                                ),
+                                title: Text(
+                                  Translations.tr('close_to_tray', locale),
+                                  style: ShadTheme.of(context).textTheme.p.copyWith(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                                trailing: ShadSwitch(
+                                  value: settings.closeToTray,
+                                  onChanged: (v) {
+                                    ref.read(settingsProvider.notifier).updateCloseToTray(v);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 8), // 底部留白
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // 第四張卡片：關於
                         Container(
                           decoration: BoxDecoration(
                             color: ShadTheme.of(context).colorScheme.card,

@@ -19,6 +19,8 @@ class SettingsState {
   final String dateFormat;
   final String themeMode;
   final String? lastSyncTime;
+  final bool launchAtStartup;
+  final bool closeToTray;
 
   const SettingsState({
     this.fontFamily = 'NotoSansTC',
@@ -26,6 +28,8 @@ class SettingsState {
     this.dateFormat = 'yyyy/MM/dd',
     this.themeMode = 'system',
     this.lastSyncTime,
+    this.launchAtStartup = true,
+    this.closeToTray = true,
   });
 
   SettingsState copyWith({
@@ -34,6 +38,8 @@ class SettingsState {
     String? dateFormat,
     String? themeMode,
     String? lastSyncTime,
+    bool? launchAtStartup,
+    bool? closeToTray,
   }) {
     return SettingsState(
       fontFamily: fontFamily ?? this.fontFamily,
@@ -41,6 +47,8 @@ class SettingsState {
       dateFormat: dateFormat ?? this.dateFormat,
       themeMode: themeMode ?? this.themeMode,
       lastSyncTime: lastSyncTime ?? this.lastSyncTime,
+      launchAtStartup: launchAtStartup ?? this.launchAtStartup,
+      closeToTray: closeToTray ?? this.closeToTray,
     );
   }
 }
@@ -51,6 +59,8 @@ class SettingsNotifier extends Notifier<SettingsState> {
   static const _dateFormatKey = 'selectedDateFormat';
   static const _themeModeKey = 'selectedThemeMode';
   static const _lastSyncTimeKey = 'lastSyncTime';
+  static const _launchAtStartupKey = 'launchAtStartup';
+  static const _closeToTrayKey = 'closeToTray';
 
   String _getDefaultFont(String locale) {
     return locale == 'zh_CN' ? 'NotoSansSC' : 'NotoSansTC';
@@ -93,6 +103,8 @@ class SettingsNotifier extends Notifier<SettingsState> {
       dateFormat: savedDateFormat,
       themeMode: savedThemeMode,
       lastSyncTime: lastSyncTime,
+      launchAtStartup: prefs.getBool(_launchAtStartupKey) ?? true,
+      closeToTray: prefs.getBool(_closeToTrayKey) ?? true,
     );
   }
 
@@ -140,5 +152,17 @@ class SettingsNotifier extends Notifier<SettingsState> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_lastSyncTimeKey, time);
     state = state.copyWith(lastSyncTime: time);
+  }
+
+  Future<void> updateLaunchAtStartup(bool value) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_launchAtStartupKey, value);
+    state = state.copyWith(launchAtStartup: value);
+  }
+
+  Future<void> updateCloseToTray(bool value) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_closeToTrayKey, value);
+    state = state.copyWith(closeToTray: value);
   }
 }

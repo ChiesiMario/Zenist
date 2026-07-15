@@ -77,6 +77,9 @@ class Translations {
       'about': 'About',
       'version': 'Version',
       'source_code': 'Source Code',
+      'system_settings': 'System',
+      'launch_at_startup': 'Launch on startup (minimized)',
+      'close_to_tray': 'Close window to tray',
     },
     'zh_TW': {
       'settings': '設置',
@@ -153,6 +156,9 @@ class Translations {
       'about': '關於',
       'version': '版本',
       'source_code': '原始碼',
+      'system_settings': '系統',
+      'launch_at_startup': '開機自啓動',
+      'close_to_tray': '關閉視窗時隱藏到系統匣',
     },
     'zh_CN': {
       'settings': '设置',
@@ -229,6 +235,9 @@ class Translations {
       'about': '关于',
       'version': '版本',
       'source_code': '源代码',
+      'system_settings': '系统',
+      'launch_at_startup': '开机自启动',
+      'close_to_tray': '关闭窗口时隐藏到系统托盘',
     },
   };
 

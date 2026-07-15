@@ -11,8 +11,11 @@ import 'presentation/providers/settings_provider.dart';
 import 'application/services/auto_sync_manager.dart';
 import 'presentation/widgets/custom_title_bar.dart';
 import 'application/services/tray_service.dart';
+import 'application/services/startup_service.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'dart:io';
 
-void main() async {
+void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
   await TrayService.instance.init();
@@ -23,6 +26,13 @@ void main() async {
     title: 'Zenist',
     titleBarStyle: TitleBarStyle.hidden,
   );
+  
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  
+  await windowManager.setPreventClose(true);
+
+  bool isMinimized = args.contains('--minimized');
+
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     final double? x = sharedPreferences.getDouble('window_x');
     final double? y = sharedPreferences.getDouble('window_y');
@@ -35,8 +45,11 @@ void main() async {
       await windowManager.setSize(const Size(750, 750));
       await windowManager.center();
     }
-    await windowManager.show();
-    await windowManager.focus();
+    
+    if (!isMinimized) {
+      await windowManager.show();
+      await windowManager.focus();
+    }
   });
 
   runApp(
@@ -64,9 +77,25 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
     windowManager.addListener(this);
 
     // 初始化 AutoSyncManager，讓其接管啟動、週期與喚醒同步
-    Future.microtask(() {
+    Future.microtask(() async {
       ref.read(autoSyncManagerProvider);
+      
+      final settings = ref.read(settingsProvider);
+      if (settings.launchAtStartup) {
+        await StartupService.enable();
+      } else {
+        await StartupService.disable();
+      }
     });
+
+    TrayService.instance.onToggleStartup = (bool value) async {
+      await ref.read(settingsProvider.notifier).updateLaunchAtStartup(value);
+      if (value) {
+        await StartupService.enable();
+      } else {
+        await StartupService.disable();
+      }
+    };
   }
 
   @override
@@ -82,6 +111,16 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
     await prefs.setDouble('window_y', bounds.top);
     await prefs.setDouble('window_width', bounds.width);
     await prefs.setDouble('window_height', bounds.height);
+  }
+
+  @override
+  void onWindowClose() {
+    final settings = ref.read(settingsProvider);
+    if (settings.closeToTray) {
+      windowManager.hide();
+    } else {
+      windowManager.destroy();
+    }
   }
 
   @override
@@ -117,7 +156,7 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
 
     // 更新系統托盤圖示與語言
     TrayService.instance.updateIcon(isDark);
-    TrayService.instance.updateMenu(settings.locale);
+    TrayService.instance.updateMenu(settings.locale, settings.launchAtStartup);
 
     return ShadApp(
       title: 'Zenist',
