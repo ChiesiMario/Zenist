@@ -16,11 +16,12 @@ class AllDoneZenRingWidget extends StatefulWidget {
   State<AllDoneZenRingWidget> createState() => _AllDoneZenRingWidgetState();
 }
 
-class _AllDoneZenRingWidgetState extends State<AllDoneZenRingWidget> with TickerProviderStateMixin {
+class _AllDoneZenRingWidgetState extends State<AllDoneZenRingWidget>
+    with TickerProviderStateMixin {
   late AnimationController _drawController;
   late AnimationController _glowController;
   late AnimationController _textFadeController;
-  
+
   late Animation<double> _drawAnimation;
   late Animation<double> _glowAnimation;
 
@@ -49,10 +50,7 @@ class _AllDoneZenRingWidgetState extends State<AllDoneZenRingWidget> with Ticker
     );
 
     _glowAnimation = Tween<double>(begin: 0.1, end: 0.5).animate(
-      CurvedAnimation(
-        parent: _glowController,
-        curve: Curves.easeInOutSine,
-      ),
+      CurvedAnimation(parent: _glowController, curve: Curves.easeInOutSine),
     );
 
     _startAnimations();
@@ -91,7 +89,9 @@ class _AllDoneZenRingWidgetState extends State<AllDoneZenRingWidget> with Ticker
             animation: Listenable.merge([_drawAnimation, _glowAnimation]),
             builder: (context, child) {
               // Interpolate color from base to green based on draw progress
-              final currentColor = Color.lerp(baseColor, successColor, _drawAnimation.value) ?? successColor;
+              final currentColor =
+                  Color.lerp(baseColor, successColor, _drawAnimation.value) ??
+                  successColor;
 
               return SizedBox(
                 width: 80,
@@ -99,7 +99,9 @@ class _AllDoneZenRingWidgetState extends State<AllDoneZenRingWidget> with Ticker
                 child: CustomPaint(
                   painter: _ZenRingPainter(
                     progress: _drawAnimation.value,
-                    glowProgress: _drawController.isCompleted ? _glowAnimation.value : 0.0,
+                    glowProgress: _drawController.isCompleted
+                        ? _glowAnimation.value
+                        : 0.0,
                     color: currentColor,
                     strokeWidth: 4.0,
                   ),
@@ -175,7 +177,9 @@ class _ZenRingPainter extends CustomPainter {
         final glowPaint = Paint()
           ..color = color.withValues(alpha: glowProgress * 0.8)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth + 2.0 // Slightly thicker
+          ..strokeWidth =
+              strokeWidth +
+              2.0 // Slightly thicker
           ..strokeCap = StrokeCap.round
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6.0);
 
@@ -207,8 +211,8 @@ class _ZenRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ZenRingPainter oldDelegate) {
-    return oldDelegate.progress != progress || 
-           oldDelegate.glowProgress != glowProgress ||
-           oldDelegate.color != color;
+    return oldDelegate.progress != progress ||
+        oldDelegate.glowProgress != glowProgress ||
+        oldDelegate.color != color;
   }
 }

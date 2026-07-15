@@ -13,31 +13,31 @@ class TodoRepositoryImpl implements TodoRepository {
   Future<List<Todo>> getTodos({bool includeDeleted = false}) async {
     final isar = await dataSource.db;
     final query = isar.todoModels.where();
-    
-    final results = includeDeleted 
+
+    final results = includeDeleted
         ? await query.findAll()
         : await query.filter().isDeletedEqualTo(false).findAll();
-        
+
     return results.map((model) => model.toEntity()).toList();
   }
 
   @override
   Stream<List<Todo>> watchTodos({bool includeDeleted = false}) async* {
     final isar = await dataSource.db;
-    final query = includeDeleted 
+    final query = includeDeleted
         ? isar.todoModels.where()
         : isar.todoModels.filter().isDeletedEqualTo(false);
-        
-    yield* query.watch(fireImmediately: true).map(
-      (models) => models.map((m) => m.toEntity()).toList(),
-    );
+
+    yield* query
+        .watch(fireImmediately: true)
+        .map((models) => models.map((m) => m.toEntity()).toList());
   }
 
   @override
   Future<void> saveTodo(Todo todo) async {
     final isar = await dataSource.db;
     final model = TodoModel.fromEntity(todo);
-    
+
     await isar.writeTxn(() async {
       await isar.todoModels.putByUuid(model);
     });

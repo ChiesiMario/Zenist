@@ -13,7 +13,7 @@ final dropboxDataSourceProvider = Provider<DropboxDataSource>((ref) {
 class DropboxDataSource {
   static const String _clientId = 'rin197bgs7odw7n';
   static const String _clientSecret = '0x4hd9xvwqtnfwj';
-  
+
   String get _redirectUri {
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
       return 'http://localhost:45912/';
@@ -21,7 +21,7 @@ class DropboxDataSource {
       return 'zenist://oauth2redirect';
     }
   }
-  
+
   static const String _tokenKey = 'dropbox_access_token';
   static const String _refreshTokenKey = 'dropbox_refresh_token';
 
@@ -59,14 +59,18 @@ class DropboxDataSource {
             request.response
               ..statusCode = HttpStatus.ok
               ..headers.contentType = ContentType.html
-              ..write('<html><body style="font-family:sans-serif;text-align:center;margin-top:50px;"><h1>Zenist 授權成功！</h1><p>您可以安全地關閉這個視窗並返回應用程式。</p><script>window.close();</script></body></html>');
+              ..write(
+                '<html><body style="font-family:sans-serif;text-align:center;margin-top:50px;"><h1>Zenist 授權成功！</h1><p>您可以安全地關閉這個視窗並返回應用程式。</p><script>window.close();</script></body></html>',
+              );
             await request.response.close();
             break;
           } else if (queryParams.containsKey('error')) {
             request.response
               ..statusCode = HttpStatus.badRequest
               ..headers.contentType = ContentType.html
-              ..write('<html><body><h1>授權失敗</h1><p>${queryParams['error']}</p></body></html>');
+              ..write(
+                '<html><body><h1>授權失敗</h1><p>${queryParams['error']}</p></body></html>',
+              );
             await request.response.close();
             throw Exception('Dropbox login error: ${queryParams['error']}');
           }
@@ -144,7 +148,7 @@ class DropboxDataSource {
     if (_accessToken == null) {
       _accessToken = await _storage.read(key: _tokenKey);
     }
-    
+
     try {
       return await action();
     } catch (e) {
@@ -167,9 +171,7 @@ class DropboxDataSource {
     return _withAuth(() async {
       final response = await http.post(
         Uri.parse('https://api.dropboxapi.com/2/users/get_current_account'),
-        headers: {
-          'Authorization': 'Bearer $_accessToken',
-        },
+        headers: {'Authorization': 'Bearer $_accessToken'},
       );
 
       if (response.statusCode == 200) {
@@ -200,7 +202,9 @@ class DropboxDataSource {
       } else if (response.statusCode == 401) {
         throw Exception('401 Unauthorized');
       } else {
-        throw Exception('Failed to download backup: ${response.statusCode} ${response.body}');
+        throw Exception(
+          'Failed to download backup: ${response.statusCode} ${response.body}',
+        );
       }
     });
   }
@@ -218,7 +222,7 @@ class DropboxDataSource {
             'mode': 'overwrite',
             'autorename': false,
             'mute': true,
-            'strict_conflict': false
+            'strict_conflict': false,
           }),
           'Content-Type': 'application/octet-stream',
         },
@@ -228,7 +232,9 @@ class DropboxDataSource {
       if (response.statusCode == 401) {
         throw Exception('401 Unauthorized');
       } else if (response.statusCode != 200) {
-        throw Exception('Failed to upload backup: ${response.statusCode} ${response.body}');
+        throw Exception(
+          'Failed to upload backup: ${response.statusCode} ${response.body}',
+        );
       }
     });
   }

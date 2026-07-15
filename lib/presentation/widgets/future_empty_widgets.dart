@@ -19,7 +19,7 @@ class _BaseFutureEmptyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    
+
     return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.only(top: 78.0, bottom: 48.0),
@@ -59,13 +59,18 @@ class UpcomingEmptyWidget extends StatefulWidget {
   final String title;
   final String subtitle;
 
-  const UpcomingEmptyWidget({super.key, required this.title, required this.subtitle});
+  const UpcomingEmptyWidget({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   State<UpcomingEmptyWidget> createState() => _UpcomingEmptyWidgetState();
 }
 
-class _UpcomingEmptyWidgetState extends State<UpcomingEmptyWidget> with SingleTickerProviderStateMixin {
+class _UpcomingEmptyWidgetState extends State<UpcomingEmptyWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -98,7 +103,9 @@ class _UpcomingEmptyWidgetState extends State<UpcomingEmptyWidget> with SingleTi
               angle: _controller.value * 2 * pi,
               child: CustomPaint(
                 painter: _DashedRingPainter(
-                  color: ShadTheme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                  color: ShadTheme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.6),
                   strokeWidth: 3.0,
                 ),
               ),
@@ -144,7 +151,8 @@ class _DashedRingPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DashedRingPainter oldDelegate) => oldDelegate.color != color;
+  bool shouldRepaint(covariant _DashedRingPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 // ----------------------------------------------------------------------
@@ -154,13 +162,18 @@ class SomedayEmptyWidget extends StatefulWidget {
   final String title;
   final String subtitle;
 
-  const SomedayEmptyWidget({super.key, required this.title, required this.subtitle});
+  const SomedayEmptyWidget({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   State<SomedayEmptyWidget> createState() => _SomedayEmptyWidgetState();
 }
 
-class _SomedayEmptyWidgetState extends State<SomedayEmptyWidget> with SingleTickerProviderStateMixin {
+class _SomedayEmptyWidgetState extends State<SomedayEmptyWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -193,8 +206,13 @@ class _SomedayEmptyWidgetState extends State<SomedayEmptyWidget> with SingleTick
               angle: -pi / 4, // rotate slightly
               child: CustomPaint(
                 painter: _PartialArcPainter(
-                  progress: 0.6 + (_controller.value * 0.2), // pulses between 60% and 80% of a circle
-                  color: ShadTheme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                  progress:
+                      0.6 +
+                      (_controller.value *
+                          0.2), // pulses between 60% and 80% of a circle
+                  color: ShadTheme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.7),
                   strokeWidth: 4.0,
                 ),
               ),
@@ -211,7 +229,11 @@ class _PartialArcPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
 
-  _PartialArcPainter({required this.progress, required this.color, required this.strokeWidth});
+  _PartialArcPainter({
+    required this.progress,
+    required this.color,
+    required this.strokeWidth,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -246,13 +268,18 @@ class AnytimeEmptyWidget extends StatefulWidget {
   final String title;
   final String subtitle;
 
-  const AnytimeEmptyWidget({super.key, required this.title, required this.subtitle});
+  const AnytimeEmptyWidget({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   State<AnytimeEmptyWidget> createState() => _AnytimeEmptyWidgetState();
 }
 
-class _AnytimeEmptyWidgetState extends State<AnytimeEmptyWidget> with SingleTickerProviderStateMixin {
+class _AnytimeEmptyWidgetState extends State<AnytimeEmptyWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -314,13 +341,13 @@ class _RipplePainter extends CustomPainter {
     // Ripple
     final rippleRadius = maxRadius * progress;
     final rippleOpacity = 1.0 - progress;
-    
+
     if (rippleRadius > 4.0) {
       final ripplePaint = Paint()
         ..color = color.withValues(alpha: rippleOpacity * 0.5)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
-      
+
       canvas.drawCircle(center, rippleRadius, ripplePaint);
     }
   }
@@ -338,13 +365,18 @@ class TodayEmptyWidget extends StatefulWidget {
   final String title;
   final String subtitle;
 
-  const TodayEmptyWidget({super.key, required this.title, required this.subtitle});
+  const TodayEmptyWidget({
+    super.key,
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   State<TodayEmptyWidget> createState() => _TodayEmptyWidgetState();
 }
 
-class _TodayEmptyWidgetState extends State<TodayEmptyWidget> with SingleTickerProviderStateMixin {
+class _TodayEmptyWidgetState extends State<TodayEmptyWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -373,7 +405,9 @@ class _TodayEmptyWidgetState extends State<TodayEmptyWidget> with SingleTickerPr
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            final curvedProgress = Curves.easeInOutSine.transform(_controller.value);
+            final curvedProgress = Curves.easeInOutSine.transform(
+              _controller.value,
+            );
             return CustomPaint(
               painter: _BreathingRingPainter(
                 progress: curvedProgress,
@@ -396,13 +430,13 @@ class _BreathingRingPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    
+
     final minRadius = 36.0;
     final maxRadius = 40.0;
     final currentRadius = minRadius + (maxRadius - minRadius) * progress;
-    
-    final currentOpacity = 0.8 - (0.6 * progress); 
-    
+
+    final currentOpacity = 0.8 - (0.6 * progress);
+
     final currentStroke = 3.0 - (0.5 * progress);
 
     final paint = Paint()

@@ -39,8 +39,10 @@ class Translations {
       'empty_someday_subtitle': 'Dreams yet to be realized.',
       'empty_anytime_title': 'SPACE FOR THOUGHTS.',
       'empty_anytime_subtitle': 'Capture your fleeting ideas.',
-      'empty_state_1': 'It\'s empty here.\nWhy not start planning for the future?',
-      'empty_state_2': 'Save those things you\'ve always wanted to do\nbut never had the time for here.',
+      'empty_state_1':
+          'It\'s empty here.\nWhy not start planning for the future?',
+      'empty_state_2':
+          'Save those things you\'ve always wanted to do\nbut never had the time for here.',
       'empty_state_3': 'No rush.\nJot down your fleeting thoughts here.',
       'set_anytime': 'Set Anytime',
       'repeat': 'Repeat',

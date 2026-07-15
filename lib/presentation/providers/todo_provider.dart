@@ -29,9 +29,17 @@ class TodoNotifier extends Notifier<void> {
   @override
   void build() {}
 
-  Future<void> addTodo(String title, {String description = '', DateTime? dueDate, bool isAnytime = false, int? repeatInterval, String? repeatUnit, List<Subtask> subtasks = const []}) async {
+  Future<void> addTodo(
+    String title, {
+    String description = '',
+    DateTime? dueDate,
+    bool isAnytime = false,
+    int? repeatInterval,
+    String? repeatUnit,
+    List<Subtask> subtasks = const [],
+  }) async {
     if (title.trim().isEmpty) return;
-    
+
     final repository = ref.read(todoRepositoryProvider);
     final todo = Todo(
       id: const Uuid().v4(),
@@ -51,8 +59,11 @@ class TodoNotifier extends Notifier<void> {
 
   Future<void> toggleTodo(Todo todo) async {
     final repository = ref.read(todoRepositoryProvider);
-    
-    if (!todo.isCompleted && todo.repeatInterval != null && todo.repeatUnit != null && !todo.isAnytime) {
+
+    if (!todo.isCompleted &&
+        todo.repeatInterval != null &&
+        todo.repeatUnit != null &&
+        !todo.isAnytime) {
       DateTime? nextDueDate;
       if (todo.dueDate != null) {
         final interval = todo.repeatInterval!;
@@ -64,14 +75,26 @@ class TodoNotifier extends Notifier<void> {
             nextDueDate = todo.dueDate!.add(Duration(days: 7 * interval));
             break;
           case 'month':
-            nextDueDate = DateTime(todo.dueDate!.year, todo.dueDate!.month + interval, todo.dueDate!.day, todo.dueDate!.hour, todo.dueDate!.minute);
+            nextDueDate = DateTime(
+              todo.dueDate!.year,
+              todo.dueDate!.month + interval,
+              todo.dueDate!.day,
+              todo.dueDate!.hour,
+              todo.dueDate!.minute,
+            );
             break;
           case 'year':
-            nextDueDate = DateTime(todo.dueDate!.year + interval, todo.dueDate!.month, todo.dueDate!.day, todo.dueDate!.hour, todo.dueDate!.minute);
+            nextDueDate = DateTime(
+              todo.dueDate!.year + interval,
+              todo.dueDate!.month,
+              todo.dueDate!.day,
+              todo.dueDate!.hour,
+              todo.dueDate!.minute,
+            );
             break;
         }
       }
-      
+
       final nextTodo = Todo(
         id: const Uuid().v4(),
         title: todo.title,
@@ -82,15 +105,17 @@ class TodoNotifier extends Notifier<void> {
         isAnytime: todo.isAnytime,
         repeatInterval: todo.repeatInterval,
         repeatUnit: todo.repeatUnit,
-        subtasks: todo.subtasks.map((s) => s.copyWith(isCompleted: false)).toList(),
+        subtasks: todo.subtasks
+            .map((s) => s.copyWith(isCompleted: false))
+            .toList(),
       );
       await repository.saveTodo(nextTodo);
-      
+
       final updatedTodo = todo.copyWith(
         isCompleted: true,
         updatedAt: DateTime.now(),
         completedAt: DateTime.now(),
-        clearRepeat: true, 
+        clearRepeat: true,
       );
       await repository.saveTodo(updatedTodo);
       ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
@@ -125,8 +150,8 @@ class TodoNotifier extends Notifier<void> {
   }
 
   Future<void> updateTodoDetails(
-    Todo todo, 
-    String newTitle, 
+    Todo todo,
+    String newTitle,
     DateTime? newDueDate, {
     String description = '',
     bool isAnytime = false,
@@ -160,7 +185,7 @@ class TodoNotifier extends Notifier<void> {
       }
       return s;
     }).toList();
-    
+
     final updatedTodo = todo.copyWith(
       subtasks: updatedSubtasks,
       updatedAt: DateTime.now(),

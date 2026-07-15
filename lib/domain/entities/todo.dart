@@ -3,17 +3,9 @@ class Subtask {
   final String title;
   final bool isCompleted;
 
-  Subtask({
-    required this.id,
-    required this.title,
-    this.isCompleted = false,
-  });
+  Subtask({required this.id, required this.title, this.isCompleted = false});
 
-  Subtask copyWith({
-    String? id,
-    String? title,
-    bool? isCompleted,
-  }) {
+  Subtask copyWith({String? id, String? title, bool? isCompleted}) {
     return Subtask(
       id: id ?? this.id,
       title: title ?? this.title,
@@ -94,7 +86,9 @@ class Todo {
       dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
       isAnytime: isAnytime ?? this.isAnytime,
       completedAt: clearCompletedAt ? null : (completedAt ?? this.completedAt),
-      repeatInterval: clearRepeat ? null : (repeatInterval ?? this.repeatInterval),
+      repeatInterval: clearRepeat
+          ? null
+          : (repeatInterval ?? this.repeatInterval),
       repeatUnit: clearRepeat ? null : (repeatUnit ?? this.repeatUnit),
       subtasks: subtasks ?? this.subtasks,
     );
@@ -125,12 +119,20 @@ class Todo {
       isDeleted: json['isDeleted'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      dueDate: json['dueDate'] != null ? DateTime.parse(json['dueDate'] as String) : null,
+      dueDate: json['dueDate'] != null
+          ? DateTime.parse(json['dueDate'] as String)
+          : null,
       isAnytime: json['isAnytime'] as bool? ?? false,
-      completedAt: json['completedAt'] != null ? DateTime.parse(json['completedAt'] as String) : null,
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'] as String)
+          : null,
       repeatInterval: json['repeatInterval'] as int?,
       repeatUnit: json['repeatUnit'] as String?,
-      subtasks: (json['subtasks'] as List<dynamic>?)?.map((s) => Subtask.fromJson(s as Map<String, dynamic>)).toList() ?? [],
+      subtasks:
+          (json['subtasks'] as List<dynamic>?)
+              ?.map((s) => Subtask.fromJson(s as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 }

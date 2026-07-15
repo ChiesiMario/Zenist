@@ -16,7 +16,11 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
-  void _showFontSelectionDialog(BuildContext context, String currentFont, String locale) {
+  void _showFontSelectionDialog(
+    BuildContext context,
+    String currentFont,
+    String locale,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -36,84 +40,100 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  void _showLanguageSelectionDialog(BuildContext context, String currentLocale) {
+  void _showLanguageSelectionDialog(
+    BuildContext context,
+    String currentLocale,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white.withValues(alpha: 0.1) 
-              : Colors.transparent,
-          width: 1,
-        ),
-      ),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF18181B)
+              : ShadTheme.of(context).colorScheme.background,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.transparent,
+              width: 1,
+            ),
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 350),
             child: Container(
               padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  Translations.tr('select_language', currentLocale),
-                  style: ShadTheme.of(context).textTheme.h4,
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  title: Text(Translations.tr('lang_zh_tw', currentLocale)),
-                  trailing: currentLocale == 'zh_TW' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
-                  onTap: () {
-                    ref.read(settingsProvider.notifier).updateLocale('zh_TW');
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ListTile(
-                  title: Text(Translations.tr('lang_zh_cn', currentLocale)),
-                  trailing: currentLocale == 'zh_CN' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
-                  onTap: () {
-                    ref.read(settingsProvider.notifier).updateLocale('zh_CN');
-                    Navigator.of(context).pop();
-                  },
-                ),
-                ListTile(
-                  title: Text(Translations.tr('lang_en', currentLocale)),
-                  trailing: currentLocale == 'en' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
-                  onTap: () {
-                    ref.read(settingsProvider.notifier).updateLocale('en');
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    Translations.tr('select_language', currentLocale),
+                    style: ShadTheme.of(context).textTheme.h4,
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    title: Text(Translations.tr('lang_zh_tw', currentLocale)),
+                    trailing: currentLocale == 'zh_TW'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateLocale('zh_TW');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ListTile(
+                    title: Text(Translations.tr('lang_zh_cn', currentLocale)),
+                    trailing: currentLocale == 'zh_CN'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateLocale('zh_CN');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ListTile(
+                    title: Text(Translations.tr('lang_en', currentLocale)),
+                    trailing: currentLocale == 'en'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
+                    onTap: () {
+                      ref.read(settingsProvider.notifier).updateLocale('en');
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         );
       },
     );
   }
 
-
-  void _showThemeSelectionDialog(BuildContext context, String currentTheme, String locale) {
+  void _showThemeSelectionDialog(
+    BuildContext context,
+    String currentTheme,
+    String locale,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white.withValues(alpha: 0.1) 
-              : Colors.transparent,
-          width: 1,
-        ),
-      ),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF18181B)
+              : ShadTheme.of(context).colorScheme.background,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.transparent,
+              width: 1,
+            ),
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 350),
             child: Container(
@@ -128,25 +148,37 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: Text(Translations.tr('theme_system', locale)),
-                    trailing: currentTheme == 'system' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    trailing: currentTheme == 'system'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
                     onTap: () {
-                      ref.read(settingsProvider.notifier).updateThemeMode('system');
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateThemeMode('system');
                       Navigator.of(context).pop();
                     },
                   ),
                   ListTile(
                     title: Text(Translations.tr('theme_light', locale)),
-                    trailing: currentTheme == 'light' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    trailing: currentTheme == 'light'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
                     onTap: () {
-                      ref.read(settingsProvider.notifier).updateThemeMode('light');
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateThemeMode('light');
                       Navigator.of(context).pop();
                     },
                   ),
                   ListTile(
                     title: Text(Translations.tr('theme_dark', locale)),
-                    trailing: currentTheme == 'dark' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    trailing: currentTheme == 'dark'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
                     onTap: () {
-                      ref.read(settingsProvider.notifier).updateThemeMode('dark');
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateThemeMode('dark');
                       Navigator.of(context).pop();
                     },
                   ),
@@ -159,22 +191,28 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  void _showDateFormatSelectionDialog(BuildContext context, String currentFormat, String locale) {
+  void _showDateFormatSelectionDialog(
+    BuildContext context,
+    String currentFormat,
+    String locale,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
         return Dialog(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white.withValues(alpha: 0.1) 
-              : Colors.transparent,
-          width: 1,
-        ),
-      ),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF18181B)
+              : ShadTheme.of(context).colorScheme.background,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.transparent,
+              width: 1,
+            ),
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 350),
             child: Container(
@@ -189,25 +227,37 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 16),
                   ListTile(
                     title: Text(Translations.tr('format_ymd', locale)),
-                    trailing: currentFormat == 'yyyy/MM/dd' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    trailing: currentFormat == 'yyyy/MM/dd'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
                     onTap: () {
-                      ref.read(settingsProvider.notifier).updateDateFormat('yyyy/MM/dd');
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateDateFormat('yyyy/MM/dd');
                       Navigator.of(context).pop();
                     },
                   ),
                   ListTile(
                     title: Text(Translations.tr('format_mdy', locale)),
-                    trailing: currentFormat == 'MM/dd/yyyy' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    trailing: currentFormat == 'MM/dd/yyyy'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
                     onTap: () {
-                      ref.read(settingsProvider.notifier).updateDateFormat('MM/dd/yyyy');
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateDateFormat('MM/dd/yyyy');
                       Navigator.of(context).pop();
                     },
                   ),
                   ListTile(
                     title: Text(Translations.tr('format_dmy', locale)),
-                    trailing: currentFormat == 'dd/MM/yyyy' ? const Icon(LucideIcons.check, color: Colors.blue) : null,
+                    trailing: currentFormat == 'dd/MM/yyyy'
+                        ? const Icon(LucideIcons.check, color: Colors.blue)
+                        : null,
                     onTap: () {
-                      ref.read(settingsProvider.notifier).updateDateFormat('dd/MM/yyyy');
+                      ref
+                          .read(settingsProvider.notifier)
+                          .updateDateFormat('dd/MM/yyyy');
                       Navigator.of(context).pop();
                     },
                   ),
@@ -239,7 +289,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: SizedBox.expand(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 70.0, bottom: 24.0),
+                    padding: const EdgeInsets.only(
+                      left: 16.0,
+                      right: 16.0,
+                      top: 70.0,
+                      bottom: 24.0,
+                    ),
                     child: ListView(
                       padding: EdgeInsets.zero,
                       children: [
@@ -248,7 +303,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           decoration: BoxDecoration(
                             color: ShadTheme.of(context).colorScheme.card,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: ShadTheme.of(context).colorScheme.border, width: 1),
+                            border: Border.all(
+                              color: ShadTheme.of(context).colorScheme.border,
+                              width: 1,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.02),
@@ -261,105 +319,222 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  24,
+                                  24,
+                                  16,
+                                ),
                                 child: Text(
-                                  Translations.tr('appearance_and_display', locale),
+                                  Translations.tr(
+                                    'appearance_and_display',
+                                    locale,
+                                  ),
                                   style: ShadTheme.of(context).textTheme.large,
                                 ),
                               ),
                               ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                                leading: const Icon(LucideIcons.sunMoon, size: 20),
-                                title: Text(Translations.tr('appearance', locale), 
-                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                leading: const Icon(
+                                  LucideIcons.sunMoon,
+                                  size: 20,
+                                ),
+                                title: Text(
+                                  Translations.tr('appearance', locale),
+                                  style: ShadTheme.of(context).textTheme.p
+                                      .copyWith(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                ),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 4.0),
                                   child: Text(
-                                    settings.themeMode == 'light' ? Translations.tr('theme_light', locale) :
-                                    settings.themeMode == 'dark' ? Translations.tr('theme_dark', locale) : 
-                                    Translations.tr('theme_system', locale),
-                                    style: ShadTheme.of(context).textTheme.small.copyWith(
-                                      fontSize: 12,
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
-                                      fontWeight: FontWeight.normal,
-                                    ),
+                                    settings.themeMode == 'light'
+                                        ? Translations.tr('theme_light', locale)
+                                        : settings.themeMode == 'dark'
+                                        ? Translations.tr('theme_dark', locale)
+                                        : Translations.tr(
+                                            'theme_system',
+                                            locale,
+                                          ),
+                                    style: ShadTheme.of(context).textTheme.small
+                                        .copyWith(
+                                          fontSize: 12,
+                                          color: ShadTheme.of(context)
+                                              .colorScheme
+                                              .mutedForeground
+                                              .withValues(alpha: 0.5),
+                                          fontWeight: FontWeight.normal,
+                                        ),
                                   ),
                                 ),
-                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                trailing: const Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 20,
+                                ),
                                 onTap: () {
-                                  _showThemeSelectionDialog(context, settings.themeMode, locale);
+                                  _showThemeSelectionDialog(
+                                    context,
+                                    settings.themeMode,
+                                    locale,
+                                  );
                                 },
                               ),
-                              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                              Divider(
+                                height: 1,
+                                color: ShadTheme.of(
+                                  context,
+                                ).colorScheme.border.withOpacity(0.5),
+                              ),
                               ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                                leading: const Icon(LucideIcons.globe, size: 20),
-                                title: Text(Translations.tr('language', locale), 
-                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                leading: const Icon(
+                                  LucideIcons.globe,
+                                  size: 20,
+                                ),
+                                title: Text(
+                                  Translations.tr('language', locale),
+                                  style: ShadTheme.of(context).textTheme.p
+                                      .copyWith(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                ),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 4.0),
                                   child: Text(
-                                    locale == 'zh_TW' ? Translations.tr('lang_zh_tw', locale) :
-                                    locale == 'zh_CN' ? Translations.tr('lang_zh_cn', locale) : 
-                                    Translations.tr('lang_en', locale),
-                                    style: ShadTheme.of(context).textTheme.small.copyWith(
-                                      fontSize: 12,
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
-                                      fontWeight: FontWeight.normal,
-                                    ),
+                                    locale == 'zh_TW'
+                                        ? Translations.tr('lang_zh_tw', locale)
+                                        : locale == 'zh_CN'
+                                        ? Translations.tr('lang_zh_cn', locale)
+                                        : Translations.tr('lang_en', locale),
+                                    style: ShadTheme.of(context).textTheme.small
+                                        .copyWith(
+                                          fontSize: 12,
+                                          color: ShadTheme.of(context)
+                                              .colorScheme
+                                              .mutedForeground
+                                              .withValues(alpha: 0.5),
+                                          fontWeight: FontWeight.normal,
+                                        ),
                                   ),
                                 ),
-                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                trailing: const Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 20,
+                                ),
                                 onTap: () {
                                   _showLanguageSelectionDialog(context, locale);
                                 },
                               ),
-                              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                              Divider(
+                                height: 1,
+                                color: ShadTheme.of(
+                                  context,
+                                ).colorScheme.border.withOpacity(0.5),
+                              ),
                               ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-                                leading: const Icon(LucideIcons.calendar, size: 20),
-                                title: Text(Translations.tr('date_format', locale),
-                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
+                                leading: const Icon(
+                                  LucideIcons.calendar,
+                                  size: 20,
+                                ),
+                                title: Text(
+                                  Translations.tr('date_format', locale),
+                                  style: ShadTheme.of(context).textTheme.p
+                                      .copyWith(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                ),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 4.0),
                                   child: Text(
-                                    settings.dateFormat == 'yyyy/MM/dd' ? Translations.tr('format_ymd', locale) :
-                                    settings.dateFormat == 'MM/dd/yyyy' ? Translations.tr('format_mdy', locale) : 
-                                    Translations.tr('format_dmy', locale),
-                                    style: ShadTheme.of(context).textTheme.small.copyWith(
-                                      fontSize: 12,
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
-                                      fontWeight: FontWeight.normal,
-                                    ),
+                                    settings.dateFormat == 'yyyy/MM/dd'
+                                        ? Translations.tr('format_ymd', locale)
+                                        : settings.dateFormat == 'MM/dd/yyyy'
+                                        ? Translations.tr('format_mdy', locale)
+                                        : Translations.tr('format_dmy', locale),
+                                    style: ShadTheme.of(context).textTheme.small
+                                        .copyWith(
+                                          fontSize: 12,
+                                          color: ShadTheme.of(context)
+                                              .colorScheme
+                                              .mutedForeground
+                                              .withValues(alpha: 0.5),
+                                          fontWeight: FontWeight.normal,
+                                        ),
                                   ),
                                 ),
-                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                trailing: const Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 20,
+                                ),
                                 onTap: () {
-                                  _showDateFormatSelectionDialog(context, settings.dateFormat, locale);
+                                  _showDateFormatSelectionDialog(
+                                    context,
+                                    settings.dateFormat,
+                                    locale,
+                                  );
                                 },
                               ),
-                              Divider(height: 1, color: ShadTheme.of(context).colorScheme.border.withOpacity(0.5)),
+                              Divider(
+                                height: 1,
+                                color: ShadTheme.of(
+                                  context,
+                                ).colorScheme.border.withOpacity(0.5),
+                              ),
                               ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
                                 leading: const Icon(LucideIcons.type, size: 20),
-                                title: Text(Translations.tr('app_font', locale),
-                                  style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+                                title: Text(
+                                  Translations.tr('app_font', locale),
+                                  style: ShadTheme.of(context).textTheme.p
+                                      .copyWith(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.normal,
+                                      ),
+                                ),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 4.0),
                                   child: Text(
-                                    (settings.fontFamily == 'NotoSansTC' || settings.fontFamily == 'NotoSansSC') 
-                                        ? Translations.tr('default_font', locale) 
+                                    (settings.fontFamily == 'NotoSansTC' ||
+                                            settings.fontFamily == 'NotoSansSC')
+                                        ? Translations.tr(
+                                            'default_font',
+                                            locale,
+                                          )
                                         : settings.fontFamily,
-                                    style: ShadTheme.of(context).textTheme.small.copyWith(
-                                      fontSize: 12,
-                                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
-                                      fontWeight: FontWeight.normal,
-                                    ),
+                                    style: ShadTheme.of(context).textTheme.small
+                                        .copyWith(
+                                          fontSize: 12,
+                                          color: ShadTheme.of(context)
+                                              .colorScheme
+                                              .mutedForeground
+                                              .withValues(alpha: 0.5),
+                                          fontWeight: FontWeight.normal,
+                                        ),
                                   ),
                                 ),
-                                trailing: const Icon(LucideIcons.chevronRight, size: 20),
+                                trailing: const Icon(
+                                  LucideIcons.chevronRight,
+                                  size: 20,
+                                ),
                                 onTap: () {
-                                  _showFontSelectionDialog(context, settings.fontFamily, locale);
+                                  _showFontSelectionDialog(
+                                    context,
+                                    settings.fontFamily,
+                                    locale,
+                                  );
                                 },
                               ),
                               const SizedBox(height: 8), // 底部留白
@@ -372,7 +547,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           decoration: BoxDecoration(
                             color: ShadTheme.of(context).colorScheme.card,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: ShadTheme.of(context).colorScheme.border, width: 1),
+                            border: Border.all(
+                              color: ShadTheme.of(context).colorScheme.border,
+                              width: 1,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.02),
@@ -385,7 +563,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  24,
+                                  24,
+                                  8,
+                                ),
                                 child: Text(
                                   Translations.tr('cloud_sync', locale),
                                   style: ShadTheme.of(context).textTheme.large,
@@ -412,37 +595,37 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 padding: const EdgeInsets.only(top: 10.0),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 600),
-                child: SizedBox(
-                  height: 60.0,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ShadButton.ghost(
-                          onPressed: () => Navigator.of(context).pop(),
-                          width: 48,
-                          height: 48,
-                          padding: EdgeInsets.zero,
-                          child: const Icon(LucideIcons.arrowLeft, size: 24),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          Translations.tr('settings', locale),
-                          style: ShadTheme.of(context).textTheme.h2.copyWith(
-                                fontFamily: 'Nunito',
-                                fontWeight: FontWeight.w800,
-                                fontSize: 24,
-                                letterSpacing: -0.5,
-                              ),
-                        ),
-                      ],
+                  child: SizedBox(
+                    height: 60.0,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ShadButton.ghost(
+                            onPressed: () => Navigator.of(context).pop(),
+                            width: 48,
+                            height: 48,
+                            padding: EdgeInsets.zero,
+                            child: const Icon(LucideIcons.arrowLeft, size: 24),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            Translations.tr('settings', locale),
+                            style: ShadTheme.of(context).textTheme.h2.copyWith(
+                              fontFamily: 'Nunito',
+                              fontWeight: FontWeight.w800,
+                              fontSize: 24,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
           ),
         ],
       ),
@@ -478,14 +661,14 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
 
   Future<void> _loadFonts() async {
     final fonts = await SystemFontsHelper.getSystemFonts();
-    
+
     if (fonts.contains('NotoSansTC')) {
       fonts.remove('NotoSansTC');
     }
     if (fonts.contains('NotoSansSC')) {
       fonts.remove('NotoSansSC');
     }
-    
+
     final defaultFont = widget.locale == 'zh_CN' ? 'NotoSansSC' : 'NotoSansTC';
     fonts.insert(0, defaultFont);
 
@@ -500,17 +683,21 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
   @override
   Widget build(BuildContext context) {
     final filteredFonts = _systemFonts
-        .where((font) => font.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .where(
+          (font) => font.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
         .toList();
 
     return Dialog(
-      backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF18181B) : ShadTheme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF18181B)
+          : ShadTheme.of(context).colorScheme.background,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: Theme.of(context).brightness == Brightness.dark 
-              ? Colors.white.withValues(alpha: 0.1) 
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withValues(alpha: 0.1)
               : Colors.transparent,
           width: 1,
         ),
@@ -519,56 +706,64 @@ class _FontSelectionDialogState extends State<_FontSelectionDialog> {
         constraints: const BoxConstraints(maxWidth: 350),
         child: Container(
           padding: const EdgeInsets.all(16),
-        height: MediaQuery.of(context).size.height * 0.6,
-        child: Column(
-          children: [
-            Text(
-              Translations.tr('select_font', widget.locale),
-              style: ShadTheme.of(context).textTheme.h4,
-            ),
-            const SizedBox(height: 16),
-            if (_isLoading)
-              const Expanded(
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else ...[
-              ShadInput(
-                placeholder: Text(Translations.tr('search_font', widget.locale)),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Column(
+            children: [
+              Text(
+                Translations.tr('select_font', widget.locale),
+                style: ShadTheme.of(context).textTheme.h4,
               ),
               const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: filteredFonts.length,
-                  itemBuilder: (context, index) {
-                    final font = filteredFonts[index];
-                    final isSelected = font == widget.currentFont;
-                    final defaultFont = widget.locale == 'zh_CN' ? 'NotoSansSC' : 'NotoSansTC';
-                    final isDefault = font == defaultFont;
-                    
-                    return ListTile(
-                      title: Text(
-                        isDefault ? Translations.tr('default_font', widget.locale) : font,
-                        style: TextStyle(
-                          fontFamily: font,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      trailing: isSelected ? const Icon(LucideIcons.check, color: Colors.blue) : null,
-                      onTap: () => widget.onSelected(font, isDefault),
-                    );
+              if (_isLoading)
+                const Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else ...[
+                ShadInput(
+                  placeholder: Text(
+                    Translations.tr('search_font', widget.locale),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
                   },
                 ),
-              ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredFonts.length,
+                    itemBuilder: (context, index) {
+                      final font = filteredFonts[index];
+                      final isSelected = font == widget.currentFont;
+                      final defaultFont = widget.locale == 'zh_CN'
+                          ? 'NotoSansSC'
+                          : 'NotoSansTC';
+                      final isDefault = font == defaultFont;
+
+                      return ListTile(
+                        title: Text(
+                          isDefault
+                              ? Translations.tr('default_font', widget.locale)
+                              : font,
+                          style: TextStyle(
+                            fontFamily: font,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? const Icon(LucideIcons.check, color: Colors.blue)
+                            : null,
+                        onTap: () => widget.onSelected(font, isDefault),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ],
-          ],
-        ),
+          ),
         ),
       ),
     );
@@ -606,9 +801,9 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
   Future<void> _handleSync() async {
     final authState = ref.read(authProvider);
     if (!authState.isLoggedIn) return;
-    
+
     final syncManager = ref.read(autoSyncManagerProvider.notifier);
-    // Since autoSyncManager handles its own state, we don't need local _isSyncing, 
+    // Since autoSyncManager handles its own state, we don't need local _isSyncing,
     // but the UI currently uses it to disable the button.
     // We can just call it and it will block if already syncing.
     setState(() => _isSyncing = true);
@@ -639,15 +834,24 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 24),
           leading: const Icon(LucideIcons.cloud, size: 20),
-          title: Text(isLoggedIn ? Translations.tr('dropbox_unlink', widget.locale) : Translations.tr('dropbox_link', widget.locale),
-            style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
-          subtitle: (isLoggedIn && authState.email != null) 
+          title: Text(
+            isLoggedIn
+                ? Translations.tr('dropbox_unlink', widget.locale)
+                : Translations.tr('dropbox_link', widget.locale),
+            style: ShadTheme.of(
+              context,
+            ).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal),
+          ),
+          subtitle: (isLoggedIn && authState.email != null)
               ? Padding(
                   padding: const EdgeInsets.only(top: 4.0),
-                  child: Text(authState.email!,
+                  child: Text(
+                    authState.email!,
                     style: ShadTheme.of(context).textTheme.small.copyWith(
                       fontSize: 12,
-                      color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
+                      color: ShadTheme.of(
+                        context,
+                      ).colorScheme.mutedForeground.withValues(alpha: 0.5),
                       fontWeight: FontWeight.normal,
                     ),
                   ),
@@ -658,20 +862,31 @@ class _SyncSectionState extends ConsumerState<_SyncSection> {
         if (isLoggedIn)
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 24),
-            leading: _isSyncing 
-                ? const SizedBox(width: 19, height: 19, child: CircularProgressIndicator(strokeWidth: 2))
+            leading: _isSyncing
+                ? const SizedBox(
+                    width: 19,
+                    height: 19,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Icon(LucideIcons.refreshCw, size: 19),
-            title: Text(Translations.tr('sync_now', widget.locale),
-              style: ShadTheme.of(context).textTheme.p.copyWith(fontSize: 15, fontWeight: FontWeight.normal)),
+            title: Text(
+              Translations.tr('sync_now', widget.locale),
+              style: ShadTheme.of(context).textTheme.p.copyWith(
+                fontSize: 15,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 4.0),
               child: Text(
-                lastSyncTime != null 
+                lastSyncTime != null
                     ? '${Translations.tr('last_synced', widget.locale)} $lastSyncTime'
                     : '尚未同步 (Never synced)',
                 style: ShadTheme.of(context).textTheme.small.copyWith(
                   fontSize: 12,
-                  color: ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.5),
+                  color: ShadTheme.of(
+                    context,
+                  ).colorScheme.mutedForeground.withValues(alpha: 0.5),
                   fontWeight: FontWeight.normal,
                 ),
               ),

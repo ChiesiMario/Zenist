@@ -12,10 +12,7 @@ class IsarDataSource {
   Future<Isar> openDB() async {
     if (Isar.instanceNames.isEmpty) {
       final dir = await getApplicationSupportDirectory();
-      return await Isar.open(
-        [TodoModelSchema],
-        directory: dir.path,
-      );
+      return await Isar.open([TodoModelSchema], directory: dir.path);
     }
     return Future.value(Isar.getInstance());
   }

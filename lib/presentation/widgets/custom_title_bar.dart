@@ -26,7 +26,7 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
       try {
         final deviceInfo = DeviceInfoPlugin();
         final windowsInfo = await deviceInfo.windowsInfo;
-        // Windows 11 build number starts at 22000. 
+        // Windows 11 build number starts at 22000.
         // Build numbers below 22000 are Windows 10 (or older, but practically Win10 here).
         if (windowsInfo.buildNumber < 22000) {
           if (mounted) {
@@ -61,7 +61,9 @@ class _CustomTitleBarState extends State<CustomTitleBar> {
             left: 0,
             right: 0,
             height: 0.8,
-            child: Container(color: isDark ? const Color(0xFF09090B) : const Color(0xFF7D7D7D)),
+            child: Container(
+              color: isDark ? const Color(0xFF09090B) : const Color(0xFF7D7D7D),
+            ),
           ),
         ],
       );

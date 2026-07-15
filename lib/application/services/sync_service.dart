@@ -68,7 +68,9 @@ class SyncService {
     }
 
     // 5. 將合併後的資料重新上傳至 Dropbox
-    final List<Map<String, dynamic>> jsonList = mergedTodos.map((t) => t.toJson()).toList();
+    final List<Map<String, dynamic>> jsonList = mergedTodos
+        .map((t) => t.toJson())
+        .toList();
     await _dropbox.uploadBackup(jsonEncode(jsonList));
   }
 }

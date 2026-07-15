@@ -4,7 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Provide the SharedPreferences instance synchronously
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
-  throw UnimplementedError('sharedPreferencesProvider must be overridden in main.dart');
+  throw UnimplementedError(
+    'sharedPreferencesProvider must be overridden in main.dart',
+  );
 });
 
 final settingsProvider = NotifierProvider<SettingsNotifier, SettingsState>(() {
@@ -26,7 +28,13 @@ class SettingsState {
     this.lastSyncTime,
   });
 
-  SettingsState copyWith({String? fontFamily, String? locale, String? dateFormat, String? themeMode, String? lastSyncTime}) {
+  SettingsState copyWith({
+    String? fontFamily,
+    String? locale,
+    String? dateFormat,
+    String? themeMode,
+    String? lastSyncTime,
+  }) {
     return SettingsState(
       fontFamily: fontFamily ?? this.fontFamily,
       locale: locale ?? this.locale,
@@ -51,13 +59,15 @@ class SettingsNotifier extends Notifier<SettingsState> {
   @override
   SettingsState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
-    
+
     // Auto detect locale if not saved
     String savedLocale = prefs.getString(_localeKey) ?? '';
     if (savedLocale.isEmpty) {
       final platformLocale = PlatformDispatcher.instance.locale;
       if (platformLocale.languageCode == 'zh') {
-        if (platformLocale.countryCode == 'TW' || platformLocale.countryCode == 'HK' || platformLocale.countryCode == 'MO') {
+        if (platformLocale.countryCode == 'TW' ||
+            platformLocale.countryCode == 'HK' ||
+            platformLocale.countryCode == 'MO') {
           savedLocale = 'zh_TW';
         } else {
           savedLocale = 'zh_CN';
@@ -68,7 +78,10 @@ class SettingsNotifier extends Notifier<SettingsState> {
     }
 
     final savedFont = prefs.getString(_fontKey);
-    final bool isUsingDefaultFont = savedFont == null || savedFont == 'NotoSansTC' || savedFont == 'NotoSansSC';
+    final bool isUsingDefaultFont =
+        savedFont == null ||
+        savedFont == 'NotoSansTC' ||
+        savedFont == 'NotoSansSC';
 
     final savedDateFormat = prefs.getString(_dateFormatKey) ?? 'yyyy/MM/dd';
     final savedThemeMode = prefs.getString(_themeModeKey) ?? 'system';
@@ -98,9 +111,12 @@ class SettingsNotifier extends Notifier<SettingsState> {
   Future<void> updateLocale(String newLocale) async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_localeKey, newLocale);
-    
+
     final savedFont = prefs.getString(_fontKey);
-    final bool isUsingDefaultFont = savedFont == null || savedFont == 'NotoSansTC' || savedFont == 'NotoSansSC';
+    final bool isUsingDefaultFont =
+        savedFont == null ||
+        savedFont == 'NotoSansTC' ||
+        savedFont == 'NotoSansSC';
 
     state = state.copyWith(
       locale: newLocale,

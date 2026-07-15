@@ -14,7 +14,7 @@ import 'presentation/widgets/custom_title_bar.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
-  
+
   final sharedPreferences = await SharedPreferences.getInstance();
 
   WindowOptions windowOptions = const WindowOptions(
@@ -56,12 +56,11 @@ class ZenistApp extends ConsumerStatefulWidget {
 }
 
 class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
-  
   @override
   void initState() {
     super.initState();
     windowManager.addListener(this);
-    
+
     // 初始化 AutoSyncManager，讓其接管啟動、週期與喚醒同步
     Future.microtask(() {
       ref.read(autoSyncManagerProvider);
@@ -109,8 +108,10 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
         appThemeMode = ThemeMode.system;
     }
 
-    bool isDark = appThemeMode == ThemeMode.dark || 
-        (appThemeMode == ThemeMode.system && PlatformDispatcher.instance.platformBrightness == Brightness.dark);
+    bool isDark =
+        appThemeMode == ThemeMode.dark ||
+        (appThemeMode == ThemeMode.system &&
+            PlatformDispatcher.instance.platformBrightness == Brightness.dark);
 
     return ShadApp(
       title: 'Zenist',
@@ -137,7 +138,9 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 32.0), // kWindowCaptionHeight is usually 32
+                padding: const EdgeInsets.only(
+                  top: 32.0,
+                ), // kWindowCaptionHeight is usually 32
                 child: CallbackShortcuts(
                   bindings: <ShortcutActivator, VoidCallback>{
                     const SingleActivator(LogicalKeyboardKey.escape): () {

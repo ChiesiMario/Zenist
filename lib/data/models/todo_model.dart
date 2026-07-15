@@ -17,11 +17,7 @@ class SubtaskModel {
   }
 
   Subtask toEntity() {
-    return Subtask(
-      id: uuid,
-      title: title,
-      isCompleted: isCompleted,
-    );
+    return Subtask(id: uuid, title: title, isCompleted: isCompleted);
   }
 }
 
@@ -31,7 +27,7 @@ class TodoModel {
 
   @Index(unique: true, replace: true)
   late String uuid;
-  
+
   late String title;
   late String description;
   late bool isCompleted;
@@ -42,13 +38,11 @@ class TodoModel {
   late bool isAnytime;
   @Index()
   DateTime? completedAt;
-  
+
   int? repeatInterval;
   String? repeatUnit;
 
   List<SubtaskModel>? subtasks;
-
-
 
   // 從 Entity 轉換為 Isar 支援的 Model
   static TodoModel fromEntity(Todo entity) {
@@ -65,7 +59,9 @@ class TodoModel {
       ..completedAt = entity.completedAt
       ..repeatInterval = entity.repeatInterval
       ..repeatUnit = entity.repeatUnit
-      ..subtasks = entity.subtasks.map((s) => SubtaskModel.fromEntity(s)).toList();
+      ..subtasks = entity.subtasks
+          .map((s) => SubtaskModel.fromEntity(s))
+          .toList();
   }
 
   // 將 Isar Model 轉換為 Domain 核心的 Entity
