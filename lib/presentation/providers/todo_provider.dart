@@ -5,6 +5,7 @@ import '../../domain/repositories/todo_repository.dart';
 import '../../data/datasources/local/isar_datasource.dart';
 import '../../data/repositories/todo_repository_impl.dart';
 import '../../application/services/auto_sync_manager.dart';
+import '../../application/services/audio_service.dart';
 
 final isarDataSourceProvider = Provider<IsarDataSource>((ref) {
   return IsarDataSource();
@@ -118,6 +119,7 @@ class TodoNotifier extends Notifier<void> {
         clearRepeat: true,
       );
       await repository.saveTodo(updatedTodo);
+      ref.read(audioServiceProvider).playTaskCompleteSound();
       ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
       return;
     }
@@ -129,6 +131,9 @@ class TodoNotifier extends Notifier<void> {
       clearCompletedAt: todo.isCompleted,
     );
     await repository.saveTodo(updatedTodo);
+    if (!todo.isCompleted) {
+      ref.read(audioServiceProvider).playTaskCompleteSound();
+    }
     ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 
@@ -179,8 +184,10 @@ class TodoNotifier extends Notifier<void> {
 
   Future<void> toggleSubtask(Todo todo, String subtaskId) async {
     final repository = ref.read(todoRepositoryProvider);
+    bool justCompleted = false;
     final updatedSubtasks = todo.subtasks.map((s) {
       if (s.id == subtaskId) {
+        justCompleted = !s.isCompleted;
         return s.copyWith(isCompleted: !s.isCompleted);
       }
       return s;
@@ -191,6 +198,9 @@ class TodoNotifier extends Notifier<void> {
       updatedAt: DateTime.now(),
     );
     await repository.saveTodo(updatedTodo);
+    if (justCompleted) {
+      ref.read(audioServiceProvider).playTaskCompleteSound();
+    }
     ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 }

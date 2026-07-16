@@ -7,6 +7,8 @@ import '../../core/localization/translations.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
 import '../providers/todo_provider.dart';
+import 'animated_path_checkbox.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class TodoEditorDialog extends ConsumerStatefulWidget {
   final Todo? existingTodo;
@@ -792,14 +794,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                           child: Row(
                             children: [
                               Opacity(
-                                opacity: subtask.isCompleted ? 0.4 : 0.15,
-                                child: ShadCheckbox(
+                                opacity: subtask.isCompleted ? 1.0 : 0.4,
+                                child: AnimatedPathCheckbox(
                                   value: subtask.isCompleted,
-                                  onChanged:
-                                      (subtask.id == tempSubtasks.last.id &&
+                                  onChanged: (subtask.id == tempSubtasks.last.id &&
                                           subtask.title.trim().isEmpty)
                                       ? null
                                       : (v) {
+                                          if (v == null) return;
                                           setState(() {
                                             final idx = tempSubtasks.indexOf(
                                               subtask,
@@ -808,7 +810,13 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                                 .copyWith(isCompleted: v);
                                           });
                                         },
-                                ),
+                                  activeColor: ShadTheme.of(context).colorScheme.primary,
+                                  inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                  checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                  duration: const Duration(milliseconds: 600),
+                                )
+                                .animate(target: subtask.isCompleted ? 1 : 0)
+                                .shimmer(duration: 400.ms),
                               ),
                               const SizedBox(width: 8),
                               Expanded(

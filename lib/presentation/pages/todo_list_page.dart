@@ -1124,13 +1124,18 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                       completedTodayTodos.isNotEmpty;
 
                                   int itemCount =
-                                      uncompletedTodos.length +
-                                      (completedTodayTodos.isEmpty
-                                          ? 0
-                                          : completedTodayTodos.length + 1);
+                                      uncompletedTodos.length + 1 + completedTodayTodos.length;
                                   if (showZenRing) itemCount += 1;
 
                                   return ListView.builder(
+                                    findChildIndexCallback: (Key key) {
+                                      if (key == const ValueKey('completed_header')) {
+                                        int headerIndex = uncompletedTodos.length;
+                                        if (showZenRing) headerIndex += 1;
+                                        return headerIndex;
+                                      }
+                                      return null;
+                                    },
                                     padding: const EdgeInsets.only(
                                       bottom: 24,
                                       left: 24,
@@ -1175,27 +1180,57 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                       final completedIndex =
                                           adjustedIndex -
                                           uncompletedTodos.length;
+                                          
+                                      final bool isNewCompletedSection = completedTodayTodos.length == 1 && 
+                                          completedTodayTodos[0].completedAt != null && 
+                                          DateTime.now().difference(completedTodayTodos[0].completedAt!) < const Duration(seconds: 2);
+
                                       if (completedIndex == 0) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 32,
-                                            bottom: 8,
-                                          ),
-                                          child: Text(
-                                            Translations.tr(
-                                              'completed',
-                                              locale,
+                                        final bool hasCompleted = completedTodayTodos.isNotEmpty;
+                                        
+                                        Widget header = KeyedSubtree(
+                                          key: const ValueKey('completed_header_full'),
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 32,
+                                              bottom: 8,
                                             ),
-                                            style: ShadTheme.of(context)
-                                                .textTheme
-                                                .large
-                                                .copyWith(
-                                                  color: ShadTheme.of(
-                                                    context,
-                                                  ).colorScheme.mutedForeground,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                            child: Text(
+                                              Translations.tr(
+                                                'completed',
+                                                locale,
+                                              ),
+                                              style: ShadTheme.of(context)
+                                                  .textTheme
+                                                  .large
+                                                  .copyWith(
+                                                    color: ShadTheme.of(
+                                                      context,
+                                                    ).colorScheme.mutedForeground,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                            ),
                                           ),
+                                        );
+
+                                        return AnimatedSwitcher(
+                                          key: const ValueKey('completed_header'),
+                                          duration: const Duration(milliseconds: 300),
+                                          switchInCurve: Curves.easeOutCubic,
+                                          switchOutCurve: Curves.easeOutCubic,
+                                          transitionBuilder: (Widget child, Animation<double> animation) {
+                                            return SizeTransition(
+                                              sizeFactor: animation,
+                                              alignment: Alignment.topCenter,
+                                              child: FadeTransition(
+                                                opacity: animation,
+                                                child: child,
+                                              ),
+                                            );
+                                          },
+                                          child: hasCompleted
+                                              ? header
+                                              : const SizedBox(key: ValueKey('empty_header'), width: double.infinity, height: 0),
                                         );
                                       }
 
@@ -1205,6 +1240,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                       return TodoItemWidget(
                                         key: ValueKey(todo.id),
                                         todo: todo,
+                                        delayFadeIn: isNewCompletedSection && completedIndex == 1,
                                       );
                                     },
                                   );

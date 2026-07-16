@@ -52,6 +52,8 @@ dependencies:
   tray_manager: ^0.5.3
   package_info_plus: ^10.2.1
   win32_registry: ^3.0.3
+  audioplayers: ^6.8.1
+  flutter_animate: ^4.5.2
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -78,6 +80,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/sounds/
 
 
   # To add assets to your application, add an assets section, like this:
