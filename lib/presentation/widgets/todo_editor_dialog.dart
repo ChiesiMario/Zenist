@@ -31,6 +31,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
   final focusNode = FocusNode();
   final noteFocusNode = FocusNode();
   late TextEditingController noteController;
+  final _scrollController = ScrollController();
 
   DateTime? tempDueDate;
   bool isConfirmingDelete = false;
@@ -80,6 +81,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     noteFocusNode.dispose();
     textController.dispose();
     noteController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -568,12 +570,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(vertical: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
@@ -653,437 +657,453 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(
-                  (isInputFocused || noteFocusNode.hasFocus) ? 0.0 : 1.0,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: (isInputFocused || noteFocusNode.hasFocus)
-                        ? ShadTheme.of(context).colorScheme.ring
-                        : ShadTheme.of(context).colorScheme.border,
-                    width: (isInputFocused || noteFocusNode.hasFocus)
-                        ? 2.0
-                        : 1.0,
-                  ),
-                  borderRadius: ShadTheme.of(context).radius,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            focusNode: focusNode,
-                            controller: textController,
-                            autofocus: true,
-                            style: ShadTheme.of(
-                              context,
-                            ).textTheme.p.copyWith(fontSize: 14),
-                            decoration: InputDecoration(
-                              hintText: isEdit
-                                  ? null
-                                  : Translations.tr('add_new_task', locale),
-                              hintStyle: TextStyle(
-                                color: ShadTheme.of(context)
-                                    .colorScheme
-                                    .mutedForeground
-                                    .withValues(alpha: 0.4),
-                              ),
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              contentPadding: const EdgeInsets.only(
-                                left: 12,
-                                right: 0,
-                                top: 11,
-                                bottom: 11,
-                              ),
-                              isDense: true,
-                            ),
-                            cursorColor: ShadTheme.of(
-                              context,
-                            ).colorScheme.primary,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 44,
-                          height: 44,
-                          child: Center(
-                            child: ShadButton.ghost(
-                              width: 32,
-                              height: 32,
-                              padding: EdgeInsets.zero,
-                              child: Icon(
-                                showNoteInput
-                                    ? LucideIcons.chevronUp
-                                    : LucideIcons.chevronDown,
-                                color: ShadTheme.of(
-                                  context,
-                                ).colorScheme.mutedForeground,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  showNoteInput = !showNoteInput;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (showNoteInput) ...[
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: ShadTheme.of(
-                          context,
-                        ).colorScheme.border.withValues(alpha: 0.5),
-                      ),
-                      TextField(
-                        focusNode: noteFocusNode,
-                        controller: noteController,
-                        maxLines: null,
-                        style: ShadTheme.of(context).textTheme.p.copyWith(
-                          fontSize: 13,
-                          color: ShadTheme.of(
-                            context,
-                          ).colorScheme.mutedForeground,
-                        ),
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          hintText: Translations.tr('add_note', locale),
-                          hintStyle: TextStyle(
-                            color: ShadTheme.of(context)
-                                .colorScheme
-                                .mutedForeground
-                                .withValues(alpha: 0.4),
-                          ),
-                          isDense: true,
-                        ),
-                        cursorColor: ShadTheme.of(context).colorScheme.primary,
-                      ),
-                    ],
-                  ],
-                ),
               ),
-              SizedBox(height: showNoteInput ? 8 : 16),
-              if (tempSubtasks.isNotEmpty)
-                Column(
-                  children: tempSubtasks
-                      .map(
-                        (subtask) => Padding(
-                          key: ValueKey(subtask.id),
-                          padding: const EdgeInsets.only(
-                            bottom: 8.0,
-                            left: 8.0,
-                            right: 8.0,
+              const SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                    controller: _scrollController,
+                      padding: const EdgeInsets.only(left: 24, right: 21),
+                      child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(
+                          (isInputFocused || noteFocusNode.hasFocus) ? 0.0 : 1.0,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: (isInputFocused || noteFocusNode.hasFocus)
+                                ? ShadTheme.of(context).colorScheme.ring
+                                : ShadTheme.of(context).colorScheme.border,
+                            width: (isInputFocused || noteFocusNode.hasFocus)
+                                ? 2.0
+                                : 1.0,
                           ),
-                          child: Row(
-                            children: [
-                              Opacity(
-                                opacity: subtask.isCompleted ? 1.0 : 0.4,
-                                child: AnimatedPathCheckbox(
-                                  value: subtask.isCompleted,
-                                  onChanged: (subtask.id == tempSubtasks.last.id &&
-                                          subtask.title.trim().isEmpty)
-                                      ? null
-                                      : (v) {
-                                          if (v == null) return;
-                                          setState(() {
-                                            final idx = tempSubtasks.indexOf(
-                                              subtask,
-                                            );
-                                            tempSubtasks[idx] = subtask
-                                                .copyWith(isCompleted: v);
-                                          });
-                                        },
-                                  activeColor: ShadTheme.of(context).colorScheme.primary,
-                                  inactiveColor: ShadTheme.of(context).colorScheme.primary,
-                                  checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                                  duration: const Duration(milliseconds: 600),
-                                )
-                                .animate(target: subtask.isCompleted ? 1 : 0)
-                                .shimmer(duration: 400.ms),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Focus(
-                                  onFocusChange: (hasFocus) {
-                                    if (!hasFocus) {
-                                      final idx = tempSubtasks.indexWhere(
-                                        (s) => s.id == subtask.id,
-                                      );
-                                      if (idx != -1) {
-                                        final currentSubtask =
-                                            tempSubtasks[idx];
-                                        if (idx == tempSubtasks.length - 1 &&
-                                            currentSubtask.title
-                                                .trim()
-                                                .isNotEmpty) {
-                                          setState(() {
-                                            tempSubtasks.add(
-                                              Subtask(
-                                                id: const Uuid().v4(),
-                                                title: '',
-                                              ),
-                                            );
-                                          });
-                                        }
-                                      }
-                                    }
-                                  },
-                                  child: TextFormField(
-                                    initialValue: subtask.title,
-                                    autofocus: subtask.title.isEmpty,
-                                    style: TextStyle(
-                                      decoration: subtask.isCompleted
-                                          ? TextDecoration.lineThrough
-                                          : null,
-                                      color: ShadTheme.of(
-                                        context,
-                                      ).colorScheme.mutedForeground,
-                                      fontSize: 14,
-                                    ),
+                          borderRadius: ShadTheme.of(context).radius,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    focusNode: focusNode,
+                                    controller: textController,
+                                    autofocus: true,
+                                    style: ShadTheme.of(
+                                      context,
+                                    ).textTheme.p.copyWith(fontSize: 14),
                                     decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.zero,
-                                      hintText: Translations.tr(
-                                        'subtask_placeholder',
-                                        locale,
-                                      ),
+                                      hintText: isEdit
+                                          ? null
+                                          : Translations.tr('add_new_task', locale),
                                       hintStyle: TextStyle(
                                         color: ShadTheme.of(context)
                                             .colorScheme
                                             .mutedForeground
                                             .withValues(alpha: 0.4),
                                       ),
+                                      border: InputBorder.none,
+                                      focusedBorder: InputBorder.none,
+                                      enabledBorder: InputBorder.none,
+                                      errorBorder: InputBorder.none,
+                                      disabledBorder: InputBorder.none,
+                                      contentPadding: const EdgeInsets.only(
+                                        left: 12,
+                                        right: 0,
+                                        top: 11,
+                                        bottom: 11,
+                                      ),
+                                      isDense: true,
                                     ),
-                                    onChanged: (v) {
-                                      final idx = tempSubtasks.indexWhere(
-                                        (s) => s.id == subtask.id,
-                                      );
-                                      if (idx != -1) {
-                                        tempSubtasks[idx] = tempSubtasks[idx]
-                                            .copyWith(title: v);
-                                      }
-                                    },
-                                    onFieldSubmitted: (v) {
-                                      final idx = tempSubtasks.indexWhere(
-                                        (s) => s.id == subtask.id,
-                                      );
-                                      if (idx == tempSubtasks.length - 1 &&
-                                          v.trim().isNotEmpty) {
-                                        setState(() {
-                                          tempSubtasks[idx] = tempSubtasks[idx]
-                                              .copyWith(title: v);
-                                          tempSubtasks.add(
-                                            Subtask(
-                                              id: const Uuid().v4(),
-                                              title: '',
-                                            ),
-                                          );
-                                        });
-                                      }
-                                    },
+                                    cursorColor: ShadTheme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                 ),
+                                SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Center(
+                                    child: ShadButton.ghost(
+                                      width: 32,
+                                      height: 32,
+                                      padding: EdgeInsets.zero,
+                                      child: Icon(
+                                        showNoteInput
+                                            ? LucideIcons.chevronUp
+                                            : LucideIcons.chevronDown,
+                                        color: ShadTheme.of(
+                                          context,
+                                        ).colorScheme.mutedForeground,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          showNoteInput = !showNoteInput;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (showNoteInput) ...[
+                              Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: ShadTheme.of(
+                                  context,
+                                ).colorScheme.border.withValues(alpha: 0.5),
                               ),
-                              if (subtask.id == tempSubtasks.last.id &&
-                                  subtask.title.trim().isEmpty)
-                                const SizedBox(width: 32, height: 32)
-                              else
-                                ShadButton.ghost(
-                                  width: 32,
-                                  height: 32,
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () {
-                                    setState(() {
-                                      tempSubtasks.removeWhere(
-                                        (s) => s.id == subtask.id,
-                                      );
-                                      if (tempSubtasks.isEmpty ||
-                                          tempSubtasks.last.title
-                                              .trim()
-                                              .isNotEmpty) {
-                                        tempSubtasks.add(
-                                          Subtask(
-                                            id: const Uuid().v4(),
-                                            title: '',
+                              TextField(
+                                focusNode: noteFocusNode,
+                                controller: noteController,
+                                maxLines: null,
+                                style: ShadTheme.of(context).textTheme.p.copyWith(
+                                  fontSize: 13,
+                                  color: ShadTheme.of(
+                                    context,
+                                  ).colorScheme.mutedForeground,
+                                ),
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  errorBorder: InputBorder.none,
+                                  disabledBorder: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  hintText: Translations.tr('add_note', locale),
+                                  hintStyle: TextStyle(
+                                    color: ShadTheme.of(context)
+                                        .colorScheme
+                                        .mutedForeground
+                                        .withValues(alpha: 0.4),
+                                  ),
+                                  isDense: true,
+                                ),
+                                cursorColor: ShadTheme.of(context).colorScheme.primary,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: showNoteInput ? 8 : 16),
+                      if (tempSubtasks.isNotEmpty)
+                        Column(
+                          children: tempSubtasks
+                              .map(
+                                (subtask) => Padding(
+                                  key: ValueKey(subtask.id),
+                                  padding: const EdgeInsets.only(
+                                    bottom: 8.0,
+                                    left: 8.0,
+                                    right: 8.0,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Opacity(
+                                        opacity: subtask.isCompleted ? 1.0 : 0.4,
+                                        child: AnimatedPathCheckbox(
+                                          value: subtask.isCompleted,
+                                          onChanged: (subtask.id == tempSubtasks.last.id &&
+                                                  subtask.title.trim().isEmpty)
+                                              ? null
+                                              : (v) {
+                                                  if (v == null) return;
+                                                  setState(() {
+                                                    final idx = tempSubtasks.indexOf(
+                                                      subtask,
+                                                    );
+                                                    tempSubtasks[idx] = subtask
+                                                        .copyWith(isCompleted: v);
+                                                  });
+                                                },
+                                          activeColor: ShadTheme.of(context).colorScheme.primary,
+                                          inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                          checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                          duration: const Duration(milliseconds: 600),
+                                        )
+                                        .animate(target: subtask.isCompleted ? 1 : 0)
+                                        .shimmer(duration: 400.ms),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Focus(
+                                          onFocusChange: (hasFocus) {
+                                            if (!hasFocus) {
+                                              final idx = tempSubtasks.indexWhere(
+                                                (s) => s.id == subtask.id,
+                                              );
+                                              if (idx != -1) {
+                                                final currentSubtask =
+                                                    tempSubtasks[idx];
+                                                if (idx == tempSubtasks.length - 1 &&
+                                                    currentSubtask.title
+                                                        .trim()
+                                                        .isNotEmpty) {
+                                                  setState(() {
+                                                    tempSubtasks.add(
+                                                      Subtask(
+                                                        id: const Uuid().v4(),
+                                                        title: '',
+                                                      ),
+                                                    );
+                                                  });
+                                                }
+                                              }
+                                            }
+                                          },
+                                          child: TextFormField(
+                                            initialValue: subtask.title,
+                                            autofocus: subtask.title.isEmpty,
+                                            style: TextStyle(
+                                              decoration: subtask.isCompleted
+                                                  ? TextDecoration.lineThrough
+                                                  : null,
+                                              color: ShadTheme.of(
+                                                context,
+                                              ).colorScheme.mutedForeground,
+                                              fontSize: 14,
+                                            ),
+                                            decoration: InputDecoration(
+                                              border: InputBorder.none,
+                                              isDense: true,
+                                              contentPadding: EdgeInsets.zero,
+                                              hintText: Translations.tr(
+                                                'subtask_placeholder',
+                                                locale,
+                                              ),
+                                              hintStyle: TextStyle(
+                                                color: ShadTheme.of(context)
+                                                    .colorScheme
+                                                    .mutedForeground
+                                                    .withValues(alpha: 0.4),
+                                              ),
+                                            ),
+                                            onChanged: (v) {
+                                              final idx = tempSubtasks.indexWhere(
+                                                (s) => s.id == subtask.id,
+                                              );
+                                              if (idx != -1) {
+                                                tempSubtasks[idx] = tempSubtasks[idx]
+                                                    .copyWith(title: v);
+                                              }
+                                            },
+                                            onFieldSubmitted: (v) {
+                                              final idx = tempSubtasks.indexWhere(
+                                                (s) => s.id == subtask.id,
+                                              );
+                                              if (idx == tempSubtasks.length - 1 &&
+                                                  v.trim().isNotEmpty) {
+                                                setState(() {
+                                                  tempSubtasks[idx] = tempSubtasks[idx]
+                                                      .copyWith(title: v);
+                                                  tempSubtasks.add(
+                                                    Subtask(
+                                                      id: const Uuid().v4(),
+                                                      title: '',
+                                                    ),
+                                                  );
+                                                });
+                                              }
+                                            },
                                           ),
-                                        );
-                                      }
-                                    });
-                                  },
-                                  child: Icon(
-                                    LucideIcons.x,
-                                    size: 16,
+                                        ),
+                                      ),
+                                      if (subtask.id == tempSubtasks.last.id &&
+                                          subtask.title.trim().isEmpty)
+                                        const SizedBox(width: 32, height: 32)
+                                      else
+                                        ShadButton.ghost(
+                                          width: 32,
+                                          height: 32,
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            setState(() {
+                                              tempSubtasks.removeWhere(
+                                                (s) => s.id == subtask.id,
+                                              );
+                                              if (tempSubtasks.isEmpty ||
+                                                  tempSubtasks.last.title
+                                                      .trim()
+                                                      .isNotEmpty) {
+                                                tempSubtasks.add(
+                                                  Subtask(
+                                                    id: const Uuid().v4(),
+                                                    title: '',
+                                                  ),
+                                                );
+                                              }
+                                            });
+                                          },
+                                          child: Icon(
+                                            LucideIcons.x,
+                                            size: 16,
+                                            color: ShadTheme.of(
+                                              context,
+                                            ).colorScheme.mutedForeground,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: pickDate,
+                            borderRadius: BorderRadius.circular(4),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    tempIsAnytime
+                                        ? LucideIcons.infinity
+                                        : LucideIcons.calendar,
+                                    size: 14,
                                     color: ShadTheme.of(
                                       context,
                                     ).colorScheme.mutedForeground,
                                   ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  InkWell(
-                    onTap: pickDate,
-                    borderRadius: BorderRadius.circular(4),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            tempIsAnytime
-                                ? LucideIcons.infinity
-                                : LucideIcons.calendar,
-                            size: 14,
-                            color: ShadTheme.of(
-                              context,
-                            ).colorScheme.mutedForeground,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            (() {
-                              String dateStr = '';
-                              if (tempIsAnytime) {
-                                dateStr = Translations.tr(
-                                  'tab_anytime',
-                                  locale,
-                                );
-                              } else if (tempDueDate != null) {
-                                final date = tempDueDate!;
-                                final now = DateTime.now();
-                                final today = DateTime(
-                                  now.year,
-                                  now.month,
-                                  now.day,
-                                );
-                                final tomorrow = today.add(
-                                  const Duration(days: 1),
-                                );
-                                final dateStart = DateTime(
-                                  date.year,
-                                  date.month,
-                                  date.day,
-                                );
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    (() {
+                                      String dateStr = '';
+                                      if (tempIsAnytime) {
+                                        dateStr = Translations.tr(
+                                          'tab_anytime',
+                                          locale,
+                                        );
+                                      } else if (tempDueDate != null) {
+                                        final date = tempDueDate!;
+                                        final now = DateTime.now();
+                                        final today = DateTime(
+                                          now.year,
+                                          now.month,
+                                          now.day,
+                                        );
+                                        final tomorrow = today.add(
+                                          const Duration(days: 1),
+                                        );
+                                        final dateStart = DateTime(
+                                          date.year,
+                                          date.month,
+                                          date.day,
+                                        );
 
-                                if (dateStart == today) {
-                                  dateStr = Translations.tr(
-                                    'tab_today',
-                                    locale,
-                                  );
-                                } else if (dateStart == tomorrow) {
-                                  dateStr = Translations.tr('tomorrow', locale);
-                                } else {
-                                  dateStr = DateFormat(
-                                    ref.watch(settingsProvider).dateFormat,
-                                  ).format(date);
-                                }
-                              } else {
-                                dateStr = Translations.tr(
-                                  'set_due_date',
-                                  locale,
-                                );
-                              }
+                                        if (dateStart == today) {
+                                          dateStr = Translations.tr(
+                                            'tab_today',
+                                            locale,
+                                          );
+                                        } else if (dateStart == tomorrow) {
+                                          dateStr = Translations.tr('tomorrow', locale);
+                                        } else {
+                                          dateStr = DateFormat(
+                                            ref.watch(settingsProvider).dateFormat,
+                                          ).format(date);
+                                        }
+                                      } else {
+                                        dateStr = Translations.tr(
+                                          'set_due_date',
+                                          locale,
+                                        );
+                                      }
 
-                              if (tempRepeatEnabled) {
-                                final repeatStr =
-                                    '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
-                                return '$dateStr · $repeatStr';
-                              }
+                                      if (tempRepeatEnabled) {
+                                        final repeatStr =
+                                            '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
+                                        return '$dateStr · $repeatStr';
+                                      }
 
-                              return dateStr;
-                            })(),
-                            style: ShadTheme.of(
-                              context,
-                            ).textTheme.muted.copyWith(fontSize: 13),
+                                      return dateStr;
+                                    })(),
+                                    style: ShadTheme.of(
+                                      context,
+                                    ).textTheme.muted.copyWith(fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ShadButton.outline(
-                    child: Text(Translations.tr('cancel', locale)),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  ShadButton(
-                    child: Text(Translations.tr('confirm', locale)),
-                    onPressed: () {
-                      final newTitle = textController.text.trim();
-                      if (newTitle.isNotEmpty) {
-                        final validSubtasks = tempSubtasks
-                            .where((s) => s.title.trim().isNotEmpty)
-                            .toList();
-                        if (isEdit) {
-                          ref
-                              .read(todoNotifierProvider.notifier)
-                              .updateTodoDetails(
-                                widget.existingTodo!,
-                                newTitle,
-                                tempDueDate,
-                                description: noteController.text.trim(),
-                                isAnytime: tempIsAnytime,
-                                repeatInterval: tempRepeatEnabled
-                                    ? tempRepeatInterval
-                                    : null,
-                                repeatUnit: tempRepeatEnabled
-                                    ? tempRepeatUnit
-                                    : null,
-                                newSubtasks: validSubtasks,
-                              );
-                        } else {
-                          ref
-                              .read(todoNotifierProvider.notifier)
-                              .addTodo(
-                                newTitle,
-                                dueDate: tempDueDate,
-                                description: noteController.text.trim(),
-                                isAnytime: tempIsAnytime,
-                                repeatInterval: tempRepeatEnabled
-                                    ? tempRepeatInterval
-                                    : null,
-                                repeatUnit: tempRepeatEnabled
-                                    ? tempRepeatUnit
-                                    : null,
-                                subtasks: validSubtasks,
-                              );
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ShadButton.outline(
+                      child: Text(Translations.tr('cancel', locale)),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    ShadButton(
+                      child: Text(Translations.tr('confirm', locale)),
+                      onPressed: () {
+                        final newTitle = textController.text.trim();
+                        if (newTitle.isNotEmpty) {
+                          final validSubtasks = tempSubtasks
+                              .where((s) => s.title.trim().isNotEmpty)
+                              .toList();
+                          if (isEdit) {
+                            ref
+                                .read(todoNotifierProvider.notifier)
+                                .updateTodoDetails(
+                                  widget.existingTodo!,
+                                  newTitle,
+                                  tempDueDate,
+                                  description: noteController.text.trim(),
+                                  isAnytime: tempIsAnytime,
+                                  repeatInterval: tempRepeatEnabled
+                                      ? tempRepeatInterval
+                                      : null,
+                                  repeatUnit: tempRepeatEnabled
+                                      ? tempRepeatUnit
+                                      : null,
+                                  newSubtasks: validSubtasks,
+                                );
+                          } else {
+                            ref
+                                .read(todoNotifierProvider.notifier)
+                                .addTodo(
+                                  newTitle,
+                                  dueDate: tempDueDate,
+                                  description: noteController.text.trim(),
+                                  isAnytime: tempIsAnytime,
+                                  repeatInterval: tempRepeatEnabled
+                                      ? tempRepeatInterval
+                                      : null,
+                                  repeatUnit: tempRepeatEnabled
+                                      ? tempRepeatUnit
+                                      : null,
+                                  subtasks: validSubtasks,
+                                );
+                          }
+                          Navigator.of(context).pop();
                         }
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  ),
-                ],
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

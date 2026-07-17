@@ -63,6 +63,26 @@ void main(List<String> args) async {
   );
 }
 
+class _CustomScrollBehavior extends MaterialScrollBehavior {
+  const _CustomScrollBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return RawScrollbar(
+      controller: details.controller,
+      thickness: 4.0,
+      radius: const Radius.circular(4.0),
+      crossAxisMargin: 3.0,
+      thumbColor: ShadTheme.of(context).colorScheme.border,
+      child: child,
+    );
+  }
+}
+
 class ZenistApp extends ConsumerStatefulWidget {
   const ZenistApp({super.key});
 
@@ -180,7 +200,9 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
         final scaffoldChild = ScaffoldMessenger(child: child!);
         return Directionality(
           textDirection: TextDirection.ltr,
-          child: Stack(
+          child: ScrollConfiguration(
+            behavior: const _CustomScrollBehavior(),
+            child: Stack(
             children: [
               Padding(
                 padding: const EdgeInsets.only(
@@ -211,6 +233,7 @@ class _ZenistAppState extends ConsumerState<ZenistApp> with WindowListener {
                 ),
               ),
             ],
+          ),
           ),
         );
       },

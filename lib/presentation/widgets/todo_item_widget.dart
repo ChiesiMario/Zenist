@@ -28,6 +28,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
   bool _isCompleting = false;
   bool _isUncompleting = false;
   bool _isCollapsing = false;
+  bool _justUncompleted = false;
   final GlobalKey _strikethroughKey = GlobalKey();
 
   @override
@@ -38,6 +39,12 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
       _isCompleting = false;
       _isUncompleting = false;
       _isCollapsing = false;
+      
+      if (oldWidget.todo.isCompleted && !widget.todo.isCompleted) {
+        _justUncompleted = true;
+      } else {
+        _justUncompleted = false;
+      }
     }
   }
 
@@ -513,6 +520,11 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
       content = content.animate().fadeOut(duration: 500.ms, delay: 800.ms, curve: Curves.easeOutCubic);
     } else if (_isUncompleting) {
       content = content.animate().fadeOut(duration: 200.ms, curve: Curves.easeOutCubic);
+    } else if (_justUncompleted && !_isCompleting && !_isUncompleting && !_isCollapsing) {
+      content = content.animate(key: ValueKey('${widget.todo.id}_uncompleted_fade')).fadeIn(
+        duration: 400.ms,
+        delay: 50.ms,
+      );
     }
 
     return AnimatedSize(
