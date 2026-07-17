@@ -16,6 +16,38 @@ import '../providers/auth_provider.dart';
 import '../../core/utils/toast_utils.dart';
 import 'settings_page.dart';
 
+sealed class ListItem {
+  String get id;
+}
+
+class TodoListItem extends ListItem {
+  final Todo todo;
+  final bool isCompletedSection;
+  
+  TodoListItem(this.todo, {this.isCompletedSection = false});
+  
+  @override
+  String get id => isCompletedSection ? '${todo.id}_completed' : '${todo.id}_uncompleted';
+}
+
+class HeaderListItem extends ListItem {
+  final bool hasCompleted;
+  
+  HeaderListItem(this.hasCompleted);
+  
+  @override
+  String get id => 'completed_header';
+}
+
+class ZenRingListItem extends ListItem {
+  final int completedCount;
+  
+  ZenRingListItem(this.completedCount);
+  
+  @override
+  String get id => 'zen_ring';
+}
+
 class TodoListPage extends ConsumerStatefulWidget {
   const TodoListPage({super.key});
 
@@ -35,8 +67,6 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   bool _isInputExpanded = false;
 
   final ScrollController _scrollController = ScrollController();
-  int _previousUncompletedCount = -1;
-  List<String> _previousUncompletedIds = [];
 
   final GlobalKey<_SyncIconWidgetState> _syncIconKey =
       GlobalKey<_SyncIconWidgetState>();
@@ -1079,16 +1109,6 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                     return 0;
                                   });
 
-                                  final currentUncompletedIds = uncompletedTodos.map((t) => t.id).toList();
-                                  int currentUncompletedCount = uncompletedTodos.length;
-
-                                  List<String> addedIds = [];
-                                  if (_previousUncompletedIds.isNotEmpty) {
-                                    addedIds = currentUncompletedIds.where((id) => !_previousUncompletedIds.contains(id)).toList();
-                                  }
-
-                                  _previousUncompletedCount = currentUncompletedCount;
-                                  _previousUncompletedIds = currentUncompletedIds;
 
                                   if (uncompletedTodos.isEmpty &&
                                       completedTodayTodos.isEmpty) {
@@ -1145,142 +1165,77 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                       completedTodayTodos.isNotEmpty;
 
                                   final showCompletedSection = _currentIndex == 0;
+
+                                  final listItems = <ListItem>[];
                                   
-                                  int itemCount =
-                                      uncompletedTodos.length + (showCompletedSection ? 1 + completedTodayTodos.length : 0);
-                                  if (showZenRing) itemCount += 1;
+                                  if (showZenRing) {
+                                    listItems.add(ZenRingListItem(completedTodayTodos.length));
+                                  }
+                                  
+                                  for (final todo in uncompletedTodos) {
+                                    listItems.add(TodoListItem(todo));
+                                  }
+                                  
+                                  if (showCompletedSection && completedTodayTodos.isNotEmpty) {
+                                    listItems.add(HeaderListItem(true));
+                                        
+                                    for (int i = 0; i < completedTodayTodos.length; i++) {
+                                      listItems.add(TodoListItem(
+                                        completedTodayTodos[i],
+                                        isCompletedSection: true,
+                                      ));
+                                    }
+                                  }
 
                                   return ListView.builder(
                                     controller: _scrollController,
-                                    findChildIndexCallback: (Key key) {
-                                      if (key == const ValueKey('completed_header')) {
-                                        if (!showCompletedSection) return null;
-                                        int headerIndex = uncompletedTodos.length;
-                                        if (showZenRing) headerIndex += 1;
-                                        return headerIndex;
-                                      }
-                                      if (key is ValueKey<String>) {
-                                        final id = key.value;
-                                        int idx = uncompletedTodos.indexWhere((t) => t.id == id);
-                                        if (idx != -1) {
-                                          return showZenRing ? idx + 1 : idx;
-                                        }
-                                        idx = completedTodayTodos.indexWhere((t) => t.id == id);
-                                        if (idx != -1) {
-                                          int headerIndex = uncompletedTodos.length;
-                                          if (showZenRing) headerIndex += 1;
-                                          return headerIndex + (showCompletedSection ? 1 : 0) + idx;
-                                        }
-                                      }
-                                      return null;
-                                    },
                                     padding: const EdgeInsets.only(
                                       bottom: 24,
                                       left: 24,
                                       right: 24,
                                     ),
-                                    itemCount: itemCount,
+                                    itemCount: listItems.length,
                                     itemBuilder: (context, index) {
-                                      int adjustedIndex = index;
-
-                                      if (showZenRing) {
-                                        if (adjustedIndex == 0) {
-                                          final subtitle =
-                                              Translations.tr(
-                                                'completed_x_tasks',
-                                                locale,
-                                              ).replaceAll(
-                                                '{count}',
-                                                completedTodayTodos.length
-                                                    .toString(),
-                                              );
-                                          return AllDoneZenRingWidget(
-                                            message: Translations.tr(
-                                              'all_done_today',
-                                              locale,
-                                            ),
-                                            subtitle: subtitle,
-                                          );
-                                        }
-                                        adjustedIndex -= 1;
-                                      }
-
-                                      if (adjustedIndex <
-                                          uncompletedTodos.length) {
-                                        return TodoItemWidget(
-                                          key: ValueKey(
-                                            uncompletedTodos[adjustedIndex].id,
-                                          ),
-                                          todo: uncompletedTodos[adjustedIndex],
+                                      final item = listItems[index];
+                                      Widget child;
+                                      if (item is ZenRingListItem) {
+                                        final subtitle = Translations.tr('completed_x_tasks', locale)
+                                            .replaceAll('{count}', item.completedCount.toString());
+                                        child = AllDoneZenRingWidget(
+                                          message: Translations.tr('all_done_today', locale),
+                                          subtitle: subtitle,
                                         );
-                                      }
-
-                                      final completedIndex =
-                                          adjustedIndex -
-                                          uncompletedTodos.length;
-                                          
-                                      final bool isNewCompletedSection = completedTodayTodos.length == 1 && 
-                                          completedTodayTodos[0].completedAt != null && 
-                                          DateTime.now().difference(completedTodayTodos[0].completedAt!) < const Duration(seconds: 2);
-
-                                      if (completedIndex == 0) {
-                                        final bool hasCompleted = completedTodayTodos.isNotEmpty;
-                                        
-                                        Widget header = KeyedSubtree(
+                                      } else if (item is HeaderListItem) {
+                                        child = KeyedSubtree(
                                           key: const ValueKey('completed_header_full'),
                                           child: Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 32,
-                                              bottom: 8,
-                                            ),
+                                            padding: const EdgeInsets.only(top: 32, bottom: 8),
                                             child: Align(
                                               alignment: Alignment.centerLeft,
                                               child: Opacity(
                                                 opacity: 0.6,
                                                 child: Text(
-                                                  Translations.tr(
-                                                    'completed',
-                                                    locale,
+                                                  Translations.tr('completed', locale),
+                                                  style: ShadTheme.of(context).textTheme.large.copyWith(
+                                                    color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                                    fontWeight: FontWeight.normal,
+                                                    fontSize: 14,
                                                   ),
-                                                  style: ShadTheme.of(context)
-                                                      .textTheme
-                                                      .large
-                                                      .copyWith(
-                                                        color: ShadTheme.of(context).colorScheme.mutedForeground,
-                                                        fontWeight: FontWeight.normal,
-                                                        fontSize: 14,
-                                                      ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                         );
-
-                                        return AnimatedSwitcher(
-                                          key: const ValueKey('completed_header'),
-                                          duration: const Duration(milliseconds: 300),
-                                          switchInCurve: Curves.easeOutCubic,
-                                          switchOutCurve: Curves.easeInCubic,
-                                          transitionBuilder: (Widget child, Animation<double> animation) {
-                                            return FadeTransition(
-                                              opacity: animation,
-                                              child: child,
-                                            );
-                                          },
-                                          child: hasCompleted
-                                              ? header
-                                              : const SizedBox(key: ValueKey('empty_header'), width: double.infinity, height: 0),
+                                      } else if (item is TodoListItem) {
+                                        child = TodoItemWidget(
+                                          key: ValueKey(item.id),
+                                          todo: item.todo,
                                         );
+                                      } else {
+                                        child = const SizedBox.shrink();
                                       }
 
-                                      final todo =
-                                          completedTodayTodos[completedIndex -
-                                              1];
-                                      return TodoItemWidget(
-                                        key: ValueKey(todo.id),
-                                        todo: todo,
-                                        delayFadeIn: isNewCompletedSection && completedIndex == 1,
-                                      );
+                                      return child;
                                     },
                                   );
                                 },

@@ -7,6 +7,7 @@ import '../../core/localization/translations.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/settings_provider.dart';
 import '../providers/todo_provider.dart';
+import '../../application/services/audio_service.dart';
 import 'animated_path_checkbox.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -815,6 +816,9 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                               ? null
                                               : (v) {
                                                   if (v == null) return;
+                                                  if (v == true) {
+                                                    ref.read(audioServiceProvider).playTaskCompleteSound();
+                                                  }
                                                   setState(() {
                                                     final idx = tempSubtasks.indexOf(
                                                       subtask,
@@ -826,10 +830,8 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                           activeColor: ShadTheme.of(context).colorScheme.primary,
                                           inactiveColor: ShadTheme.of(context).colorScheme.primary,
                                           checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                                          duration: const Duration(milliseconds: 600),
-                                        )
-                                        .animate(target: subtask.isCompleted ? 1 : 0)
-                                        .shimmer(duration: 400.ms),
+                                          duration: Duration.zero,
+                                        ),
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
