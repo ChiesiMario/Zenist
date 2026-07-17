@@ -11,7 +11,7 @@ import '../providers/todo_provider.dart';
 import '../../application/services/audio_service.dart';
 import 'animated_path_checkbox.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
+import '../../core/utils/date_formatter.dart';
 class TodoEditorDialog extends ConsumerStatefulWidget {
   final Todo? existingTodo;
   final String? initialTitle;
@@ -714,40 +714,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                     Text(
                                       (() {
                                         String dateStr = '';
-                                        if (tempIsAnytime) {
-                                          dateStr = Translations.tr(
-                                            'tab_anytime',
-                                            locale,
+                                        if (tempIsAnytime || tempDueDate != null) {
+                                          dateStr = DateFormatter.getRelativeDateString(
+                                            date: tempDueDate,
+                                            locale: locale,
+                                            dateFormat: ref.watch(settingsProvider).dateFormat,
+                                            isAnytime: tempIsAnytime,
+                                            includeAbsolute: true,
                                           );
-                                        } else if (tempDueDate != null) {
-                                          final date = tempDueDate!;
-                                          final now = DateTime.now();
-                                          final today = DateTime(
-                                            now.year,
-                                            now.month,
-                                            now.day,
-                                          );
-                                          final tomorrow = today.add(
-                                            const Duration(days: 1),
-                                          );
-                                          final dateStart = DateTime(
-                                            date.year,
-                                            date.month,
-                                            date.day,
-                                          );
-
-                                          if (dateStart == today) {
-                                            dateStr = Translations.tr(
-                                              'tab_today',
-                                              locale,
-                                            );
-                                          } else if (dateStart == tomorrow) {
-                                            dateStr = Translations.tr('tomorrow', locale);
-                                          } else {
-                                            dateStr = DateFormat(
-                                              ref.watch(settingsProvider).dateFormat,
-                                            ).format(date);
-                                          }
                                         } else {
                                           dateStr = Translations.tr(
                                             'set_due_date',

@@ -11,7 +11,7 @@ import '../providers/settings_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'animated_path_checkbox.dart';
 import 'animated_strikethrough_text.dart';
-
+import '../../core/utils/date_formatter.dart';
 class TodoItemWidget extends ConsumerStatefulWidget {
   final Todo todo;
 
@@ -232,45 +232,14 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   Text(
                                     (() {
                                       String dateStr = '';
-                                      if (widget.todo.isAnytime) {
-                                        dateStr = Translations.tr(
-                                          'tab_anytime',
-                                          locale,
+                                      if (widget.todo.isAnytime || widget.todo.dueDate != null) {
+                                        dateStr = DateFormatter.getRelativeDateString(
+                                          date: widget.todo.dueDate,
+                                          locale: locale,
+                                          dateFormat: ref.watch(settingsProvider).dateFormat,
+                                          isAnytime: widget.todo.isAnytime,
+                                          includeAbsolute: false,
                                         );
-                                      } else if (widget.todo.dueDate != null) {
-                                        final date = widget.todo.dueDate!;
-                                        final now = DateTime.now();
-                                        final today = DateTime(
-                                          now.year,
-                                          now.month,
-                                          now.day,
-                                        );
-                                        final tomorrow = today.add(
-                                          const Duration(days: 1),
-                                        );
-                                        final dateStart = DateTime(
-                                          date.year,
-                                          date.month,
-                                          date.day,
-                                        );
-
-                                        if (dateStart == today) {
-                                          dateStr = Translations.tr(
-                                            'tab_today',
-                                            locale,
-                                          );
-                                        } else if (dateStart == tomorrow) {
-                                          dateStr = Translations.tr(
-                                            'tomorrow',
-                                            locale,
-                                          );
-                                        } else {
-                                          dateStr = DateFormat(
-                                            ref
-                                                .watch(settingsProvider)
-                                                .dateFormat,
-                                          ).format(date);
-                                        }
                                       }
 
                                       if (widget.todo.repeatInterval != null &&
