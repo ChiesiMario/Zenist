@@ -149,27 +149,33 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2.0),
-                      child: Opacity(
-                        opacity: isDone ? 1.0 : 0.4,
-                        child: _isCompleting
-                            ? AnimatedPathCheckbox(
-                                value: isDone,
-                                onChanged: _handleToggle,
-                                activeColor: ShadTheme.of(context).colorScheme.primary,
-                                inactiveColor: ShadTheme.of(context).colorScheme.primary,
-                                checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                                duration: const Duration(milliseconds: 600),
-                              ).animate().shimmer(duration: 400.ms)
-                            : AnimatedPathCheckbox(
-                                value: isDone,
-                                onChanged: _handleToggle,
-                                activeColor: ShadTheme.of(context).colorScheme.primary,
-                                inactiveColor: ShadTheme.of(context).colorScheme.primary,
-                                checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                                duration: const Duration(milliseconds: 600),
-                              ),
+                    SizedBox(
+                      height: 21.0, // matches fontSize (15) * height (1.4)
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 2.5),
+                          child: Opacity(
+                            opacity: isDone ? 1.0 : 0.4,
+                            child: _isCompleting
+                                ? AnimatedPathCheckbox(
+                                    value: isDone,
+                                    onChanged: _handleToggle,
+                                    activeColor: ShadTheme.of(context).colorScheme.primary,
+                                    inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                    checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                    duration: const Duration(milliseconds: 600),
+                                  ).animate().shimmer(duration: 400.ms)
+                                : AnimatedPathCheckbox(
+                                    value: isDone,
+                                    onChanged: _handleToggle,
+                                    activeColor: ShadTheme.of(context).colorScheme.primary,
+                                    inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                    checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                    duration: const Duration(milliseconds: 600),
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
