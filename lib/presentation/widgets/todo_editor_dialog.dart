@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:uuid/uuid.dart';
@@ -46,6 +47,13 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
   List<Subtask> tempSubtasks = [];
   bool _isInitialLoad = true;
 
+  bool get _isOverdue {
+    if (tempIsAnytime || tempDueDate == null) return false;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final date = DateTime(tempDueDate!.year, tempDueDate!.month, tempDueDate!.day);
+    return date.isBefore(today);
+  }
   @override
   void initState() {
     super.initState();
@@ -677,6 +685,99 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: pickDate,
+                              borderRadius: BorderRadius.circular(4),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      tempIsAnytime
+                                          ? LucideIcons.infinity
+                                          : LucideIcons.calendar,
+                                      size: 14,
+                                      color: _isOverdue
+                                          ? ShadTheme.of(context).colorScheme.destructive
+                                          : ShadTheme.of(context).colorScheme.mutedForeground,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      (() {
+                                        String dateStr = '';
+                                        if (tempIsAnytime) {
+                                          dateStr = Translations.tr(
+                                            'tab_anytime',
+                                            locale,
+                                          );
+                                        } else if (tempDueDate != null) {
+                                          final date = tempDueDate!;
+                                          final now = DateTime.now();
+                                          final today = DateTime(
+                                            now.year,
+                                            now.month,
+                                            now.day,
+                                          );
+                                          final tomorrow = today.add(
+                                            const Duration(days: 1),
+                                          );
+                                          final dateStart = DateTime(
+                                            date.year,
+                                            date.month,
+                                            date.day,
+                                          );
+
+                                          if (dateStart == today) {
+                                            dateStr = Translations.tr(
+                                              'tab_today',
+                                              locale,
+                                            );
+                                          } else if (dateStart == tomorrow) {
+                                            dateStr = Translations.tr('tomorrow', locale);
+                                          } else {
+                                            dateStr = DateFormat(
+                                              ref.watch(settingsProvider).dateFormat,
+                                            ).format(date);
+                                          }
+                                        } else {
+                                          dateStr = Translations.tr(
+                                            'set_due_date',
+                                            locale,
+                                          );
+                                        }
+
+                                        if (tempRepeatEnabled) {
+                                          final repeatStr =
+                                              '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
+                                          return '$dateStr · $repeatStr';
+                                        }
+
+                                        return dateStr;
+                                      })(),
+                                      style: ShadTheme.of(
+                                        context,
+                                      ).textTheme.muted.copyWith(
+                                        fontSize: 13,
+                                        color: _isOverdue ? ShadTheme.of(context).colorScheme.destructive : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Container(
                         padding: EdgeInsets.all(
                           (isInputFocused || noteFocusNode.hasFocus) ? 0.0 : 1.0,
@@ -819,40 +920,51 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Opacity(
-                                        opacity: subtask.isCompleted ? 0.4 : 0.15,
-                                        child: Transform.translate(
-                                          offset: const Offset(0, 5.0),
-                                          child: AnimatedPathCheckbox(
-                                            value: subtask.isCompleted,
-                                            onChanged: (subtask.id == tempSubtasks.last.id &&
-                                                    subtask.title.trim().isEmpty)
-                                                ? null
-                                                : (v) {
-                                                    if (v == null) return;
-                                                    if (v == true) {
-                                                      ref.read(audioServiceProvider).playTaskCompleteSound();
-                                                    }
-                                                    setState(() {
-                                                      final idx = tempSubtasks.indexOf(
-                                                        subtask,
-                                                      );
-                                                      tempSubtasks[idx] = subtask
-                                                          .copyWith(isCompleted: v);
-                                                    });
-                                                  },
-                                            activeColor: ShadTheme.of(context).colorScheme.primary,
-                                            inactiveColor: ShadTheme.of(context).colorScheme.primary,
-                                            checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                                            duration: Duration.zero,
-                                            isCircular: true,
-                                            size: 14.0,
+                                      Transform.translate(
+                                        offset: const Offset(-8.0, 1.0),
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: (subtask.id == tempSubtasks.last.id && subtask.title.trim().isEmpty) ? null : () {
+                                            if (!subtask.isCompleted) {
+                                              ref.read(audioServiceProvider).playTaskCompleteSound();
+                                            }
+                                            setState(() {
+                                              final idx = tempSubtasks.indexOf(subtask);
+                                              tempSubtasks[idx] = subtask.copyWith(isCompleted: !subtask.isCompleted);
+                                            });
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(left: 8.0, top: 4.0, bottom: 4.0),
+                                            child: MouseRegion(
+                                              cursor: (subtask.id == tempSubtasks.last.id && subtask.title.trim().isEmpty) ? SystemMouseCursors.basic : SystemMouseCursors.click,
+                                              child: Opacity(
+                                                opacity: subtask.isCompleted ? 0.4 : 0.15,
+                                                child: AnimatedPathCheckbox(
+                                                  value: subtask.isCompleted,
+                                                  onChanged: null,
+                                                  activeColor: ShadTheme.of(context).colorScheme.primary,
+                                                  inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                                  checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                                  duration: Duration.zero,
+                                                  isCircular: true,
+                                                  size: 14.0,
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
                                       Expanded(
                                         child: Focus(
+                                          onKeyEvent: (node, event) {
+                                            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.enter) {
+                                              if (!HardwareKeyboard.instance.isShiftPressed) {
+                                                node.unfocus();
+                                                return KeyEventResult.handled;
+                                              }
+                                            }
+                                            return KeyEventResult.ignored;
+                                          },
                                           onFocusChange: (hasFocus) {
                                             if (!hasFocus) {
                                               final idx = tempSubtasks.indexWhere(
@@ -880,8 +992,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                           child: TextFormField(
                                             initialValue: subtask.title,
                                             autofocus: !_isInitialLoad && subtask.title.isEmpty,
-                                            maxLines: 1,
-                                            textInputAction: TextInputAction.done,
+                                            maxLines: null,
                                             style: ShadTheme.of(context).textTheme.p.copyWith(
                                               decoration: subtask.isCompleted
                                                   ? TextDecoration.lineThrough
@@ -977,93 +1088,6 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                               )
                               .toList(),
                         ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          InkWell(
-                            onTap: pickDate,
-                            borderRadius: BorderRadius.circular(4),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    tempIsAnytime
-                                        ? LucideIcons.infinity
-                                        : LucideIcons.calendar,
-                                    size: 14,
-                                    color: ShadTheme.of(
-                                      context,
-                                    ).colorScheme.mutedForeground,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    (() {
-                                      String dateStr = '';
-                                      if (tempIsAnytime) {
-                                        dateStr = Translations.tr(
-                                          'tab_anytime',
-                                          locale,
-                                        );
-                                      } else if (tempDueDate != null) {
-                                        final date = tempDueDate!;
-                                        final now = DateTime.now();
-                                        final today = DateTime(
-                                          now.year,
-                                          now.month,
-                                          now.day,
-                                        );
-                                        final tomorrow = today.add(
-                                          const Duration(days: 1),
-                                        );
-                                        final dateStart = DateTime(
-                                          date.year,
-                                          date.month,
-                                          date.day,
-                                        );
-
-                                        if (dateStart == today) {
-                                          dateStr = Translations.tr(
-                                            'tab_today',
-                                            locale,
-                                          );
-                                        } else if (dateStart == tomorrow) {
-                                          dateStr = Translations.tr('tomorrow', locale);
-                                        } else {
-                                          dateStr = DateFormat(
-                                            ref.watch(settingsProvider).dateFormat,
-                                          ).format(date);
-                                        }
-                                      } else {
-                                        dateStr = Translations.tr(
-                                          'set_due_date',
-                                          locale,
-                                        );
-                                      }
-
-                                      if (tempRepeatEnabled) {
-                                        final repeatStr =
-                                            '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
-                                        return '$dateStr · $repeatStr';
-                                      }
-
-                                      return dateStr;
-                                    })(),
-                                    style: ShadTheme.of(
-                                      context,
-                                    ).textTheme.muted.copyWith(fontSize: 13),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),

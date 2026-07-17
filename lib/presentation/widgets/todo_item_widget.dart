@@ -168,7 +168,13 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(widget.todo.title),
+                                  Flexible(
+                                    child: Text(
+                                      widget.todo.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                   if (widget.todo.subtasks.isNotEmpty)
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
