@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-class AnimatedPathCheckbox extends StatelessWidget {
+class AnimatedPathCheckbox extends StatefulWidget {
   final bool value;
   final ValueChanged<bool?>? onChanged;
   final Color activeColor;
@@ -20,23 +20,46 @@ class AnimatedPathCheckbox extends StatelessWidget {
   });
 
   @override
+  State<AnimatedPathCheckbox> createState() => _AnimatedPathCheckboxState();
+}
+
+class _AnimatedPathCheckboxState extends State<AnimatedPathCheckbox> {
+  late double _lastValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastValue = widget.value ? 1.0 : 0.0;
+  }
+
+  @override
+  void didUpdateWidget(AnimatedPathCheckbox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.value != oldWidget.value) {
+      _lastValue = oldWidget.value ? 1.0 : 0.0;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final targetValue = widget.value ? 1.0 : 0.0;
+
     return MouseRegion(
-      cursor: onChanged == null ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      cursor: widget.onChanged == null ? SystemMouseCursors.basic : SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: onChanged == null ? null : () => onChanged!(!value),
+        onTap: widget.onChanged == null ? null : () => widget.onChanged!(!widget.value),
         child: TweenAnimationBuilder<double>(
-          tween: Tween(begin: value ? 1.0 : 0.0, end: value ? 1.0 : 0.0),
-          duration: duration,
+          tween: Tween<double>(begin: _lastValue, end: targetValue),
+          duration: widget.duration,
           curve: Curves.easeOutCubic,
           builder: (context, progress, child) {
             return CustomPaint(
               size: const Size(16, 16), // Match title font size
               painter: _CheckboxPainter(
                 progress: progress,
-                activeColor: activeColor,
-                inactiveColor: inactiveColor,
-                checkColor: checkColor,
+                activeColor: widget.activeColor,
+                inactiveColor: widget.inactiveColor,
+                checkColor: widget.checkColor,
               ),
             );
           },

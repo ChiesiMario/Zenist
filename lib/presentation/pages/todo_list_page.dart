@@ -34,6 +34,10 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   int _currentIndex = 0;
   bool _isInputExpanded = false;
 
+  final ScrollController _scrollController = ScrollController();
+  int _previousUncompletedCount = -1;
+  List<String> _previousUncompletedIds = [];
+
   final GlobalKey<_SyncIconWidgetState> _syncIconKey =
       GlobalKey<_SyncIconWidgetState>();
 
@@ -92,6 +96,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -1067,7 +1072,23 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                   }
 
                                   uncompletedTodos.sort(_compareTodos);
-                                  completedTodayTodos.sort(_compareTodos);
+                                  completedTodayTodos.sort((a, b) {
+                                    if (a.completedAt != null && b.completedAt != null) {
+                                      return a.completedAt!.compareTo(b.completedAt!);
+                                    }
+                                    return 0;
+                                  });
+
+                                  final currentUncompletedIds = uncompletedTodos.map((t) => t.id).toList();
+                                  int currentUncompletedCount = uncompletedTodos.length;
+
+                                  List<String> addedIds = [];
+                                  if (_previousUncompletedIds.isNotEmpty) {
+                                    addedIds = currentUncompletedIds.where((id) => !_previousUncompletedIds.contains(id)).toList();
+                                  }
+
+                                  _previousUncompletedCount = currentUncompletedCount;
+                                  _previousUncompletedIds = currentUncompletedIds;
 
                                   if (uncompletedTodos.isEmpty &&
                                       completedTodayTodos.isEmpty) {
@@ -1123,16 +1144,33 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                       uncompletedTodos.isEmpty &&
                                       completedTodayTodos.isNotEmpty;
 
+                                  final showCompletedSection = _currentIndex == 0;
+                                  
                                   int itemCount =
-                                      uncompletedTodos.length + 1 + completedTodayTodos.length;
+                                      uncompletedTodos.length + (showCompletedSection ? 1 + completedTodayTodos.length : 0);
                                   if (showZenRing) itemCount += 1;
 
                                   return ListView.builder(
+                                    controller: _scrollController,
                                     findChildIndexCallback: (Key key) {
                                       if (key == const ValueKey('completed_header')) {
+                                        if (!showCompletedSection) return null;
                                         int headerIndex = uncompletedTodos.length;
                                         if (showZenRing) headerIndex += 1;
                                         return headerIndex;
+                                      }
+                                      if (key is ValueKey<String>) {
+                                        final id = key.value;
+                                        int idx = uncompletedTodos.indexWhere((t) => t.id == id);
+                                        if (idx != -1) {
+                                          return showZenRing ? idx + 1 : idx;
+                                        }
+                                        idx = completedTodayTodos.indexWhere((t) => t.id == id);
+                                        if (idx != -1) {
+                                          int headerIndex = uncompletedTodos.length;
+                                          if (showZenRing) headerIndex += 1;
+                                          return headerIndex + (showCompletedSection ? 1 : 0) + idx;
+                                        }
                                       }
                                       return null;
                                     },
@@ -1195,20 +1233,25 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                               top: 32,
                                               bottom: 8,
                                             ),
-                                            child: Text(
-                                              Translations.tr(
-                                                'completed',
-                                                locale,
-                                              ),
-                                              style: ShadTheme.of(context)
-                                                  .textTheme
-                                                  .large
-                                                  .copyWith(
-                                                    color: ShadTheme.of(
-                                                      context,
-                                                    ).colorScheme.mutedForeground,
-                                                    fontWeight: FontWeight.w600,
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Opacity(
+                                                opacity: 0.6,
+                                                child: Text(
+                                                  Translations.tr(
+                                                    'completed',
+                                                    locale,
                                                   ),
+                                                  style: ShadTheme.of(context)
+                                                      .textTheme
+                                                      .large
+                                                      .copyWith(
+                                                        color: ShadTheme.of(context).colorScheme.mutedForeground,
+                                                        fontWeight: FontWeight.normal,
+                                                        fontSize: 14,
+                                                      ),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         );
@@ -1217,15 +1260,11 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                           key: const ValueKey('completed_header'),
                                           duration: const Duration(milliseconds: 300),
                                           switchInCurve: Curves.easeOutCubic,
-                                          switchOutCurve: Curves.easeOutCubic,
+                                          switchOutCurve: Curves.easeInCubic,
                                           transitionBuilder: (Widget child, Animation<double> animation) {
-                                            return SizeTransition(
-                                              sizeFactor: animation,
-                                              alignment: Alignment.topCenter,
-                                              child: FadeTransition(
-                                                opacity: animation,
-                                                child: child,
-                                              ),
+                                            return FadeTransition(
+                                              opacity: animation,
+                                              child: child,
                                             );
                                           },
                                           child: hasCompleted

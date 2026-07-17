@@ -119,7 +119,6 @@ class TodoNotifier extends Notifier<void> {
         clearRepeat: true,
       );
       await repository.saveTodo(updatedTodo);
-      ref.read(audioServiceProvider).playTaskCompleteSound();
       ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
       return;
     }
@@ -131,9 +130,6 @@ class TodoNotifier extends Notifier<void> {
       clearCompletedAt: todo.isCompleted,
     );
     await repository.saveTodo(updatedTodo);
-    if (!todo.isCompleted) {
-      ref.read(audioServiceProvider).playTaskCompleteSound();
-    }
     ref.read(autoSyncManagerProvider.notifier).scheduleSyncAfterMutation();
   }
 

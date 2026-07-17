@@ -6,6 +6,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../domain/entities/todo.dart';
 import '../providers/todo_provider.dart';
 import '../../core/localization/translations.dart';
+import '../../application/services/audio_service.dart';
 import '../providers/settings_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'animated_path_checkbox.dart';
@@ -27,6 +28,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
   bool _isCompleting = false;
   bool _isUncompleting = false;
   bool _isCollapsing = false;
+  final GlobalKey _strikethroughKey = GlobalKey();
 
   @override
   void didUpdateWidget(TodoItemWidget oldWidget) {
@@ -47,7 +49,10 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
       setState(() {
         _isCompleting = true;
       });
-      await Future.delayed(const Duration(milliseconds: 1300));
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (!mounted) return;
+      ref.read(audioServiceProvider).playTaskCompleteSound();
+      await Future.delayed(const Duration(milliseconds: 700));
       if (!mounted) return;
       setState(() {
         _isCollapsing = true;
@@ -145,19 +150,26 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
+                      padding: const EdgeInsets.only(top: 2.0),
                       child: Opacity(
                         opacity: isDone ? 1.0 : 0.4,
-                        child: AnimatedPathCheckbox(
-                          value: isDone,
-                          onChanged: _handleToggle,
-                          activeColor: ShadTheme.of(context).colorScheme.primary,
-                          inactiveColor: ShadTheme.of(context).colorScheme.primary,
-                          checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                          duration: const Duration(milliseconds: 600),
-                        )
-                        .animate(target: isDone ? 1 : 0)
-                        .shimmer(duration: 400.ms),
+                        child: _isCompleting
+                            ? AnimatedPathCheckbox(
+                                value: isDone,
+                                onChanged: _handleToggle,
+                                activeColor: ShadTheme.of(context).colorScheme.primary,
+                                inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                duration: const Duration(milliseconds: 600),
+                              ).animate().shimmer(duration: 400.ms)
+                            : AnimatedPathCheckbox(
+                                value: isDone,
+                                onChanged: _handleToggle,
+                                activeColor: ShadTheme.of(context).colorScheme.primary,
+                                inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                duration: const Duration(milliseconds: 600),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -180,10 +192,12 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                               height: 1.4,
                             ),
                             child: AnimatedStrikethroughText(
+                              key: _strikethroughKey,
                               isStruckThrough: isDone,
                               duration: _isCompleting ? const Duration(milliseconds: 800) : const Duration(milliseconds: 200),
                               strikethroughColor: ShadTheme.of(context).colorScheme.mutedForeground,
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(widget.todo.title),
                                   if (widget.todo.subtasks.isNotEmpty)
