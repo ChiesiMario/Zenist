@@ -95,36 +95,55 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
             child: Container(
               decoration: const BoxDecoration(color: Colors.transparent),
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
+                padding: const EdgeInsets.only(
+                  left: 8,
+                  right: 20,
+                  top: 4,
+                  bottom: 4,
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: 21.0, // matches fontSize (15) * height (1.4)
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 2.5),
-                          child: Opacity(
-                            opacity: isDone ? 1.0 : 0.4,
-                            child: AnimatedPathCheckbox(
-                                    value: isDone,
-                                    onChanged: _handleToggle,
-                                    activeColor: ShadTheme.of(context).colorScheme.primary,
-                                    inactiveColor: ShadTheme.of(context).colorScheme.primary,
-                                    checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                                    duration: Duration.zero,
-                                  ),
+                    GestureDetector(
+                      onTap: () => _handleToggle(null),
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          right: 16,
+                          top: 12,
+                          bottom: 12,
+                        ),
+                        child: SizedBox(
+                          height: 21.0, // matches fontSize (15) * height (1.4)
+                          width: 16.0,
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 2.5),
+                              child: Opacity(
+                                opacity: isDone ? 1.0 : 0.4,
+                                child: AnimatedPathCheckbox(
+                                  value: isDone,
+                                  onChanged: null,
+                                  activeColor: ShadTheme.of(context).colorScheme.primary,
+                                  inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                  checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                  duration: Duration.zero,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
                     Expanded(
-                      child: Column(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          top: 12,
+                          bottom: 12,
+                        ),
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AnimatedDefaultTextStyle(
@@ -177,7 +196,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                 overflow: TextOverflow.ellipsis,
                                 style: ShadTheme.of(context).textTheme.p
                                     .copyWith(
-                                      fontSize: 13,
+                                      fontSize: 12,
                                       color: ShadTheme.of(
                                         context,
                                       ).colorScheme.mutedForeground,
@@ -279,7 +298,9 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                               padding: const EdgeInsets.only(top: 4.0),
                               child: GestureDetector(
                                 onTap: () {}, // 阻止點擊事件向外冒泡
-                                child: InkWell(
+                                child: Transform.translate(
+                                  offset: const Offset(-8, 0),
+                                  child: InkWell(
                                   onTap: () {
                                     setState(() {
                                       _isExpanded = !_isExpanded;
@@ -327,6 +348,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                 ),
                               ),
                             ),
+                          ),
                           AnimatedCrossFade(
                             duration: const Duration(milliseconds: 200),
                             firstCurve: Curves.easeInOutCubic,
@@ -340,10 +362,10 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                             firstChild: SizedBox(
                               width: double.infinity,
                               child: Padding(
-                                padding: const EdgeInsets.only(
-                                  top: 8.0,
-                                  left: 12.0,
-                                ),
+                                  padding: const EdgeInsets.only(
+                                    top: 8.0,
+                                    left: 1.0,
+                                  ),
                                 child: GestureDetector(
                                   onTap: () {}, // 阻止點擊事件向外冒泡
                                   child: Column(
@@ -370,32 +392,28 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                             vertical: 4.0,
                                           ),
                                           child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Opacity(
                                                 opacity: subtask.isCompleted
                                                     ? 0.4
                                                     : 0.15,
-                                                child: SizedBox(
-                                                  width: 20,
-                                                  height: 20,
-                                                  child: GestureDetector(
-                                                    onTap:
-                                                        () {}, // 攔截點擊，不冒泡到外層 Row 的 GestureDetector
-                                                    child: ShadCheckbox(
-                                                      value:
-                                                          subtask.isCompleted,
-                                                      onChanged: (v) {
-                                                        ref
-                                                            .read(
-                                                              todoNotifierProvider
-                                                                  .notifier,
-                                                            )
-                                                            .toggleSubtask(
-                                                              widget.todo,
-                                                              subtask.id,
-                                                            );
-                                                      },
-                                                    ),
+                                                child: Transform.translate(
+                                                  offset: const Offset(0, 3.0),
+                                                  child: AnimatedPathCheckbox(
+                                                    value: subtask.isCompleted,
+                                                    onChanged: (v) {
+                                                      ref.read(todoNotifierProvider.notifier).toggleSubtask(
+                                                        widget.todo,
+                                                        subtask.id,
+                                                      );
+                                                    },
+                                                    activeColor: ShadTheme.of(context).colorScheme.primary,
+                                                    inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                                    checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                                    duration: Duration.zero,
+                                                    isCircular: true,
+                                                    size: 14.0,
                                                   ),
                                                 ),
                                               ),
@@ -404,7 +422,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                                 child: Text(
                                                   subtask.title,
                                                   style: TextStyle(
-                                                    fontSize: 14,
+                                                    fontSize: 13,
                                                     decoration:
                                                         subtask.isCompleted
                                                         ? TextDecoration
@@ -432,6 +450,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                           ),
                         ],
                       ),
+                    ),
                     ),
                   ],
                 ),

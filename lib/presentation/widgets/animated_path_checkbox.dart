@@ -8,6 +8,8 @@ class AnimatedPathCheckbox extends StatefulWidget {
   final Color inactiveColor;
   final Color checkColor;
   final Duration duration;
+  final bool isCircular;
+  final double size;
 
   const AnimatedPathCheckbox({
     super.key,
@@ -17,6 +19,8 @@ class AnimatedPathCheckbox extends StatefulWidget {
     required this.inactiveColor,
     required this.checkColor,
     this.duration = const Duration(milliseconds: 600), // Slower for zen feel
+    this.isCircular = false,
+    this.size = 16.0,
   });
 
   @override
@@ -54,12 +58,13 @@ class _AnimatedPathCheckboxState extends State<AnimatedPathCheckbox> {
           curve: Curves.easeOutCubic,
           builder: (context, progress, child) {
             return CustomPaint(
-              size: const Size(16, 16), // Match title font size
+              size: Size(widget.size, widget.size),
               painter: _CheckboxPainter(
                 progress: progress,
                 activeColor: widget.activeColor,
                 inactiveColor: widget.inactiveColor,
                 checkColor: widget.checkColor,
+                isCircular: widget.isCircular,
               ),
             );
           },
@@ -74,19 +79,18 @@ class _CheckboxPainter extends CustomPainter {
   final Color activeColor;
   final Color inactiveColor;
   final Color checkColor;
+  final bool isCircular;
 
   _CheckboxPainter({
     required this.progress,
     required this.activeColor,
     required this.inactiveColor,
     required this.checkColor,
+    required this.isCircular,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
-
     // Background
     final bgPaint = Paint()
       ..color = Color.lerp(Colors.transparent, activeColor, progress)!
@@ -98,8 +102,17 @@ class _CheckboxPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    canvas.drawRRect(rrect, bgPaint);
-    canvas.drawRRect(rrect, borderPaint);
+    if (isCircular) {
+      final center = Offset(size.width / 2, size.height / 2);
+      final radius = size.width / 2;
+      canvas.drawCircle(center, radius, bgPaint);
+      canvas.drawCircle(center, radius, borderPaint);
+    } else {
+      final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+      final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(4));
+      canvas.drawRRect(rrect, bgPaint);
+      canvas.drawRRect(rrect, borderPaint);
+    }
 
     // Draw checkmark path
     if (progress > 0) {
@@ -128,6 +141,7 @@ class _CheckboxPainter extends CustomPainter {
     return oldDelegate.progress != progress ||
            oldDelegate.activeColor != activeColor ||
            oldDelegate.inactiveColor != inactiveColor ||
-           oldDelegate.checkColor != checkColor;
+           oldDelegate.checkColor != checkColor ||
+           oldDelegate.isCircular != isCircular;
   }
 }

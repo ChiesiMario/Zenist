@@ -37,13 +37,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
   DateTime? tempDueDate;
   bool isConfirmingDelete = false;
   int deleteConfirmId = 0;
-  bool isInputFocused = true;
+  bool isInputFocused = false;
   bool tempIsAnytime = false;
   bool tempRepeatEnabled = false;
   int tempRepeatInterval = 1;
   String tempRepeatUnit = 'week';
   bool showNoteInput = false;
   List<Subtask> tempSubtasks = [];
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
@@ -72,6 +73,14 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
 
     focusNode.addListener(_updateFocus);
     noteFocusNode.addListener(_updateNoteFocus);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isInitialLoad = false;
+        });
+      }
+    });
   }
 
   @override
@@ -692,7 +701,8 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                   child: TextField(
                                     focusNode: focusNode,
                                     controller: textController,
-                                    autofocus: true,
+                                    autofocus: !isEdit,
+                                    maxLines: null,
                                     style: ShadTheme.of(
                                       context,
                                     ).textTheme.p.copyWith(fontSize: 14),
@@ -763,7 +773,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                 controller: noteController,
                                 maxLines: null,
                                 style: ShadTheme.of(context).textTheme.p.copyWith(
-                                  fontSize: 13,
+                                  fontSize: 12,
                                   color: ShadTheme.of(
                                     context,
                                   ).colorScheme.mutedForeground,
@@ -780,6 +790,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                   ),
                                   hintText: Translations.tr('add_note', locale),
                                   hintStyle: TextStyle(
+                                    fontSize: 12,
                                     color: ShadTheme.of(context)
                                         .colorScheme
                                         .mutedForeground
@@ -793,7 +804,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                           ],
                         ),
                       ),
-                      SizedBox(height: showNoteInput ? 8 : 16),
+                      const SizedBox(height: 16),
                       if (tempSubtasks.isNotEmpty)
                         Column(
                           children: tempSubtasks
@@ -801,36 +812,42 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                 (subtask) => Padding(
                                   key: ValueKey(subtask.id),
                                   padding: const EdgeInsets.only(
-                                    bottom: 8.0,
+                                    bottom: 4.0,
                                     left: 8.0,
                                     right: 8.0,
                                   ),
                                   child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Opacity(
-                                        opacity: subtask.isCompleted ? 1.0 : 0.4,
-                                        child: AnimatedPathCheckbox(
-                                          value: subtask.isCompleted,
-                                          onChanged: (subtask.id == tempSubtasks.last.id &&
-                                                  subtask.title.trim().isEmpty)
-                                              ? null
-                                              : (v) {
-                                                  if (v == null) return;
-                                                  if (v == true) {
-                                                    ref.read(audioServiceProvider).playTaskCompleteSound();
-                                                  }
-                                                  setState(() {
-                                                    final idx = tempSubtasks.indexOf(
-                                                      subtask,
-                                                    );
-                                                    tempSubtasks[idx] = subtask
-                                                        .copyWith(isCompleted: v);
-                                                  });
-                                                },
-                                          activeColor: ShadTheme.of(context).colorScheme.primary,
-                                          inactiveColor: ShadTheme.of(context).colorScheme.primary,
-                                          checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
-                                          duration: Duration.zero,
+                                        opacity: subtask.isCompleted ? 0.4 : 0.15,
+                                        child: Transform.translate(
+                                          offset: const Offset(0, 5.0),
+                                          child: AnimatedPathCheckbox(
+                                            value: subtask.isCompleted,
+                                            onChanged: (subtask.id == tempSubtasks.last.id &&
+                                                    subtask.title.trim().isEmpty)
+                                                ? null
+                                                : (v) {
+                                                    if (v == null) return;
+                                                    if (v == true) {
+                                                      ref.read(audioServiceProvider).playTaskCompleteSound();
+                                                    }
+                                                    setState(() {
+                                                      final idx = tempSubtasks.indexOf(
+                                                        subtask,
+                                                      );
+                                                      tempSubtasks[idx] = subtask
+                                                          .copyWith(isCompleted: v);
+                                                    });
+                                                  },
+                                            activeColor: ShadTheme.of(context).colorScheme.primary,
+                                            inactiveColor: ShadTheme.of(context).colorScheme.primary,
+                                            checkColor: ShadTheme.of(context).colorScheme.primaryForeground,
+                                            duration: Duration.zero,
+                                            isCircular: true,
+                                            size: 14.0,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -862,15 +879,17 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                           },
                                           child: TextFormField(
                                             initialValue: subtask.title,
-                                            autofocus: subtask.title.isEmpty,
-                                            style: TextStyle(
+                                            autofocus: !_isInitialLoad && subtask.title.isEmpty,
+                                            maxLines: 1,
+                                            textInputAction: TextInputAction.done,
+                                            style: ShadTheme.of(context).textTheme.p.copyWith(
                                               decoration: subtask.isCompleted
                                                   ? TextDecoration.lineThrough
                                                   : null,
                                               color: ShadTheme.of(
                                                 context,
                                               ).colorScheme.mutedForeground,
-                                              fontSize: 14,
+                                              fontSize: 13,
                                             ),
                                             decoration: InputDecoration(
                                               border: InputBorder.none,
@@ -880,11 +899,12 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                                 'subtask_placeholder',
                                                 locale,
                                               ),
-                                              hintStyle: TextStyle(
+                                              hintStyle: ShadTheme.of(context).textTheme.p.copyWith(
                                                 color: ShadTheme.of(context)
                                                     .colorScheme
                                                     .mutedForeground
                                                     .withValues(alpha: 0.4),
+                                                fontSize: 13,
                                               ),
                                             ),
                                             onChanged: (v) {
