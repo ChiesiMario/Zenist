@@ -20,6 +20,8 @@ class SyncService {
 
   Future<void> syncWithDropbox() async {
     if (!await _dropbox.isLoggedIn()) return;
+    
+    final syncStartTime = DateTime.now();
 
     // 1. 獲取本地所有資料 (包含已標記為刪除的)
     final localTodos = await _repo.getTodos(includeDeleted: true);
@@ -62,13 +64,25 @@ class SyncService {
       }
     }
 
-    // 4. 將合併後的資料寫回本地
+    // 4. 將合併後的資料寫回本地，同時處理樂觀鎖 (Optimistic Concurrency Control)
+    final finalUploadTodos = <Todo>[];
+    
     for (final todo in mergedTodos) {
-      await _repo.saveTodo(todo);
+      final currentLocal = await _repo.getTodo(todo.id);
+      
+      // 如果本地的更新時間「嚴格晚於」同步開始的時間，代表在同步期間被修改了
+      if (currentLocal != null && currentLocal.updatedAt.isAfter(syncStartTime)) {
+        // 保留本地最新修改，不覆寫本地資料庫
+        finalUploadTodos.add(currentLocal);
+      } else {
+        // 否則，將合併後的結果寫入本地
+        await _repo.saveTodo(todo);
+        finalUploadTodos.add(todo);
+      }
     }
 
-    // 5. 將合併後的資料重新上傳至 Dropbox
-    final List<Map<String, dynamic>> jsonList = mergedTodos
+    // 5. 將最終確認的資料重新上傳至 Dropbox
+    final List<Map<String, dynamic>> jsonList = finalUploadTodos
         .map((t) => t.toJson())
         .toList();
     await _dropbox.uploadBackup(jsonEncode(jsonList));

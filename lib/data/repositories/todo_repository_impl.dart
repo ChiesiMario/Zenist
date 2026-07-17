@@ -22,6 +22,13 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   @override
+  Future<Todo?> getTodo(String id) async {
+    final isar = await dataSource.db;
+    final model = await isar.todoModels.getByUuid(id);
+    return model?.toEntity();
+  }
+
+  @override
   Stream<List<Todo>> watchTodos({bool includeDeleted = false}) async* {
     final isar = await dataSource.db;
     final query = includeDeleted
