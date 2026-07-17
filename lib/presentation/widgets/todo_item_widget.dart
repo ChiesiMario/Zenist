@@ -355,28 +355,23 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                               ),
                             ),
                           ),
-                          AnimatedCrossFade(
+                          AnimatedSize(
                             duration: const Duration(milliseconds: 200),
-                            firstCurve: Curves.easeInOutCubic,
-                            secondCurve: Curves.easeInOutCubic,
-                            sizeCurve: Curves.easeInOutCubic,
-                            alignment: Alignment.topCenter,
-                            crossFadeState:
-                                (widget.todo.subtasks.isNotEmpty && _isExpanded)
-                                ? CrossFadeState.showFirst
-                                : CrossFadeState.showSecond,
-                            firstChild: SizedBox(
-                              width: double.infinity,
-                              child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 8.0,
-                                    left: 1.0,
-                                  ),
-                                child: GestureDetector(
-                                  onTap: () {}, // 阻止點擊事件向外冒泡
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                            curve: Curves.easeInOutCubic,
+                            alignment: Alignment.topLeft,
+                            child: (widget.todo.subtasks.isNotEmpty && _isExpanded)
+                                ? SizedBox(
+                                    width: double.infinity,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 8.0,
+                                        left: 1.0,
+                                      ),
+                                      child: GestureDetector(
+                                        onTap: () {}, // 阻止點擊事件向外冒泡
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                     children: widget.todo.subtasks.map((
                                       subtask,
                                     ) {
@@ -448,11 +443,11 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                   ),
                                 ),
                               ),
-                            ),
-                            secondChild: const SizedBox(
-                              width: double.infinity,
-                              height: 0,
-                            ),
+                                  )
+                                : const SizedBox(
+                                    width: double.infinity,
+                                    height: 0,
+                                  ),
                           ),
                         ],
                       ),
