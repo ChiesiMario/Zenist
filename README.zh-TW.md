@@ -13,7 +13,6 @@
   <img src="Screenshot/image.png" alt="Zenist Screenshot" width="800">
 </p>
 <br>
----
 
 ## 核心功能
 
