@@ -675,21 +675,25 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
-                                            Icon(
-                                              _isAnytimeSelected
-                                                  ? LucideIcons.infinity
-                                                  : LucideIcons.calendar,
-                                              size: 16,
-                                              color: (_selectedDueDate !=
-                                                          null ||
-                                                      _isAnytimeSelected)
-                                                  ? ShadTheme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                  : ShadTheme.of(context)
-                                                      .colorScheme
-                                                      .mutedForeground,
+                                            Transform.translate(
+                                              offset: const Offset(0, 2.0),
+                                              child: Icon(
+                                                _isAnytimeSelected
+                                                    ? LucideIcons.infinity
+                                                    : LucideIcons.calendar,
+                                                size: 16,
+                                                color: (_selectedDueDate !=
+                                                            null ||
+                                                        _isAnytimeSelected)
+                                                    ? ShadTheme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                    : ShadTheme.of(context)
+                                                        .colorScheme
+                                                        .mutedForeground,
+                                              ),
                                             ),
                                             if (_isAnytimeSelected ||
                                                 _selectedDueDate != null) ...[
@@ -752,6 +756,7 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
                                                       .colorScheme
                                                       .primary,
                                                   fontSize: 13,
+                                                  height: 1.0,
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),

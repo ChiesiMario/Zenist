@@ -228,17 +228,21 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                               padding: const EdgeInsets.only(top: 4.0),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    LucideIcons.calendarClock,
-                                    size: 12,
-                                    color: _isOverdue
-                                        ? ShadTheme.of(
-                                            context,
-                                          ).colorScheme.destructive
-                                        : ShadTheme.of(
-                                            context,
-                                          ).colorScheme.mutedForeground,
+                                  Transform.translate(
+                                    offset: const Offset(0, 0.5),
+                                    child: Icon(
+                                      LucideIcons.calendar,
+                                      size: 12,
+                                      color: _isOverdue
+                                          ? ShadTheme.of(
+                                              context,
+                                            ).colorScheme.destructive
+                                          : ShadTheme.of(
+                                              context,
+                                            ).colorScheme.mutedForeground,
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
@@ -277,6 +281,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                     style: ShadTheme.of(context).textTheme.muted
                                         .copyWith(
                                           fontSize: 12,
+                                          height: 1.0,
                                           color: _isOverdue
                                               ? ShadTheme.of(
                                                   context,

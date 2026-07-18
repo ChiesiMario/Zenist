@@ -700,15 +700,19 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Icon(
-                                      tempIsAnytime
-                                          ? LucideIcons.infinity
-                                          : LucideIcons.calendar,
-                                      size: 14,
-                                      color: _isOverdue
-                                          ? ShadTheme.of(context).colorScheme.destructive
-                                          : ShadTheme.of(context).colorScheme.mutedForeground,
+                                    Transform.translate(
+                                      offset: const Offset(0, 0.5),
+                                      child: Icon(
+                                        tempIsAnytime
+                                            ? LucideIcons.infinity
+                                            : LucideIcons.calendar,
+                                        size: 14,
+                                        color: _isOverdue
+                                            ? ShadTheme.of(context).colorScheme.destructive
+                                            : ShadTheme.of(context).colorScheme.mutedForeground,
+                                      ),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
@@ -741,6 +745,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                         context,
                                       ).textTheme.muted.copyWith(
                                         fontSize: 13,
+                                        height: 1.0,
                                         color: _isOverdue ? ShadTheme.of(context).colorScheme.destructive : null,
                                       ),
                                     ),
@@ -888,8 +893,8 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                                   key: ValueKey(subtask.id),
                                   padding: const EdgeInsets.only(
                                     bottom: 4.0,
-                                    left: 8.0,
-                                    right: 8.0,
+                                    left: 12.0,
+                                    right: 12.0,
                                   ),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
