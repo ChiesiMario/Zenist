@@ -8,6 +8,12 @@
 ![Platform](https://img.shields.io/badge/platform-Windows-black?style=flat-square&labelColor=white)
 ![License](https://img.shields.io/badge/license-MIT-black?style=flat-square&labelColor=white)
 
+<br>
+<p align="center">
+  <img src="Screenshot/image.png" alt="Zenist Screenshot" width="800">
+</p>
+<br>
+
 ---
 
 ## FEATURES
