@@ -1,4 +1,4 @@
-# ZENIST
+# Zenist.
 
 [English](README.md) | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md)
 
@@ -13,7 +13,6 @@
   <img src="Screenshot/image.png" alt="Zenist Screenshot" width="800">
 </p>
 <br>
-
 ---
 
 ## FEATURES
