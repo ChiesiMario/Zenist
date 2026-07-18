@@ -1,69 +1,58 @@
-<div align="center">
-  <img src="Screenshot/image.png" alt="Zenist Banner" width="100%">
-  
-  <br />
-  
-  [![Release](https://img.shields.io/github/v/release/ChiesiMario/Zenist?color=black&style=flat-square)](https://github.com/ChiesiMario/Zenist/releases)
-  [![Platform](https://img.shields.io/badge/Platform-Windows_(Currently)-lightgrey?style=flat-square)](#)
-  [![Flutter](https://img.shields.io/badge/Flutter-3.x-black?style=flat-square)](https://flutter.dev)
-  [![License](https://img.shields.io/github/license/ChiesiMario/Zenist?color=black&style=flat-square)](LICENSE)
-</div>
+# ZENIST
 
-# Zenist
+[English](README.md) | [繁體中文](README.zh-TW.md) | [简体中文](README.zh-CN.md)
 
-English | [繁體中文](README_zh-TW.md) | [简体中文](README_zh-CN.md)
+> A minimalist task management application focused on clarity and productivity.
+
+![Version](https://img.shields.io/badge/version-1.0.1-black?style=flat-square&labelColor=white)
+![Platform](https://img.shields.io/badge/platform-Windows-black?style=flat-square&labelColor=white)
+![License](https://img.shields.io/badge/license-MIT-black?style=flat-square&labelColor=white)
 
 ---
 
-**Zenist** is a minimalist, offline-first task management application designed for deep focus. *(Currently available on Windows, with cross-platform support planned for the future).*
+## FEATURES
 
-The core philosophy of Zenist is built upon three uncompromising principles:
-* **Simple**: A pure, monochrome, distraction-free interface.
-* **No Push Notifications**: Respecting your attention without unwanted interruptions.
-* **Bring Your Own Cloud**: Your data is synchronized entirely through your personal cloud drive (Dropbox), ensuring absolute privacy and data ownership.
+- **Clarity First**: A distraction-free interface built with strict monochrome aesthetics. No emojis, no vibrant colors.
+- **Local Persistence**: All data is stored locally on your device for absolute privacy and lightning-fast access.
+- **Recurring Tasks**: Flexible scheduling for daily, weekly, monthly, or custom intervals.
+- **Subtasks & Notes**: Break down complex objectives into actionable steps and attach contextual notes.
+- **System Integration**: Seamless window management with tray support and background execution.
+- **Internationalization**: Full support for multiple languages.
 
-## ✨ Key Features
-* **Minimalist UI**: Designed with a sleek black, white, and grey palette to keep you focused on what truly matters.
-* **Background Execution**: Minimizes quietly to the system tray for seamless operation.
-* **Single Instance Protection**: Optimized to run lightly on your system without duplicate processes.
-* **Offline First**: Works entirely offline with a blazing-fast local database, syncing quietly in the background when connected.
-* **Clean Uninstallation**: Intelligent installer that gracefully handles background processes and registry cleanups.
+## TECH STACK
 
-## 🛠️ Tech Stack
-Zenist is proudly built with modern technologies, laying the groundwork for its future cross-platform expansion:
-- **Framework**: [Flutter](https://flutter.dev/)
-- **State Management**: [Riverpod](https://riverpod.dev/)
-- **Local Database**: [Isar](https://isar.dev/) (High-performance NoSQL)
-- **UI Components**: [Shadcn UI for Flutter](https://shadcn-ui.dev/)
-- **Cloud Sync**: Official Dropbox API
+- **Framework**: Flutter / Dart
+- **State Management**: Riverpod
+- **Local Database**: Isar
+- **UI Components**: Shadcn UI
 
-## 🚀 Getting Started
+## INSTALLATION
 
-### Download & Install
-You can download the latest installer (`.exe`) from the [Releases](https://github.com/ChiesiMario/Zenist/releases/latest) page.
+### Pre-built Binaries (Windows)
+
+1. Navigate to the [Releases](https://github.com/ChiesiMario/Zenist/releases) page.
+2. Download the latest `Zenist-Setup-vX.X.X.exe`.
+3. Run the installer and follow the instructions.
 
 ### Build from Source
-If you wish to build Zenist from source or contribute to the project:
 
-1. Ensure you have [Flutter](https://docs.flutter.dev/get-started/install) installed.
-2. Clone this repository:
-   ```bash
-   git clone https://github.com/ChiesiMario/Zenist.git
-   cd Zenist
-   ```
-3. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
-4. Run locally (currently supporting Windows):
-   ```bash
-   flutter run -d windows
-   ```
-5. Build the executable:
-   ```bash
-   flutter build windows
-   ```
-*(To build the installer, compile `windows/zenist_installer.iss` using Inno Setup).*
+Ensure you have the Flutter SDK (>=3.12.2) installed on your system.
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```bash
+git clone https://github.com/ChiesiMario/Zenist.git
+cd Zenist
+flutter pub get
+flutter build windows
+```
+
+## ARCHITECTURE
+
+Zenist follows a clean, modular architecture separating concerns across presentation, domain, and data layers:
+
+- `presentation/`: Riverpod providers, UI widgets, and dialogs.
+- `domain/`: Core entities and business logic.
+- `core/`: Application-wide utilities, theme definitions, and localizations.
+
+## LICENSE
+
+This project is licensed under the MIT License.
