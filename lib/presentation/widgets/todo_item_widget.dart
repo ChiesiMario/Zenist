@@ -26,6 +26,18 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
   final GlobalKey _strikethroughKey = GlobalKey();
 
   void _handleToggle(bool? v) {
+    final isHistoryLog = widget.todo.isCompleted &&
+        widget.todo.completedAt != null &&
+        widget.todo.completionHistory.contains(widget.todo.completedAt!);
+
+    if (isHistoryLog) {
+      ref.read(todoNotifierProvider.notifier).undoRepeatCompletion(
+            widget.todo.id,
+            widget.todo.completedAt!,
+          );
+      return;
+    }
+
     final newValue = v ?? !widget.todo.isCompleted;
     if (newValue && !widget.todo.isCompleted) {
       ref.read(audioServiceProvider).playTaskCompleteSound();
@@ -242,10 +254,19 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                         );
                                       }
 
+                                      final isHistoryLog = widget.todo.isCompleted &&
+                                          widget.todo.completedAt != null &&
+                                          widget.todo.completionHistory.contains(widget.todo.completedAt!);
+
                                       if (widget.todo.repeatInterval != null &&
                                           widget.todo.repeatUnit != null) {
                                         final repeatStr =
                                             '${Translations.tr('every', locale)}${widget.todo.repeatInterval} ${_getRepeatUnitLabel(widget.todo.repeatUnit!, locale)}';
+                                        
+                                        if (isHistoryLog && dateStr.isNotEmpty) {
+                                          dateStr = '${Translations.tr('next_time', locale)}$dateStr';
+                                        }
+                                        
                                         return dateStr.isEmpty
                                             ? repeatStr
                                             : '$dateStr · $repeatStr';

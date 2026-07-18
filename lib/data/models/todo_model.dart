@@ -43,6 +43,7 @@ class TodoModel {
   String? repeatUnit;
 
   List<SubtaskModel>? subtasks;
+  List<DateTime>? completionHistory;
 
   // 從 Entity 轉換為 Isar 支援的 Model
   static TodoModel fromEntity(Todo entity) {
@@ -61,7 +62,8 @@ class TodoModel {
       ..repeatUnit = entity.repeatUnit
       ..subtasks = entity.subtasks
           .map((s) => SubtaskModel.fromEntity(s))
-          .toList();
+          .toList()
+      ..completionHistory = entity.completionHistory;
   }
 
   // 將 Isar Model 轉換為 Domain 核心的 Entity
@@ -80,6 +82,7 @@ class TodoModel {
       repeatInterval: repeatInterval,
       repeatUnit: repeatUnit,
       subtasks: subtasks?.map((s) => s.toEntity()).toList() ?? [],
+      completionHistory: completionHistory ?? [],
     );
   }
 }

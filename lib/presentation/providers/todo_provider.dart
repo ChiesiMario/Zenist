@@ -96,27 +96,11 @@ class TodoNotifier extends Notifier<void> {
         }
       }
 
-      final nextTodo = Todo(
-        id: const Uuid().v4(),
-        title: todo.title,
-        description: todo.description,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-        dueDate: nextDueDate,
-        isAnytime: todo.isAnytime,
-        repeatInterval: todo.repeatInterval,
-        repeatUnit: todo.repeatUnit,
-        subtasks: todo.subtasks
-            .map((s) => s.copyWith(isCompleted: false))
-            .toList(),
-      );
-      await repository.saveTodo(nextTodo);
-
       final updatedTodo = todo.copyWith(
-        isCompleted: true,
+        isCompleted: false, // Keep it incomplete
         updatedAt: DateTime.now(),
-        completedAt: DateTime.now(),
-        clearRepeat: true,
+        dueDate: nextDueDate, // Advance due date
+        completionHistory: [...todo.completionHistory, DateTime.now()], // Record completion
       );
       await repository.saveTodo(updatedTodo);
   
@@ -131,6 +115,56 @@ class TodoNotifier extends Notifier<void> {
     );
     await repository.saveTodo(updatedTodo);
 
+  }
+
+  Future<void> undoRepeatCompletion(String todoId, DateTime historyDate) async {
+    final repository = ref.read(todoRepositoryProvider);
+    final todo = await repository.getTodo(todoId);
+    if (todo == null) return;
+
+    // Remove the historyDate from completionHistory
+    final newHistory = todo.completionHistory.where((d) => d != historyDate).toList();
+
+    // Revert dueDate backwards
+    DateTime? previousDueDate;
+    if (todo.dueDate != null && todo.repeatInterval != null && todo.repeatUnit != null) {
+      final interval = todo.repeatInterval!;
+      switch (todo.repeatUnit) {
+        case 'day':
+          previousDueDate = todo.dueDate!.subtract(Duration(days: interval));
+          break;
+        case 'week':
+          previousDueDate = todo.dueDate!.subtract(Duration(days: 7 * interval));
+          break;
+        case 'month':
+          previousDueDate = DateTime(
+            todo.dueDate!.year,
+            todo.dueDate!.month - interval,
+            todo.dueDate!.day,
+            todo.dueDate!.hour,
+            todo.dueDate!.minute,
+          );
+          break;
+        case 'year':
+          previousDueDate = DateTime(
+            todo.dueDate!.year - interval,
+            todo.dueDate!.month,
+            todo.dueDate!.day,
+            todo.dueDate!.hour,
+            todo.dueDate!.minute,
+          );
+          break;
+      }
+    } else {
+      previousDueDate = todo.dueDate;
+    }
+
+    final updatedTodo = todo.copyWith(
+      dueDate: previousDueDate,
+      completionHistory: newHistory,
+      updatedAt: DateTime.now(),
+    );
+    await repository.saveTodo(updatedTodo);
   }
 
   Future<void> deleteTodo(String id) async {

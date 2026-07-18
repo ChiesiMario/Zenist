@@ -65,6 +65,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   String _repeatUnit = 'week';
   int _currentIndex = 0;
   bool _isInputExpanded = false;
+  bool _isDialogShowing = false;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -75,12 +76,15 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   void initState() {
     super.initState();
     _focusNode.addListener(() {
-      setState(() {
-        // Automatically collapse if focus is lost and input is empty
-        if (!_focusNode.hasFocus && _controller.text.trim().isEmpty) {
-          _isInputExpanded = false;
-        }
-      });
+      if (!_focusNode.hasFocus) {
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (mounted && !_focusNode.hasFocus && _controller.text.trim().isEmpty && !_isDialogShowing) {
+            setState(() {
+              _isInputExpanded = false;
+            });
+          }
+        });
+      }
     });
   }
 
@@ -133,6 +137,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
   }
 
   Future<void> _pickDate() async {
+    _isDialogShowing = true;
     _focusNode.unfocus();
 
     // Create local copies of state for the dialog
@@ -517,6 +522,7 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
       },
     );
 
+    _isDialogShowing = false;
     if (result != null) {
       if (result['clear'] == true) {
         setState(() {
@@ -534,6 +540,14 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
         });
       }
       _focusNode.requestFocus();
+    } else {
+      if (_controller.text.trim().isEmpty) {
+        setState(() {
+          _isInputExpanded = false;
+        });
+      } else {
+        _focusNode.requestFocus();
+      }
     }
   }
 
@@ -749,19 +763,30 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                                               MainAxisSize.min,
                                                           children: [
                                                             ShadButton.ghost(
-                                                              onPressed: () => showDialog(
-                                                                context:
-                                                                    context,
-                                                                barrierDismissible:
-                                                                    false,
-                                                                builder: (context) => TodoEditorDialog(
-                                                                  initialTitle:
-                                                                      _controller
-                                                                          .text,
-                                                                  initialDate:
-                                                                      _selectedDueDate,
-                                                                ),
-                                                              ),
+                                                              onPressed: () async {
+                                                                _isDialogShowing = true;
+                                                                await showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  barrierDismissible:
+                                                                      false,
+                                                                  builder: (context) => TodoEditorDialog(
+                                                                    initialTitle:
+                                                                        _controller
+                                                                            .text,
+                                                                    initialDate:
+                                                                        _selectedDueDate,
+                                                                  ),
+                                                                );
+                                                                _isDialogShowing = false;
+                                                                if (_controller.text.trim().isEmpty) {
+                                                                  setState(() {
+                                                                    _isInputExpanded = false;
+                                                                  });
+                                                                } else {
+                                                                  _focusNode.requestFocus();
+                                                                }
+                                                              },
                                                               height: 32,
                                                               width: 32,
                                                               padding:
@@ -988,6 +1013,16 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                                                 onPressed: () {
                                                   setState(() {
                                                     _isInputExpanded = true;
+                                                    if (_currentIndex == 0) {
+                                                      _selectedDueDate = DateTime.now();
+                                                      _isAnytimeSelected = false;
+                                                    } else if (_currentIndex == 3) {
+                                                      _selectedDueDate = null;
+                                                      _isAnytimeSelected = true;
+                                                    } else {
+                                                      _selectedDueDate = null;
+                                                      _isAnytimeSelected = false;
+                                                    }
                                                   });
                                                   Future.delayed(
                                                     const Duration(
@@ -1036,6 +1071,15 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
 
                                   for (final todo in allTodos) {
                                     if (!todo.isCompleted) {
+                                      // Extract historical completions for repeating tasks
+                                      if (_currentIndex == 0 && todo.completionHistory.isNotEmpty) {
+                                        for (final historyDate in todo.completionHistory) {
+                                          if (!historyDate.isBefore(todayStart) && historyDate.isBefore(todayEnd)) {
+                                            completedTodayTodos.add(todo.copyWith(isCompleted: true, completedAt: historyDate));
+                                          }
+                                        }
+                                      }
+
                                       bool matchesTab = false;
                                       if (_currentIndex == 0) {
                                         // 今天

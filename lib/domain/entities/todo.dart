@@ -42,6 +42,7 @@ class Todo {
   final int? repeatInterval;
   final String? repeatUnit;
   final List<Subtask> subtasks;
+  final List<DateTime> completionHistory;
 
   Todo({
     required this.id,
@@ -57,6 +58,7 @@ class Todo {
     this.repeatInterval,
     this.repeatUnit,
     this.subtasks = const [],
+    this.completionHistory = const [],
   });
 
   Todo copyWith({
@@ -74,6 +76,7 @@ class Todo {
     String? repeatUnit,
     bool clearRepeat = false,
     List<Subtask>? subtasks,
+    List<DateTime>? completionHistory,
   }) {
     return Todo(
       id: id,
@@ -91,6 +94,7 @@ class Todo {
           : (repeatInterval ?? this.repeatInterval),
       repeatUnit: clearRepeat ? null : (repeatUnit ?? this.repeatUnit),
       subtasks: subtasks ?? this.subtasks,
+      completionHistory: completionHistory ?? this.completionHistory,
     );
   }
 
@@ -108,6 +112,7 @@ class Todo {
     'repeatInterval': repeatInterval,
     'repeatUnit': repeatUnit,
     'subtasks': subtasks.map((s) => s.toJson()).toList(),
+    'completionHistory': completionHistory.map((d) => d.toIso8601String()).toList(),
   };
 
   factory Todo.fromJson(Map<String, dynamic> json) {
@@ -131,6 +136,10 @@ class Todo {
       subtasks:
           (json['subtasks'] as List<dynamic>?)
               ?.map((s) => Subtask.fromJson(s as Map<String, dynamic>))
+              .toList() ??
+          [],
+      completionHistory: (json['completionHistory'] as List<dynamic>?)
+              ?.map((d) => DateTime.parse(d as String))
               .toList() ??
           [],
     );
