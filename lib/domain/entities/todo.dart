@@ -144,4 +144,93 @@ class Todo {
           [],
     );
   }
+
+  /// Handles completion of a repeating task.
+  /// Returns a new [Todo] with the next due date and updated completion history.
+  Todo completeRepeatInstance() {
+    DateTime? nextDueDate;
+    if (dueDate != null && repeatInterval != null && repeatUnit != null) {
+      final interval = repeatInterval!;
+      switch (repeatUnit) {
+        case 'day':
+          nextDueDate = dueDate!.add(Duration(days: interval));
+          break;
+        case 'week':
+          nextDueDate = dueDate!.add(Duration(days: 7 * interval));
+          break;
+        case 'month':
+          nextDueDate = DateTime(
+            dueDate!.year,
+            dueDate!.month + interval,
+            dueDate!.day,
+            dueDate!.hour,
+            dueDate!.minute,
+          );
+          break;
+        case 'year':
+          nextDueDate = DateTime(
+            dueDate!.year + interval,
+            dueDate!.month,
+            dueDate!.day,
+            dueDate!.hour,
+            dueDate!.minute,
+          );
+          break;
+      }
+    }
+
+    return copyWith(
+      isCompleted: false, // Keep it incomplete to spawn next
+      updatedAt: DateTime.now(),
+      dueDate: nextDueDate, // Advance due date
+      completionHistory: [...completionHistory, DateTime.now()], // Record completion
+    );
+  }
+
+  /// Handles undoing a completion of a repeating task.
+  /// Returns a new [Todo] with the previous due date and updated completion history.
+  Todo undoRepeatInstance(DateTime historyDate) {
+    // Remove the historyDate from completionHistory
+    final newHistory = completionHistory.where((d) => d != historyDate).toList();
+
+    // Revert dueDate backwards
+    DateTime? previousDueDate;
+    if (dueDate != null && repeatInterval != null && repeatUnit != null) {
+      final interval = repeatInterval!;
+      switch (repeatUnit) {
+        case 'day':
+          previousDueDate = dueDate!.subtract(Duration(days: interval));
+          break;
+        case 'week':
+          previousDueDate = dueDate!.subtract(Duration(days: 7 * interval));
+          break;
+        case 'month':
+          previousDueDate = DateTime(
+            dueDate!.year,
+            dueDate!.month - interval,
+            dueDate!.day,
+            dueDate!.hour,
+            dueDate!.minute,
+          );
+          break;
+        case 'year':
+          previousDueDate = DateTime(
+            dueDate!.year - interval,
+            dueDate!.month,
+            dueDate!.day,
+            dueDate!.hour,
+            dueDate!.minute,
+          );
+          break;
+      }
+    } else {
+      previousDueDate = dueDate;
+    }
+
+    return copyWith(
+      dueDate: previousDueDate,
+      completionHistory: newHistory,
+      updatedAt: DateTime.now(),
+    );
+  }
 }

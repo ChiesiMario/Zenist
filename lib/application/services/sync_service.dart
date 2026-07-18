@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/remote/dropbox_datasource.dart';
 import '../../domain/repositories/todo_repository.dart';
@@ -38,7 +39,7 @@ class SyncService {
           remoteMap[t.id] = t;
         }
       } catch (e) {
-        print('Error decoding remote backup: $e');
+        debugPrint('SyncService: Error decoding remote backup: $e');
         throw Exception('Remote backup is corrupted: $e');
       }
     }

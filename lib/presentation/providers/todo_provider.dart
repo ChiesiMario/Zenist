@@ -22,6 +22,103 @@ final todoListStreamProvider = StreamProvider<List<Todo>>((ref) {
   return repository.watchTodos(includeDeleted: false);
 });
 
+// A custom class to hold the separated todos for a specific tab
+class FilteredTodos {
+  final List<Todo> uncompleted;
+  final List<Todo> completedToday;
+  
+  FilteredTodos({required this.uncompleted, required this.completedToday});
+}
+
+// A provider that filters and sorts todos based on the current tab index
+final filteredTodosProvider = Provider.family<AsyncValue<FilteredTodos>, int>((ref, tabIndex) {
+  final todosAsync = ref.watch(todoListStreamProvider);
+  
+  return todosAsync.whenData((allTodos) {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final todayEnd = todayStart.add(const Duration(days: 1));
+
+    final uncompletedTodos = <Todo>[];
+    final completedTodayTodos = <Todo>[];
+
+    for (final todo in allTodos) {
+      if (!todo.isCompleted) {
+        // Extract historical completions for repeating tasks
+        if (tabIndex == 0 && todo.completionHistory.isNotEmpty) {
+          for (final historyDate in todo.completionHistory) {
+            if (!historyDate.isBefore(todayStart) && historyDate.isBefore(todayEnd)) {
+              completedTodayTodos.add(todo.copyWith(isCompleted: true, completedAt: historyDate));
+            }
+          }
+        }
+
+        bool matchesTab = false;
+        if (tabIndex == 0) {
+          // 今天
+          if (todo.dueDate != null && !todo.isAnytime) {
+            if (todo.dueDate!.isBefore(todayEnd)) {
+              matchesTab = true; // 過期或今天之內
+            }
+          }
+        } else if (tabIndex == 1) {
+          // 未來
+          if (todo.dueDate != null &&
+              !todo.isAnytime &&
+              todo.dueDate!.isAfter(todayEnd.subtract(const Duration(milliseconds: 1)))) {
+            matchesTab = true;
+          }
+        } else if (tabIndex == 2) {
+          // 某天
+          if (todo.dueDate == null && !todo.isAnytime) matchesTab = true;
+        } else if (tabIndex == 3) {
+          // 隨時
+          if (todo.isAnytime) matchesTab = true;
+        }
+
+        if (matchesTab) {
+          uncompletedTodos.add(todo);
+        }
+      } else {
+        // 已完成的任務
+        if (tabIndex == 0) {
+          // 在「今天」標籤，顯示所有今天打勾完成的任務（戰利品）
+          if (todo.completedAt != null &&
+              !todo.completedAt!.isBefore(todayStart) &&
+              todo.completedAt!.isBefore(todayEnd)) {
+            completedTodayTodos.add(todo);
+          }
+        }
+      }
+    }
+
+    int compareTodos(Todo a, Todo b) {
+      if (a.dueDate != null && b.dueDate != null) {
+        return a.dueDate!.compareTo(b.dueDate!);
+      } else if (a.dueDate != null) {
+        return -1; // a has due date, b doesn't -> a comes first
+      } else if (b.dueDate != null) {
+        return 1; // b has due date, a doesn't -> b comes first
+      } else {
+        return a.createdAt.compareTo(b.createdAt);
+      }
+    }
+
+    uncompletedTodos.sort(compareTodos);
+    completedTodayTodos.sort((a, b) {
+      if (a.completedAt != null && b.completedAt != null) {
+        return a.completedAt!.compareTo(b.completedAt!);
+      }
+      return compareTodos(a, b);
+    });
+
+    return FilteredTodos(
+      uncompleted: uncompletedTodos,
+      completedToday: completedTodayTodos,
+    );
+  });
+});
+
 final todoNotifierProvider = NotifierProvider<TodoNotifier, void>(() {
   return TodoNotifier();
 });
@@ -65,43 +162,7 @@ class TodoNotifier extends Notifier<void> {
         todo.repeatInterval != null &&
         todo.repeatUnit != null &&
         !todo.isAnytime) {
-      DateTime? nextDueDate;
-      if (todo.dueDate != null) {
-        final interval = todo.repeatInterval!;
-        switch (todo.repeatUnit) {
-          case 'day':
-            nextDueDate = todo.dueDate!.add(Duration(days: interval));
-            break;
-          case 'week':
-            nextDueDate = todo.dueDate!.add(Duration(days: 7 * interval));
-            break;
-          case 'month':
-            nextDueDate = DateTime(
-              todo.dueDate!.year,
-              todo.dueDate!.month + interval,
-              todo.dueDate!.day,
-              todo.dueDate!.hour,
-              todo.dueDate!.minute,
-            );
-            break;
-          case 'year':
-            nextDueDate = DateTime(
-              todo.dueDate!.year + interval,
-              todo.dueDate!.month,
-              todo.dueDate!.day,
-              todo.dueDate!.hour,
-              todo.dueDate!.minute,
-            );
-            break;
-        }
-      }
-
-      final updatedTodo = todo.copyWith(
-        isCompleted: false, // Keep it incomplete
-        updatedAt: DateTime.now(),
-        dueDate: nextDueDate, // Advance due date
-        completionHistory: [...todo.completionHistory, DateTime.now()], // Record completion
-      );
+      final updatedTodo = todo.completeRepeatInstance();
       await repository.saveTodo(updatedTodo);
   
       return;
@@ -122,48 +183,7 @@ class TodoNotifier extends Notifier<void> {
     final todo = await repository.getTodo(todoId);
     if (todo == null) return;
 
-    // Remove the historyDate from completionHistory
-    final newHistory = todo.completionHistory.where((d) => d != historyDate).toList();
-
-    // Revert dueDate backwards
-    DateTime? previousDueDate;
-    if (todo.dueDate != null && todo.repeatInterval != null && todo.repeatUnit != null) {
-      final interval = todo.repeatInterval!;
-      switch (todo.repeatUnit) {
-        case 'day':
-          previousDueDate = todo.dueDate!.subtract(Duration(days: interval));
-          break;
-        case 'week':
-          previousDueDate = todo.dueDate!.subtract(Duration(days: 7 * interval));
-          break;
-        case 'month':
-          previousDueDate = DateTime(
-            todo.dueDate!.year,
-            todo.dueDate!.month - interval,
-            todo.dueDate!.day,
-            todo.dueDate!.hour,
-            todo.dueDate!.minute,
-          );
-          break;
-        case 'year':
-          previousDueDate = DateTime(
-            todo.dueDate!.year - interval,
-            todo.dueDate!.month,
-            todo.dueDate!.day,
-            todo.dueDate!.hour,
-            todo.dueDate!.minute,
-          );
-          break;
-      }
-    } else {
-      previousDueDate = todo.dueDate;
-    }
-
-    final updatedTodo = todo.copyWith(
-      dueDate: previousDueDate,
-      completionHistory: newHistory,
-      updatedAt: DateTime.now(),
-    );
+    final updatedTodo = todo.undoRepeatInstance(historyDate);
     await repository.saveTodo(updatedTodo);
   }
 
