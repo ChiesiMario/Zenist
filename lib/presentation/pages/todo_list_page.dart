@@ -1608,6 +1608,7 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget>
     with TickerProviderStateMixin {
   late AnimationController _rotationController;
   late AnimationController _pulseController;
+  bool? _lastSyncSuccess;
 
   @override
   void initState() {
@@ -1663,6 +1664,11 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget>
     } else if (syncState == SyncState.auto) {
       iconData = LucideIcons.cloud;
       iconColor = ShadTheme.of(context).colorScheme.primary;
+    } else if (_lastSyncSuccess != null) {
+      iconData = _lastSyncSuccess! ? LucideIcons.check : LucideIcons.x;
+      iconColor = _lastSyncSuccess!
+          ? const Color(0xFF10B981) // Green for success
+          : ShadTheme.of(context).colorScheme.destructive; // Red for fail
     } else {
       iconData = LucideIcons.cloud;
       iconColor = ShadTheme.of(
@@ -1682,11 +1688,24 @@ class _SyncIconWidgetState extends ConsumerState<_SyncIconWidget>
     }
 
     return ShadButton.ghost(
-      onPressed: () {
+      onPressed: () async {
         if (!isLoggedIn) {
           ToastUtils.show(context, '請先前往「設置」頁面登入 Dropbox 以啟用雲端同步功能。');
         } else if (syncState == SyncState.idle) {
-          ref.read(autoSyncManagerProvider.notifier).manualSync();
+          final success = await ref.read(autoSyncManagerProvider.notifier).manualSync();
+          if (mounted) {
+            ToastUtils.show(context, success ? '同步成功' : '同步失敗');
+            setState(() {
+              _lastSyncSuccess = success;
+            });
+            Future.delayed(const Duration(seconds: 2), () {
+              if (mounted) {
+                setState(() {
+                  _lastSyncSuccess = null;
+                });
+              }
+            });
+          }
         }
       },
       width: 36,

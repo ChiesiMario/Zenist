@@ -38,19 +38,19 @@ class AutoSyncManager extends Notifier<SyncState> {
   }
 
   /// 手動觸發同步
-  Future<void> manualSync() async {
-    await _executeSync(triggerSource: 'manual_trigger', isManual: true);
+  Future<bool> manualSync() async {
+    return await _executeSync(triggerSource: 'manual_trigger', isManual: true);
   }
 
-  Future<void> _executeSync({
+  Future<bool> _executeSync({
     required String triggerSource,
     required bool isManual,
   }) async {
-    if (state != SyncState.idle) return;
+    if (state != SyncState.idle) return false;
 
     // 檢查是否已登入
     final isLoggedIn = ref.read(authProvider).isLoggedIn;
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) return false;
 
     try {
       state = isManual ? SyncState.manual : SyncState.auto;
@@ -62,8 +62,10 @@ class AutoSyncManager extends Notifier<SyncState> {
       ref
           .read(settingsProvider.notifier)
           .updateLastSyncTime(DateTime.now().toIso8601String());
+      return true;
     } catch (e) {
       debugPrint('AutoSyncManager: Sync failed ($triggerSource) - $e');
+      return false;
     } finally {
       state = SyncState.idle;
     }
