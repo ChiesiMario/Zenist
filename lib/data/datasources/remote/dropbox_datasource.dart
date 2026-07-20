@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -27,6 +28,9 @@ class DropboxDataSource {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _accessToken;
+  HttpServer? _server;
+  Timer? _serverTimeoutTimer;
+  Future<void>? _pendingLogin;
 
   Future<bool> isLoggedIn() async {
     final refreshToken = await _storage.read(key: _refreshTokenKey);
@@ -34,6 +38,37 @@ class DropboxDataSource {
   }
 
   Future<void> login() async {
+    if (_pendingLogin != null) {
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        // 重置 10 分鐘計時器
+        _serverTimeoutTimer?.cancel();
+        _serverTimeoutTimer = Timer(const Duration(minutes: 10), () {
+          _server?.close(force: true);
+        });
+
+        final url = Uri.https('www.dropbox.com', '/oauth2/authorize', {
+          'client_id': _clientId,
+          'response_type': 'code',
+          'redirect_uri': _redirectUri,
+          'token_access_type': 'offline',
+        });
+        
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url);
+        }
+      }
+      return _pendingLogin;
+    }
+
+    _pendingLogin = _doLogin();
+    try {
+      await _pendingLogin;
+    } finally {
+      _pendingLogin = null;
+    }
+  }
+
+  Future<void> _doLogin() async {
     final url = Uri.https('www.dropbox.com', '/oauth2/authorize', {
       'client_id': _clientId,
       'response_type': 'code',
@@ -44,7 +79,13 @@ class DropboxDataSource {
     String? code;
 
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 45912);
+      _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 45912);
+      
+      _serverTimeoutTimer?.cancel();
+      _serverTimeoutTimer = Timer(const Duration(minutes: 10), () {
+        _server?.close(force: true);
+      });
+
       try {
         if (await canLaunchUrl(url)) {
           await launchUrl(url);
@@ -52,7 +93,7 @@ class DropboxDataSource {
           throw Exception('Could not launch $url');
         }
 
-        await for (var request in server) {
+        await for (var request in _server!) {
           final queryParams = request.uri.queryParameters;
           if (queryParams.containsKey('code')) {
             code = queryParams['code'];
@@ -76,7 +117,9 @@ class DropboxDataSource {
           }
         }
       } finally {
-        await server.close(force: true);
+        _serverTimeoutTimer?.cancel();
+        await _server?.close(force: true);
+        _server = null;
       }
     } else {
       final result = await FlutterWebAuth2.authenticate(
