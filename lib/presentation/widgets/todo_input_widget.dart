@@ -6,14 +6,17 @@ import 'package:intl/intl.dart';
 import '../providers/todo_provider.dart';
 import '../providers/settings_provider.dart';
 import '../../core/localization/translations.dart';
+import '../../core/utils/date_formatter.dart';
 import 'todo_editor_dialog.dart';
 
 class TodoInputWidget extends ConsumerStatefulWidget {
   final int currentIndex;
+  final ValueChanged<bool>? onExpandedChanged;
 
   const TodoInputWidget({
     super.key,
     required this.currentIndex,
+    this.onExpandedChanged,
   });
 
   @override
@@ -31,6 +34,15 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
   bool _isInputExpanded = false;
   bool _isDialogShowing = false;
 
+  void _setExpanded(bool expanded) {
+    if (_isInputExpanded != expanded) {
+      setState(() {
+        _isInputExpanded = expanded;
+      });
+      widget.onExpandedChanged?.call(expanded);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -41,9 +53,7 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
               !_focusNode.hasFocus &&
               _controller.text.trim().isEmpty &&
               !_isDialogShowing) {
-            setState(() {
-              _isInputExpanded = false;
-            });
+            _setExpanded(false);
           }
         });
       }
@@ -82,13 +92,13 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
             repeatUnit: (_isRepeatEnabled && !finalIsAnytime) ? _repeatUnit : null,
           );
       _controller.clear();
+      _setExpanded(false);
       setState(() {
         _selectedDueDate = null;
         _isAnytimeSelected = false;
         _isRepeatEnabled = false;
         _repeatInterval = 1;
         _repeatUnit = 'week';
-        _isInputExpanded = false;
       });
     }
   }
@@ -542,24 +552,124 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
               _isInputExpanded ? constraints.maxWidth : 32.0;
           final double targetHeight = _isInputExpanded ? 44.0 : 32.0;
 
-          return Center(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              width: targetWidth,
-              height: targetHeight,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: (_isInputExpanded && _focusNode.hasFocus
-                          ? ShadTheme.of(context).colorScheme.ring
-                          : ShadTheme.of(context).colorScheme.border)
-                      .withOpacity(
-                    _isInputExpanded ? 1.0 : 0.0,
-                  ),
-                  width: _isInputExpanded && _focusNode.hasFocus ? 2.0 : 1.0,
-                ),
-                borderRadius: ShadTheme.of(context).radius,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.bottomCenter,
+                child: _isInputExpanded
+                    ? Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0, left: 4.0, right: 4.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ShadButton.ghost(
+                              onPressed: _pickDate,
+                              height: 32,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: (_selectedDueDate != null ||
+                                        _isAnytimeSelected)
+                                    ? 8
+                                    : 8,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    _isAnytimeSelected
+                                        ? LucideIcons.infinity
+                                        : LucideIcons.calendar,
+                                    size: 16,
+                                    color: (_selectedDueDate != null ||
+                                            _isAnytimeSelected)
+                                        ? ShadTheme.of(context).colorScheme.primary
+                                        : ShadTheme.of(context).colorScheme.mutedForeground,
+                                  ),
+                                  if (_isAnytimeSelected || _selectedDueDate != null) ...[
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      (() {
+                                        String dateStr = '';
+                                        if (_isAnytimeSelected || _selectedDueDate != null) {
+                                          dateStr = DateFormatter.getRelativeDateString(
+                                            date: _selectedDueDate,
+                                            locale: locale,
+                                            dateFormat: ref.watch(settingsProvider).dateFormat,
+                                            isAnytime: _isAnytimeSelected,
+                                            includeAbsolute: false,
+                                          );
+                                        }
+                                        if (_isRepeatEnabled) {
+                                          final repeatStr = '${Translations.tr('every', locale)}$_repeatInterval ${_getRepeatUnitLabel(_repeatUnit, locale)}';
+                                          return '$dateStr · $repeatStr';
+                                        }
+                                        return dateStr;
+                                      })(),
+                                      style: TextStyle(
+                                        color: ShadTheme.of(context).colorScheme.primary,
+                                        fontSize: 13,
+                                        height: 1.0,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            ShadButton.ghost(
+                              onPressed: () async {
+                                _isDialogShowing = true;
+                                await showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => TodoEditorDialog(
+                                    initialTitle: _controller.text,
+                                    initialDate: _selectedDueDate,
+                                  ),
+                                );
+                                _isDialogShowing = false;
+                                if (_controller.text.trim().isEmpty) {
+                                  _setExpanded(false);
+                                } else {
+                                  _focusNode.requestFocus();
+                                }
+                              },
+                              height: 32,
+                              width: 32,
+                              padding: EdgeInsets.zero,
+                              child: Icon(
+                                LucideIcons.expand,
+                                size: 15,
+                                color: ShadTheme.of(context).colorScheme.mutedForeground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
+              Center(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  width: targetWidth,
+                  height: targetHeight,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: (_isInputExpanded && _focusNode.hasFocus
+                              ? ShadTheme.of(context).colorScheme.ring
+                              : ShadTheme.of(context).colorScheme.border)
+                          .withOpacity(
+                        _isInputExpanded ? 1.0 : 0.0,
+                      ),
+                      width: _isInputExpanded && _focusNode.hasFocus ? 2.0 : 1.0,
+                    ),
+                    borderRadius: ShadTheme.of(context).radius,
+                  ),
               child: ClipRRect(
                 borderRadius: ShadTheme.of(context).radius,
                 child: Stack(
@@ -615,7 +725,7 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
                                     disabledBorder: InputBorder.none,
                                     contentPadding: const EdgeInsets.only(
                                       left: 12,
-                                      right: 112,
+                                      right: 44,
                                       top: 11,
                                       bottom: 11,
                                     ),
@@ -630,141 +740,6 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      ShadButton.ghost(
-                                        onPressed: () async {
-                                          _isDialogShowing = true;
-                                          await showDialog(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            builder: (context) =>
-                                                TodoEditorDialog(
-                                              initialTitle: _controller.text,
-                                              initialDate: _selectedDueDate,
-                                            ),
-                                          );
-                                          _isDialogShowing = false;
-                                          if (_controller.text.trim().isEmpty) {
-                                            setState(() {
-                                              _isInputExpanded = false;
-                                            });
-                                          } else {
-                                            _focusNode.requestFocus();
-                                          }
-                                        },
-                                        height: 32,
-                                        width: 32,
-                                        padding: EdgeInsets.zero,
-                                        child: Icon(
-                                          LucideIcons.expand,
-                                          size: 15,
-                                          color: ShadTheme.of(context)
-                                              .colorScheme
-                                              .mutedForeground,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      ShadButton.ghost(
-                                        onPressed: _pickDate,
-                                        height: 32,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: (_selectedDueDate !=
-                                                      null ||
-                                                  _isAnytimeSelected)
-                                              ? 8
-                                              : 8,
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            Transform.translate(
-                                              offset: const Offset(0, 2.0),
-                                              child: Icon(
-                                                _isAnytimeSelected
-                                                    ? LucideIcons.infinity
-                                                    : LucideIcons.calendar,
-                                                size: 16,
-                                                color: (_selectedDueDate !=
-                                                            null ||
-                                                        _isAnytimeSelected)
-                                                    ? ShadTheme.of(context)
-                                                        .colorScheme
-                                                        .primary
-                                                    : ShadTheme.of(context)
-                                                        .colorScheme
-                                                        .mutedForeground,
-                                              ),
-                                            ),
-                                            if (_isAnytimeSelected ||
-                                                _selectedDueDate != null) ...[
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                (() {
-                                                  String dateStr = '';
-                                                  if (_isAnytimeSelected) {
-                                                    dateStr = Translations.tr(
-                                                      'tab_anytime',
-                                                      locale,
-                                                    );
-                                                  } else {
-                                                    final date =
-                                                        _selectedDueDate!;
-                                                    final now = DateTime.now();
-                                                    final today = DateTime(
-                                                      now.year,
-                                                      now.month,
-                                                      now.day,
-                                                    );
-                                                    final tomorrow = today.add(
-                                                      const Duration(days: 1),
-                                                    );
-                                                    final dateStart = DateTime(
-                                                      date.year,
-                                                      date.month,
-                                                      date.day,
-                                                    );
-                                                    if (dateStart == today) {
-                                                      dateStr = Translations.tr(
-                                                        'tab_today',
-                                                        locale,
-                                                      );
-                                                    } else if (dateStart ==
-                                                        tomorrow) {
-                                                      dateStr = Translations.tr(
-                                                        'tomorrow',
-                                                        locale,
-                                                      );
-                                                    } else {
-                                                      dateStr = DateFormat(
-                                                        ref
-                                                            .watch(
-                                                              settingsProvider,
-                                                            )
-                                                            .dateFormat,
-                                                      ).format(date);
-                                                    }
-                                                  }
-                                                  if (_isRepeatEnabled) {
-                                                    final repeatStr =
-                                                        '${Translations.tr('every', locale)}$_repeatInterval ${_getRepeatUnitLabel(_repeatUnit, locale)}';
-                                                    return '$dateStr · $repeatStr';
-                                                  }
-                                                  return dateStr;
-                                                })(),
-                                                style: TextStyle(
-                                                  color: ShadTheme.of(context)
-                                                      .colorScheme
-                                                      .primary,
-                                                  fontSize: 13,
-                                                  height: 1.0,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
                                       ShadButton.ghost(
                                         onPressed: _submit,
                                         width: 32,
@@ -801,8 +776,8 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
                           height: 32,
                           padding: EdgeInsets.zero,
                           onPressed: () {
+                            _setExpanded(true);
                             setState(() {
-                              _isInputExpanded = true;
                               if (widget.currentIndex == 0) {
                                 _selectedDueDate = DateTime.now();
                                 _isAnytimeSelected = false;
@@ -835,6 +810,22 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
                 ),
               ),
             ),
+          ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.topCenter,
+                child: _isInputExpanded
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 28.0),
+                        child: Divider(
+                          height: 1,
+                          color: ShadTheme.of(context).colorScheme.border,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
           );
         },
       ),

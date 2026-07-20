@@ -60,6 +60,7 @@ class TodoListPage extends ConsumerStatefulWidget {
 
 class _TodoListPageState extends ConsumerState<TodoListPage> {
   int _currentIndex = 0;
+  bool _isInputExpanded = false;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -113,10 +114,28 @@ class _TodoListPageState extends ConsumerState<TodoListPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TodoInputWidget(currentIndex: _currentIndex),
+                          TodoInputWidget(
+                            currentIndex: _currentIndex,
+                            onExpandedChanged: (expanded) {
+                              if (mounted) {
+                                setState(() {
+                                  _isInputExpanded = expanded;
+                                });
+                              }
+                            },
+                          ),
                           Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
+                            child: GestureDetector(
+                              onTap: _isInputExpanded
+                                  ? () {
+                                      FocusScope.of(context).unfocus();
+                                    }
+                                  : null,
+                              child: AnimatedOpacity(
+                                duration: const Duration(milliseconds: 300),
+                                opacity: _isInputExpanded ? 0.2 : 1.0,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
                               child: todosAsync.when(
                                 data: (filteredData) {
                                   final uncompletedTodos = filteredData.uncompleted;
@@ -257,11 +276,13 @@ if (uncompletedTodos.isEmpty &&
                                     ).colorScheme.foreground,
                                   ),
                                 ),
-                                error: (err, stack) =>
-                                    Center(child: Text('Error: $err')),
+                                  error: (err, stack) =>
+                                      Center(child: Text('Error: $err')),
+                                ),
                               ),
                             ),
                           ),
+                        ),
                         ],
                       ),
                     ),
