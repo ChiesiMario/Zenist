@@ -25,6 +25,7 @@ class DropboxDataSource {
 
   static const String _tokenKey = 'dropbox_access_token';
   static const String _refreshTokenKey = 'dropbox_refresh_token';
+  static const String _emailKey = 'dropbox_account_email';
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _accessToken;
@@ -161,6 +162,7 @@ class DropboxDataSource {
     _accessToken = null;
     await _storage.delete(key: _tokenKey);
     await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _emailKey);
   }
 
   Future<bool> _refreshToken() async {
@@ -211,18 +213,31 @@ class DropboxDataSource {
   Future<String?> getCurrentAccountEmail() async {
     if (!await isLoggedIn()) return null;
 
-    return _withAuth(() async {
-      final response = await http.post(
-        Uri.parse('https://api.dropboxapi.com/2/users/get_current_account'),
-        headers: {'Authorization': 'Bearer $_accessToken'},
-      );
+    try {
+      return await _withAuth(() async {
+        final response = await http.post(
+          Uri.parse('https://api.dropboxapi.com/2/users/get_current_account'),
+          headers: {'Authorization': 'Bearer $_accessToken'},
+        );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['email'] as String?;
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final email = data['email'] as String?;
+          if (email != null) {
+            await _storage.write(key: _emailKey, value: email);
+          }
+          return email;
+        } else if (response.statusCode == 401) {
+          throw Exception('401 Unauthorized');
+        }
+        return null;
+      });
+    } catch (e) {
+      if (e is SocketException || e.toString().contains('SocketException') || e.toString().contains('Failed host lookup')) {
+        return await _storage.read(key: _emailKey);
       }
-      return null;
-    });
+      rethrow;
+    }
   }
 
   Future<String?> downloadBackup() async {

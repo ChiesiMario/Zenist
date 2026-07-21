@@ -18,11 +18,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
     final dropbox = ref.read(dropboxDataSourceProvider);
     final isLoggedIn = await dropbox.isLoggedIn();
     String? email;
+    bool isActuallyLoggedIn = isLoggedIn;
+
     if (isLoggedIn) {
-      email = await dropbox.getCurrentAccountEmail();
+      try {
+        email = await dropbox.getCurrentAccountEmail();
+      } catch (e) {
+        if (e.toString().contains('Failed to refresh token') || e.toString().contains('401')) {
+          await dropbox.logout();
+          isActuallyLoggedIn = false;
+        }
+      }
     }
     if (mounted) {
-      state = (isLoggedIn: isLoggedIn, email: email);
+      state = (isLoggedIn: isActuallyLoggedIn, email: email);
     }
   }
 
