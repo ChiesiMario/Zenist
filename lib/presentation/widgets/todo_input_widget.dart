@@ -136,7 +136,7 @@ class _TodoInputWidgetState extends ConsumerState<TodoInputWidget> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: SizedBox(
-                  width: 270,
+                  width: 310,
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

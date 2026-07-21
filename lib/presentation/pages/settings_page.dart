@@ -304,7 +304,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         // 第一張卡片：外觀與顯示
                         Container(
                           decoration: BoxDecoration(
-                            color: ShadTheme.of(context).colorScheme.card,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: ShadTheme.of(context).colorScheme.border,
@@ -318,7 +317,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               ),
                             ],
                           ),
-                          child: Column(
+                          child: Material(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(11),
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
@@ -543,12 +546,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               const SizedBox(height: 8), // 底部留白
                             ],
                           ),
+                          ),
                         ),
                         const SizedBox(height: 24),
                         // 第二張卡片：雲端同步
                         Container(
                           decoration: BoxDecoration(
-                            color: ShadTheme.of(context).colorScheme.card,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: ShadTheme.of(context).colorScheme.border,
@@ -562,7 +565,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               ),
                             ],
                           ),
-                          child: Column(
+                          child: Material(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(11),
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
@@ -581,12 +588,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               const SizedBox(height: 8), // 底部留白
                             ],
                           ),
+                          ),
                         ),
                         const SizedBox(height: 24),
                         // 第三張卡片：系統
                         Container(
                           decoration: BoxDecoration(
-                            color: ShadTheme.of(context).colorScheme.card,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: ShadTheme.of(context).colorScheme.border,
@@ -600,7 +607,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               ),
                             ],
                           ),
-                          child: Column(
+                          child: Material(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(11),
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Padding(
@@ -673,12 +684,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               const SizedBox(height: 8), // 底部留白
                             ],
                           ),
+                          ),
                         ),
                         const SizedBox(height: 24),
                         // 第四張卡片：關於
                         Container(
                           decoration: BoxDecoration(
-                            color: ShadTheme.of(context).colorScheme.card,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: ShadTheme.of(context).colorScheme.border,
@@ -692,7 +703,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               ),
                             ],
                           ),
-                          child: _AboutSection(locale: locale),
+                          child: Material(
+                            color: ShadTheme.of(context).colorScheme.card,
+                            borderRadius: BorderRadius.circular(11),
+                            clipBehavior: Clip.antiAlias,
+                            child: _AboutSection(locale: locale),
+                          ),
                         ),
                         const SizedBox(height: 48), // Bottom padding for scroll
                       ],

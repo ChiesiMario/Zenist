@@ -132,6 +132,63 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
     }
   }
 
+  Widget _buildHistoryIcons() {
+    final todo = widget.existingTodo;
+    if (todo == null || todo.repeatInterval == null || todo.completionHistory.isEmpty) {
+      return const SizedBox();
+    }
+    
+    return Padding(
+      padding: const EdgeInsets.only(left: 12.0, bottom: 4.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxIcons = (constraints.maxWidth / 18.0).floor();
+          if (maxIcons <= 0) return const SizedBox();
+          
+          final records = todo.completionHistory.reversed.take(maxIcons).toList().reversed.toList();
+          
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: records.map((record) {
+              bool isSuccess = true;
+              if (record.expectedDueDate != null) {
+                final completed = record.completedAt;
+                final expected = record.expectedDueDate!;
+                final completedDate = DateTime(completed.year, completed.month, completed.day);
+                final expectedDate = DateTime(expected.year, expected.month, expected.day);
+                isSuccess = !completedDate.isAfter(expectedDate);
+              }
+              final iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.3);
+              return Padding(
+                padding: const EdgeInsets.only(right: 4.0),
+                child: isSuccess 
+                  ? Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: iconColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(Icons.check, size: 10, color: ShadTheme.of(context).colorScheme.background),
+                      ),
+                    )
+                  : Container(
+                      width: 14,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: iconColor),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+              );
+            }).toList(),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> pickDate() async {
     focusNode.unfocus();
 
@@ -163,7 +220,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: SizedBox(
-                  width: 270,
+                  width: 310,
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -171,7 +228,7 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                       children: [
                         Center(
                           child: SizedBox(
-                            width: 270,
+                            width: 310,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -685,75 +742,74 @@ class _TodoEditorDialogState extends ConsumerState<TodoEditorDialog> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _buildHistoryIcons(),
                       Padding(
                         padding: const EdgeInsets.only(left: 4.0),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            InkWell(
-                              onTap: pickDate,
-                              borderRadius: BorderRadius.circular(4),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Transform.translate(
-                                      offset: const Offset(0, 0.5),
-                                      child: Icon(
-                                        tempIsAnytime
-                                            ? LucideIcons.infinity
-                                            : LucideIcons.calendar,
-                                        size: 14,
-                                        color: _isOverdue
-                                            ? ShadTheme.of(context).colorScheme.destructive
-                                            : ShadTheme.of(context).colorScheme.mutedForeground,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      (() {
-                                        String dateStr = '';
-                                        if (tempIsAnytime || tempDueDate != null) {
-                                          dateStr = DateFormatter.getRelativeDateString(
-                                            date: tempDueDate,
-                                            locale: locale,
-                                            dateFormat: ref.watch(settingsProvider).dateFormat,
-                                            isAnytime: tempIsAnytime,
-                                            includeAbsolute: true,
-                                          );
-                                        } else {
-                                          dateStr = Translations.tr(
-                                            'set_due_date',
-                                            locale,
-                                          );
-                                        }
-
-                                        if (tempRepeatEnabled) {
-                                          final repeatStr =
-                                              '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
-                                          return '$dateStr · $repeatStr';
-                                        }
-
-                                        return dateStr;
-                                      })(),
-                                      style: ShadTheme.of(
-                                        context,
-                                      ).textTheme.muted.copyWith(
-                                        fontSize: 13,
-                                        height: 1.0,
-                                        color: _isOverdue ? ShadTheme.of(context).colorScheme.destructive : null,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                        child: InkWell(
+                          onTap: pickDate,
+                          borderRadius: BorderRadius.circular(4),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
                             ),
-                          ],
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Transform.translate(
+                                  offset: const Offset(0, 0.5),
+                                  child: Icon(
+                                    tempIsAnytime
+                                        ? LucideIcons.infinity
+                                        : LucideIcons.calendar,
+                                    size: 14,
+                                    color: _isOverdue
+                                        ? ShadTheme.of(context).colorScheme.destructive
+                                        : ShadTheme.of(context).colorScheme.mutedForeground,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    (() {
+                                      String dateStr = '';
+                                      if (tempIsAnytime || tempDueDate != null) {
+                                        dateStr = DateFormatter.getRelativeDateString(
+                                          date: tempDueDate,
+                                          locale: locale,
+                                          dateFormat: ref.watch(settingsProvider).dateFormat,
+                                          isAnytime: tempIsAnytime,
+                                          includeAbsolute: true,
+                                        );
+                                      } else {
+                                        dateStr = Translations.tr(
+                                          'set_due_date',
+                                          locale,
+                                        );
+                                      }
+
+                                      if (tempRepeatEnabled) {
+                                        final repeatStr =
+                                            '${Translations.tr('every', locale)}$tempRepeatInterval ${_getRepeatUnitLabel(tempRepeatUnit, locale)}';
+                                        return '$dateStr · $repeatStr';
+                                      }
+
+                                      return dateStr;
+                                    })(),
+                                    style: ShadTheme.of(
+                                      context,
+                                    ).textTheme.muted.copyWith(
+                                      fontSize: 13,
+                                      height: 1.0,
+                                      color: _isOverdue ? ShadTheme.of(context).colorScheme.destructive : ShadTheme.of(context).colorScheme.mutedForeground,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),

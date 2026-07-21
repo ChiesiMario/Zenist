@@ -18,7 +18,7 @@ extension TodoFormatting on Todo {
 
     final isHistoryLog = isCompleted &&
         completedAt != null &&
-        completionHistory.contains(completedAt!);
+        completionHistory.any((r) => r.completedAt == completedAt!);
 
     if (repeatInterval != null && repeatUnit != null) {
       final repeatStr =

@@ -1,3 +1,31 @@
+class CompletionRecord {
+  final DateTime completedAt;
+  final DateTime? expectedDueDate;
+
+  CompletionRecord({required this.completedAt, this.expectedDueDate});
+
+  CompletionRecord copyWith({DateTime? completedAt, DateTime? expectedDueDate}) {
+    return CompletionRecord(
+      completedAt: completedAt ?? this.completedAt,
+      expectedDueDate: expectedDueDate ?? this.expectedDueDate,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'completedAt': completedAt.toIso8601String(),
+    'expectedDueDate': expectedDueDate?.toIso8601String(),
+  };
+
+  factory CompletionRecord.fromJson(Map<String, dynamic> json) {
+    return CompletionRecord(
+      completedAt: DateTime.parse(json['completedAt'] as String),
+      expectedDueDate: json['expectedDueDate'] != null
+          ? DateTime.parse(json['expectedDueDate'] as String)
+          : null,
+    );
+  }
+}
+
 class Subtask {
   final String id;
   final String title;
@@ -42,7 +70,7 @@ class Todo {
   final int? repeatInterval;
   final String? repeatUnit;
   final List<Subtask> subtasks;
-  final List<DateTime> completionHistory;
+  final List<CompletionRecord> completionHistory;
 
   Todo({
     required this.id,
@@ -76,7 +104,7 @@ class Todo {
     String? repeatUnit,
     bool clearRepeat = false,
     List<Subtask>? subtasks,
-    List<DateTime>? completionHistory,
+    List<CompletionRecord>? completionHistory,
   }) {
     return Todo(
       id: id,
@@ -112,7 +140,7 @@ class Todo {
     'repeatInterval': repeatInterval,
     'repeatUnit': repeatUnit,
     'subtasks': subtasks.map((s) => s.toJson()).toList(),
-    'completionHistory': completionHistory.map((d) => d.toIso8601String()).toList(),
+    'completionHistory': completionHistory.map((d) => d.toJson()).toList(),
   };
 
   factory Todo.fromJson(Map<String, dynamic> json) {
@@ -138,10 +166,14 @@ class Todo {
               ?.map((s) => Subtask.fromJson(s as Map<String, dynamic>))
               .toList() ??
           [],
-      completionHistory: (json['completionHistory'] as List<dynamic>?)
-              ?.map((d) => DateTime.parse(d as String))
-              .toList() ??
-          [],
+      completionHistory: (() {
+        final list = json['completionHistory'] as List<dynamic>?;
+        if (list == null) return <CompletionRecord>[];
+        if (list.isNotEmpty && list.first is String) {
+          return list.map((d) => CompletionRecord(completedAt: DateTime.parse(d as String))).toList();
+        }
+        return list.map((d) => CompletionRecord.fromJson(d as Map<String, dynamic>)).toList();
+      })(),
     );
   }
 
@@ -183,7 +215,7 @@ class Todo {
       isCompleted: false, // Keep it incomplete to spawn next
       updatedAt: DateTime.now(),
       dueDate: nextDueDate, // Advance due date
-      completionHistory: [...completionHistory, DateTime.now()], // Record completion
+      completionHistory: [...completionHistory, CompletionRecord(completedAt: DateTime.now(), expectedDueDate: dueDate)], // Record completion
     );
   }
 
@@ -191,11 +223,14 @@ class Todo {
   /// Returns a new [Todo] with the previous due date and updated completion history.
   Todo undoRepeatInstance(DateTime historyDate) {
     // Remove the historyDate from completionHistory
-    final newHistory = completionHistory.where((d) => d != historyDate).toList();
+    final recordList = completionHistory.where((d) => d.completedAt == historyDate).toList();
+    final newHistory = completionHistory.where((d) => d.completedAt != historyDate).toList();
 
     // Revert dueDate backwards
     DateTime? previousDueDate;
-    if (dueDate != null && repeatInterval != null && repeatUnit != null) {
+    if (recordList.isNotEmpty && recordList.first.expectedDueDate != null) {
+      previousDueDate = recordList.first.expectedDueDate;
+    } else if (dueDate != null && repeatInterval != null && repeatUnit != null) {
       final interval = repeatInterval!;
       switch (repeatUnit) {
         case 'day':

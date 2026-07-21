@@ -4,6 +4,25 @@ import '../../domain/entities/todo.dart';
 part 'todo_model.g.dart';
 
 @embedded
+class CompletionRecordModel {
+  late DateTime completedAt;
+  DateTime? expectedDueDate;
+
+  static CompletionRecordModel fromEntity(CompletionRecord entity) {
+    return CompletionRecordModel()
+      ..completedAt = entity.completedAt
+      ..expectedDueDate = entity.expectedDueDate;
+  }
+
+  CompletionRecord toEntity() {
+    return CompletionRecord(
+      completedAt: completedAt,
+      expectedDueDate: expectedDueDate,
+    );
+  }
+}
+
+@embedded
 class SubtaskModel {
   late String uuid;
   late String title;
@@ -43,7 +62,7 @@ class TodoModel {
   String? repeatUnit;
 
   List<SubtaskModel>? subtasks;
-  List<DateTime>? completionHistory;
+  List<CompletionRecordModel>? historyRecords;
 
   // 從 Entity 轉換為 Isar 支援的 Model
   static TodoModel fromEntity(Todo entity) {
@@ -63,7 +82,9 @@ class TodoModel {
       ..subtasks = entity.subtasks
           .map((s) => SubtaskModel.fromEntity(s))
           .toList()
-      ..completionHistory = entity.completionHistory;
+      ..historyRecords = entity.completionHistory
+          .map((c) => CompletionRecordModel.fromEntity(c))
+          .toList();
   }
 
   // 將 Isar Model 轉換為 Domain 核心的 Entity
@@ -82,7 +103,7 @@ class TodoModel {
       repeatInterval: repeatInterval,
       repeatUnit: repeatUnit,
       subtasks: subtasks?.map((s) => s.toEntity()).toList() ?? [],
-      completionHistory: completionHistory ?? [],
+      completionHistory: historyRecords?.map((h) => h.toEntity()).toList() ?? [],
     );
   }
 }

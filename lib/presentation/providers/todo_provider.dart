@@ -46,10 +46,17 @@ final filteredTodosProvider = Provider.family<AsyncValue<FilteredTodos>, int>((r
       if (!todo.isCompleted) {
         // Extract historical completions for repeating tasks
         if (tabIndex == 0 && todo.completionHistory.isNotEmpty) {
-          for (final historyDate in todo.completionHistory) {
+          DateTime? latestToday;
+          for (final record in todo.completionHistory) {
+            final historyDate = record.completedAt;
             if (!historyDate.isBefore(todayStart) && historyDate.isBefore(todayEnd)) {
-              completedTodayTodos.add(todo.copyWith(isCompleted: true, completedAt: historyDate));
+              if (latestToday == null || historyDate.isAfter(latestToday)) {
+                latestToday = historyDate;
+              }
             }
+          }
+          if (latestToday != null) {
+            completedTodayTodos.add(todo.copyWith(isCompleted: true, completedAt: latestToday));
           }
         }
 

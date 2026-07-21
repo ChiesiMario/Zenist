@@ -28,7 +28,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
   void _handleToggle(bool? v) {
     final isHistoryLog = widget.todo.isCompleted &&
         widget.todo.completedAt != null &&
-        widget.todo.completionHistory.contains(widget.todo.completedAt!);
+        widget.todo.completionHistory.any((r) => r.completedAt == widget.todo.completedAt!);
 
     if (isHistoryLog) {
       ref.read(todoNotifierProvider.notifier).undoRepeatCompletion(
@@ -75,6 +75,51 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
       default:
         return '';
     }
+  }
+
+  Widget _buildHistoryIcons() {
+    if (widget.todo.repeatInterval == null) return const SizedBox();
+    if (widget.todo.completionHistory.isEmpty) return const SizedBox();
+    
+    final records = widget.todo.completionHistory.reversed.take(5).toList().reversed.toList();
+    
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: records.map((record) {
+        bool isSuccess = true;
+        if (record.expectedDueDate != null) {
+          final completed = record.completedAt;
+          final expected = record.expectedDueDate!;
+          final completedDate = DateTime(completed.year, completed.month, completed.day);
+          final expectedDate = DateTime(expected.year, expected.month, expected.day);
+          isSuccess = !completedDate.isAfter(expectedDate);
+        }
+        final iconColor = ShadTheme.of(context).colorScheme.mutedForeground.withValues(alpha: 0.2);
+        return Padding(
+          padding: const EdgeInsets.only(left: 4.0),
+          child: isSuccess 
+            ? Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: iconColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(Icons.check, size: 10, color: ShadTheme.of(context).colorScheme.background),
+                ),
+              )
+            : Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  border: Border.all(color: iconColor),
+                  shape: BoxShape.circle,
+                ),
+              ),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -227,7 +272,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                             Padding(
                               padding: const EdgeInsets.only(top: 4.0),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
+                                mainAxisSize: MainAxisSize.max,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Transform.translate(
@@ -245,8 +290,9 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  Text(
-                                    (() {
+                                  Expanded(
+                                    child: Text(
+                                      (() {
                                       String dateStr = '';
                                       if (widget.todo.isAnytime || widget.todo.dueDate != null) {
                                         dateStr = DateFormatter.getRelativeDateString(
@@ -260,7 +306,7 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
 
                                       final isHistoryLog = widget.todo.isCompleted &&
                                           widget.todo.completedAt != null &&
-                                          widget.todo.completionHistory.contains(widget.todo.completedAt!);
+                                          widget.todo.completionHistory.any((r) => r.completedAt == widget.todo.completedAt!);
 
                                       if (widget.todo.repeatInterval != null &&
                                           widget.todo.repeatUnit != null) {
@@ -290,7 +336,10 @@ class _TodoItemWidgetState extends ConsumerState<TodoItemWidget> {
                                                   context,
                                                 ).colorScheme.mutedForeground,
                                         ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
+                                  _buildHistoryIcons(),
                                 ],
                               ),
                             ),

@@ -22,25 +22,26 @@ const TodoModelSchema = CollectionSchema(
       name: r'completedAt',
       type: IsarType.dateTime,
     ),
-    r'completionHistory': PropertySchema(
-      id: 1,
-      name: r'completionHistory',
-      type: IsarType.dateTimeList,
-    ),
     r'createdAt': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
     r'description': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'description',
       type: IsarType.string,
     ),
     r'dueDate': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'dueDate',
       type: IsarType.dateTime,
+    ),
+    r'historyRecords': PropertySchema(
+      id: 4,
+      name: r'historyRecords',
+      type: IsarType.objectList,
+      target: r'CompletionRecordModel',
     ),
     r'isAnytime': PropertySchema(
       id: 5,
@@ -123,7 +124,10 @@ const TodoModelSchema = CollectionSchema(
     )
   },
   links: {},
-  embeddedSchemas: {r'SubtaskModel': SubtaskModelSchema},
+  embeddedSchemas: {
+    r'SubtaskModel': SubtaskModelSchema,
+    r'CompletionRecordModel': CompletionRecordModelSchema
+  },
   getId: _todoModelGetId,
   getLinks: _todoModelGetLinks,
   attach: _todoModelAttach,
@@ -136,13 +140,21 @@ int _todoModelEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.description.length * 3;
   {
-    final value = object.completionHistory;
-    if (value != null) {
-      bytesCount += 3 + value.length * 8;
+    final list = object.historyRecords;
+    if (list != null) {
+      bytesCount += 3 + list.length * 3;
+      {
+        final offsets = allOffsets[CompletionRecordModel]!;
+        for (var i = 0; i < list.length; i++) {
+          final value = list[i];
+          bytesCount += CompletionRecordModelSchema.estimateSize(
+              value, offsets, allOffsets);
+        }
+      }
     }
   }
-  bytesCount += 3 + object.description.length * 3;
   {
     final value = object.repeatUnit;
     if (value != null) {
@@ -175,10 +187,15 @@ void _todoModelSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.completedAt);
-  writer.writeDateTimeList(offsets[1], object.completionHistory);
-  writer.writeDateTime(offsets[2], object.createdAt);
-  writer.writeString(offsets[3], object.description);
-  writer.writeDateTime(offsets[4], object.dueDate);
+  writer.writeDateTime(offsets[1], object.createdAt);
+  writer.writeString(offsets[2], object.description);
+  writer.writeDateTime(offsets[3], object.dueDate);
+  writer.writeObjectList<CompletionRecordModel>(
+    offsets[4],
+    allOffsets,
+    CompletionRecordModelSchema.serialize,
+    object.historyRecords,
+  );
   writer.writeBool(offsets[5], object.isAnytime);
   writer.writeBool(offsets[6], object.isCompleted);
   writer.writeBool(offsets[7], object.isDeleted);
@@ -203,10 +220,15 @@ TodoModel _todoModelDeserialize(
 ) {
   final object = TodoModel();
   object.completedAt = reader.readDateTimeOrNull(offsets[0]);
-  object.completionHistory = reader.readDateTimeList(offsets[1]);
-  object.createdAt = reader.readDateTime(offsets[2]);
-  object.description = reader.readString(offsets[3]);
-  object.dueDate = reader.readDateTimeOrNull(offsets[4]);
+  object.createdAt = reader.readDateTime(offsets[1]);
+  object.description = reader.readString(offsets[2]);
+  object.dueDate = reader.readDateTimeOrNull(offsets[3]);
+  object.historyRecords = reader.readObjectList<CompletionRecordModel>(
+    offsets[4],
+    CompletionRecordModelSchema.deserialize,
+    allOffsets,
+    CompletionRecordModel(),
+  );
   object.id = id;
   object.isAnytime = reader.readBool(offsets[5]);
   object.isCompleted = reader.readBool(offsets[6]);
@@ -235,13 +257,18 @@ P _todoModelDeserializeProp<P>(
     case 0:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 1:
-      return (reader.readDateTimeList(offset)) as P;
-    case 2:
       return (reader.readDateTime(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readString(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readDateTimeOrNull(offset)) as P;
+    case 4:
+      return (reader.readObjectList<CompletionRecordModel>(
+        offset,
+        CompletionRecordModelSchema.deserialize,
+        allOffsets,
+        CompletionRecordModel(),
+      )) as P;
     case 5:
       return (reader.readBool(offset)) as P;
     case 6:
@@ -650,169 +677,6 @@ extension TodoModelQueryFilter
     });
   }
 
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'completionHistory',
-      ));
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'completionHistory',
-      ));
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryElementEqualTo(DateTime value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'completionHistory',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryElementGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'completionHistory',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryElementLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'completionHistory',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryElementBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'completionHistory',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'completionHistory',
-        length,
-        true,
-        length,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'completionHistory',
-        0,
-        true,
-        0,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'completionHistory',
-        0,
-        false,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'completionHistory',
-        0,
-        true,
-        length,
-        include,
-      );
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'completionHistory',
-        length,
-        include,
-        999999,
-        true,
-      );
-    });
-  }
-
-  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
-      completionHistoryLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.listLength(
-        r'completionHistory',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
-
   QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> createdAtEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -1067,6 +931,113 @@ extension TodoModelQueryFilter
         upper: upper,
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'historyRecords',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'historyRecords',
+      ));
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsLengthEqualTo(int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'historyRecords',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'historyRecords',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'historyRecords',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'historyRecords',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'historyRecords',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'historyRecords',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
     });
   }
 
@@ -1800,6 +1771,13 @@ extension TodoModelQueryFilter
 
 extension TodoModelQueryObject
     on QueryBuilder<TodoModel, TodoModel, QFilterCondition> {
+  QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition>
+      historyRecordsElement(FilterQuery<CompletionRecordModel> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'historyRecords');
+    });
+  }
+
   QueryBuilder<TodoModel, TodoModel, QAfterFilterCondition> subtasksElement(
       FilterQuery<SubtaskModel> q) {
     return QueryBuilder.apply(this, (query) {
@@ -2124,12 +2102,6 @@ extension TodoModelQueryWhereDistinct
     });
   }
 
-  QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByCompletionHistory() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'completionHistory');
-    });
-  }
-
   QueryBuilder<TodoModel, TodoModel, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
@@ -2215,13 +2187,6 @@ extension TodoModelQueryProperty
     });
   }
 
-  QueryBuilder<TodoModel, List<DateTime>?, QQueryOperations>
-      completionHistoryProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'completionHistory');
-    });
-  }
-
   QueryBuilder<TodoModel, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
@@ -2237,6 +2202,13 @@ extension TodoModelQueryProperty
   QueryBuilder<TodoModel, DateTime?, QQueryOperations> dueDateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'dueDate');
+    });
+  }
+
+  QueryBuilder<TodoModel, List<CompletionRecordModel>?, QQueryOperations>
+      historyRecordsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'historyRecords');
     });
   }
 
@@ -2299,6 +2271,213 @@ extension TodoModelQueryProperty
 // **************************************************************************
 // IsarEmbeddedGenerator
 // **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const CompletionRecordModelSchema = Schema(
+  name: r'CompletionRecordModel',
+  id: 6134652630400182111,
+  properties: {
+    r'completedAt': PropertySchema(
+      id: 0,
+      name: r'completedAt',
+      type: IsarType.dateTime,
+    ),
+    r'expectedDueDate': PropertySchema(
+      id: 1,
+      name: r'expectedDueDate',
+      type: IsarType.dateTime,
+    )
+  },
+  estimateSize: _completionRecordModelEstimateSize,
+  serialize: _completionRecordModelSerialize,
+  deserialize: _completionRecordModelDeserialize,
+  deserializeProp: _completionRecordModelDeserializeProp,
+);
+
+int _completionRecordModelEstimateSize(
+  CompletionRecordModel object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
+}
+
+void _completionRecordModelSerialize(
+  CompletionRecordModel object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDateTime(offsets[0], object.completedAt);
+  writer.writeDateTime(offsets[1], object.expectedDueDate);
+}
+
+CompletionRecordModel _completionRecordModelDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = CompletionRecordModel();
+  object.completedAt = reader.readDateTime(offsets[0]);
+  object.expectedDueDate = reader.readDateTimeOrNull(offsets[1]);
+  return object;
+}
+
+P _completionRecordModelDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDateTime(offset)) as P;
+    case 1:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension CompletionRecordModelQueryFilter on QueryBuilder<
+    CompletionRecordModel, CompletionRecordModel, QFilterCondition> {
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> completedAtEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> completedAtGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> completedAtLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> completedAtBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'completedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> expectedDueDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'expectedDueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> expectedDueDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'expectedDueDate',
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> expectedDueDateEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'expectedDueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> expectedDueDateGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'expectedDueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> expectedDueDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'expectedDueDate',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<CompletionRecordModel, CompletionRecordModel,
+      QAfterFilterCondition> expectedDueDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'expectedDueDate',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+}
+
+extension CompletionRecordModelQueryObject on QueryBuilder<
+    CompletionRecordModel, CompletionRecordModel, QFilterCondition> {}
 
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
